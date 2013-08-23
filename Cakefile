@@ -88,10 +88,9 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
     description = ''
     for line, i in contents.split(/\r|\n|\r\n/)
         if line.match(/^#!/) then continue
-        if !line.match(/\S/) then continue
         if line.match(/-\*- mode/) then continue
-        if line.match(/^\s*#/)
-            description += line.replace(/^\s*#\s*/, '') + ' '
+        if line.match(/^\s*(#|\/\/|$)/)
+            description += line.replace(/^\s*(#|\/\/)\s*/, ' ').trim()
             continue
         break
     task(title, description, shellScript(filename))

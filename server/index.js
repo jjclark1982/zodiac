@@ -18,7 +18,12 @@ function startServer(port, path, callback) {
 
 // When launched directly via `node server`, start the server.
 if (module === require.main) {
-    startServer();
+    if (process.env.USE_CLUSTER) {
+        require("./cluster")(startServer);
+    }
+    else {
+        startServer();
+    }
 }
 
 module.exports = {

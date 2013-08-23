@@ -7,4 +7,3 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
     npm install
     echo NODE_ENV=development > .env
     cake develop
-    open http://localhost:5000/
