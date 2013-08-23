@@ -38,6 +38,9 @@
     },
     "neat": {
       "main": "app/assets/stylesheets/_neat.scss"
+    },
+    "rivets": {
+      "main": "dist/rivets.js"
     }
   }
 }

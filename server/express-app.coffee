@@ -14,6 +14,7 @@ app.use(express.methodOverride())
 app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
 app.use(express.cookieSession())
 
+app.use(express.favicon())
 app.use(express.static(path.resolve(__dirname, '../build')))
 
 app.use((req, res, next)->
