@@ -1,0 +1,8 @@
+module.exports = class {{#camelize}}{{name}}{{/camelize}} extends Backbone.Model
+    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    urlRoot: "/riak/{{name}}"
+
+    fields: {
+
+    }
+    

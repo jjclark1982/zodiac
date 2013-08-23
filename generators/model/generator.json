@@ -1,0 +1,8 @@
+{
+  "files": [
+    {
+      "from": "model.coffee.hbs",
+      "to": "client/models/{{name}}.coffee"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+BaseView = require("views/base")
+
+module.exports = class {{#camelize}}{{name}}-view{{/camelize}} extends BaseView
+    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    template: require("./template")
+    className: "{{name}}-view"

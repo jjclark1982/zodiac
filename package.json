@@ -17,22 +17,20 @@
     "bower": "~1.2.3",
     "spdy": "~1.10.5",
     "connect-opaque-error": "git://github.com/jjclark1982/connect-opaque-error.git",
-
     "coffee-script-brunch": ">= 1.0 < 1.8",
     "coffeelint-brunch": ">= 1.4 < 1.8",
     "javascript-brunch": ">= 1.0 < 1.8",
     "uglify-js-brunch": ">= 1.0 < 1.8",
-
     "sass-brunch": ">= 1.0 < 1.8",
     "css-brunch": ">= 1.0 < 1.8",
     "clean-css-brunch": ">= 1.0 < 1.8",
-
     "handlebars-brunch": ">= 1.5.4 < 1.8",
     "auto-reload-brunch": ">= 1.5 < 1.8"
   },
   "devDependencies": {
     "docco": "~0.6.2",
     "chai": "~1.7.2",
-    "mocha": "~1.12.0"
+    "mocha": "~1.12.0",
+    "scaffolt": "~0.4.0"
   }
 }
