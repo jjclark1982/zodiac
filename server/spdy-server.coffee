@@ -26,4 +26,4 @@ server.once('listening', ->
 module.exports = server
 
 if module is require.main
-    server.listen(process.env.SSL_PORT or 443)
+    server.listen(process.env.PORT or 443)

@@ -71,7 +71,7 @@ task 'test', 'Run tests', shellScript """
 """
 
 task 'develop', 'Run server with original code and auto-reloading', shellScript """
-    (sleep 1; open http://localhost:#{env.PORT}/) &
+    (sleep 1; open http://localhost:#{require("./config").config.server.port}/) &
     brunch watch --server
 """
 
