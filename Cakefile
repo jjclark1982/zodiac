@@ -61,6 +61,9 @@ task 'install', 'Install dependencies', shellScript """
 
     # install bower components
     bower install
+
+    # build the production client
+    brunch build --optimize
 """
 
 task 'test', 'Run tests', shellScript """
