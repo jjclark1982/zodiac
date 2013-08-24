@@ -4,7 +4,7 @@
   "scripts": {
     "install": "cake install",
     "test": "cake test",
-    "start": "cake deploy"
+    "start": "cake start"
   },
   "engines": {
     "node": "0.10.x",
@@ -26,7 +26,8 @@
     "clean-css-brunch": ">= 1.0 < 1.8",
     "handlebars-brunch": ">= 1.5.4 < 1.8",
     "auto-reload-brunch": ">= 1.5 < 1.8",
-    "dustjs-linkedin": "~2.0.2"
+    "dustjs-linkedin": "~2.0.2",
+    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git"
   },
   "devDependencies": {
     "docco": "~0.6.2",

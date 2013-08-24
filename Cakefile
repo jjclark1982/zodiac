@@ -62,10 +62,9 @@ task 'install', 'Install dependencies', shellScript """
 
     # install bower components
     bower install
-"""
 
-task 'test', 'Run tests', shellScript """
-    mocha --compilers coffee:coffee-script --globals _,Backbone,Handlebars test/test_server.coffee
+    # build the production client
+    brunch build --optimize
 """
 
 task 'develop', 'Run server with original code and auto-reloading', shellScript """
@@ -73,8 +72,15 @@ task 'develop', 'Run server with original code and auto-reloading', shellScript 
     brunch watch --server
 """
 
-task 'deploy', 'Minify the client and run the server', shellScript """
-    brunch build --optimize
+task 'build', 'Compile the client', shellScript """
+    brunch build
+"""
+
+task 'test', 'Run tests', shellScript """
+    mocha --compilers coffee:coffee-script --globals _,Backbone,Handlebars test/test_server.coffee
+"""
+
+task 'start', 'Minify the client and run the server', shellScript """
     node server
 """
 

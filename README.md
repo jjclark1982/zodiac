@@ -30,6 +30,7 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 
 - include basic test script that verifies compilation and has room for expansion
 - add precommit hook to recompile docs so they can be browsable on github
+- switch from handlebars to dust
 
 
 ## Documentation
