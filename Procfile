@@ -1,1 +1,1 @@
-web: node server
+web: cake deploy

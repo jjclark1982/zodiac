@@ -8,6 +8,23 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
     echo NODE_ENV=development > .env
     cake develop
 
+## Directory Organization
+
+[.env](.env) - specify development environment variables  
+[Cakefile](Cakefile) - run tasks in the specified environment  
+[Procfile](Procfile) - define production tasks  
+[scripts/](scripts/) - tasks that don't fit in the Cakefile  
+[generators/](generators/) - scaffolds for use with `scaffolt`  
+
+[package.json](package.json) - specify server libraries for installation with `npm`  
+[node_modules/](node_modules/) - installed server libraries  
+[server/](server/) - original backend source code  
+
+[config.coffee](config.coffee) - `brunch` configuration  
+[bower.json](bower.json) - specify client libraries for installation with `bower`  
+[bower_components/](bower_components/) - installed client libraries  
+[client/](client/) - original frontend source code  
+[build/](build/) - compiled frontend  
 
 ## TODO
 

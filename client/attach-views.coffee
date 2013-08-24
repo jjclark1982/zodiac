@@ -8,7 +8,7 @@ For any view transmitted as:
 This will instantiate the named view, model, and collection.
 ###
 
-attachView = (el)->
+attachView = (el, parentView)->
     data = $(el).data()
     return if data['view-attached']
     options = {el: el}
@@ -41,8 +41,11 @@ attachView = (el)->
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)
-    view.attach?()
-    view.hydrate?()
+    parentView?.registerSubview?(view)
+    attachSubviews(el, view)
+    view.postRender?()
+    # view.attach?()
+    # view.hydrate?()
     window.cachedViews ?= {}
     window.cachedViews[view.cid] = view
 
@@ -58,17 +61,45 @@ attachView = (el)->
             options.model.fetch()
         , 1)
 
-$(document).ready(->
-    $('[data-view]').each((i, el)->
-        attachView(el)
+attachSubviews = (parentEl, parentView)->
+    $('[data-view]', parentEl).each((i, el)->
+        attachView(el, parentView)
     )
+
+$(document).ready(->
+    attachSubviews(document)
 )
 
 module.exports = attachView
 
-
-
 ###
+
+instead of doing all elements on the page at this level
+and matching parents/children through cachedViews[],
+we could have the attach/hydrate method look for child views that are not yet attached,
+and then attach them recursively
+
+
+in-browser flow:
+init
+preRender
+getInnerHTML
+render
+postRender
+
+transport flow:
+init
+getInnerHTML
+getOuterHTML
+(xmit)
+attach
+(recursively attach children)
+postRender
+
+
+
+
+
 TODO: consider moving this functionality into BaseView constructor
 so that whenever we initialize a view with a tagged element
 it will automatically do these things

@@ -7,6 +7,7 @@ packageDef = require './package'
 env = {
     HOME: process.env.HOME
     PATH: "node_modules/.bin:"+process.env.PATH
+    NODE_PATH: "client"
 }
 try
     envText = fs.readFileSync('.env', 'utf8')
@@ -61,9 +62,6 @@ task 'install', 'Install dependencies', shellScript """
 
     # install bower components
     bower install
-
-    # build the production client
-    brunch build --optimize
 """
 
 task 'test', 'Run tests', shellScript """

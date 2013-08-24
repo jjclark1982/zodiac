@@ -1,3 +1,5 @@
+require("handlebars-config") # define the {{view}} helper
+
 module.exports = class BaseView extends Backbone.View
     # A class must provide its require path so that it can be attached
     requirePath: module.id.replace(/^.*\/app\/|(\/index)?(\.[^\/]+)?$/g, '')
@@ -91,11 +93,12 @@ module.exports = class BaseView extends Backbone.View
 
         # if this is a collection view and we are registering a model view:
         # add the model to the collection
-        if subview.model and @collection and !subview.model.collection?
-            url = _.result(subview.model, 'url')
-            if url.indexOf(@collection.url) is 0
-                subview.model.id ?= url.replace(@collection.url + '/', '')
-            @collection.add(subview.model)
+        if @collection and subview.model
+            if @collection.model is subviow.model.constructor and !subview.model.collection?
+                url = _.result(subview.model, 'url')
+                if url.indexOf(@collection.url) is 0
+                    subview.model.id ?= url.replace(@collection.url + '/', '')
+                @collection.add(subview.model)
         return @
 
     remove: ->
