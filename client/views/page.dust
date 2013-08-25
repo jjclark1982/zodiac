@@ -11,9 +11,9 @@
   <!--[if IE 7]><link rel="stylesheet" href="stylesheets/font-awesome-ie7.min.css"><![endif]-->
 </head>
 <body>
-  
+
   <div data-view="header">header goes here</div>
-  x<div id="routed-content">{content|s}</div>x
+  <div id="routed-content">{content|s}</div>
   <div data-view="footer">footer goes here</div>
 
   <script src="javascripts/vendor.js"></script>

@@ -71,8 +71,4 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - include basic test script that verifies compilation and has room for expansion
 - add precommit hook to recompile docs so they can be browsable on github
 
-- make a @view helper or >onLoad handler that can connect subviews to their superview asynchronously
-
 - switch from sass to stylus unless specifically requested otherwise
-
-- switch from node_riak to riak-js for better 2i support
