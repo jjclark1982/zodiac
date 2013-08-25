@@ -2,6 +2,8 @@ if window?
     dust = window.dust
 else
     dust = require("dustjs-linkedin")
+    if process.env.NODE_ENV is 'development'
+        dust.optimizers.format = (ctx, node)->node
 
 module.exports = dust
 
@@ -14,14 +16,15 @@ if (require.extensions)
         text = fs.readFileSync(filename, 'utf8')
         source = dust.compile(text, filename)
         dust.loadSource(source, filename)
-        module.exports = {
-            purge: ->
-                delete dust.cache[filename]
-            render: (context, callback)->
-                dust.render(filename, context, callback)
-            stream: (context)->
-                return dust.stream(filename, context)
-        }
+        if process.env.NODE_PATH
+            alias = filename.replace(process.cwd()+'/'+process.env.NODE_PATH+'/', '')
+            alias = alias.replace(/^views\//,'')
+            alias = alias.replace(/\.dust$/,'')
+            dust.cache[alias] = dust.cache[filename]
+        module.exports = (context, callback)->
+            dust.render(filename, context, callback)
+
+        module.exports.text = text
 
 
 # fs = require('fs')
@@ -45,31 +48,31 @@ the top-level server-side one streams, but everything else can be chunked
 e.g.
 ###
 
-dust.onLoad = (name, callback)->
-    if name.match(/\.dust$/)
-        try
-            require(name)
-            return callback()
-        catch e
-            return callback(e)
+# dust.render('page') triggers require('views/page')
 
+dust.onLoad = (name, callback)->
     try
-        viewCtor = require("views/"+name)
+        module = require("views/"+name)
     catch e
         return callback(e)
 
+    unless module.prototype?.requirePath
+        # this must be a plain dust template
+        return callback()
+
+    viewCtor = module
     # fill in the cache so it doesn't try to compile
     dust.cache[name] = (chunk, context)->
         cursor = context.stack
-        while cursor.tail
+        while cursor.tail?.head
             cursor = cursor.tail
-        superview = cursor.head
-        # todo: check if we have actually found the closest instanceof Backbone.View
+        options = cursor.head
+        superview = context.stack.head
 
-        view = new viewCtor(context.stack.head)
-        superview.registerSubview?(view)
+        view = new viewCtor(options)
+        superview?.registerSubview?(view)
         return chunk.map((branch)->
-            view.getOuterHtml((err, html)->
+            view.getOuterHTML((err, html)->
                 if !window? then view.stopListening()
                 if err then throw err
                 branch.write(html)

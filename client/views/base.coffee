@@ -1,15 +1,15 @@
 require("dust-helpers") # define the subview loader helper
-if !Backbone?
-    global._ = require('underscore')
+unless window?
+    global._ = require('lodash')
     global.Backbone = require('backbone')
+    Backbone.View.prototype._ensureElement = (->)
+    Backbone.View.prototype.delegateEvents = (->)
 
 module.exports = class BaseView extends Backbone.View
     # A class must provide its require path so that it can be attached
     requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
 
     className: 'base-view'
-
-    superview: null
 
     subviews: null
     
@@ -54,9 +54,10 @@ module.exports = class BaseView extends Backbone.View
         attrString = (for key, value of attrs when value?
             ''+key+'="' + value.toString().replace(/"/g, '\\"') + '"'
         ).join(" ")
+        tagName = @tagName or 'div'
 
         @getInnerHTML((err, inner)->
-            outer = "<#{@tagName} #{attrString}>#{inner}</#{@tagName}>"
+            outer = "<#{tagName} #{attrString}>#{inner}</#{tagName}>"
             callback(err, outer)
         )
 

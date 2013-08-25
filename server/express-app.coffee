@@ -48,15 +48,12 @@ module.exports = app
 # app.engine('dust', consolidate.dust)
 
 dust = require("../client/dust-helpers")
-page = require("../client/page")
+page = require("../client/views/page")
 app.get('/', (req, res, next)->
     # res.render('page', {content: "hello everybody"})
     # if process.env.NODE_ENV is 'development'
     #     dust.cache = {}
-    try
-        stream = page.stream('../page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
-    catch e
-        console.log("caught", e)
+    stream = dust.stream('page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
     stream.on('error', (err)->
         if res.headersSent
             message = 'Error'

@@ -1,3 +1,3 @@
-require("./hydrate-views")
+require("hydrate-views")
 
-console.log('initialized at', new Date())
+console.log('Client initialized.')

@@ -49,6 +49,8 @@ hydrateView = (el, parentView)->
     hydrateSubviews(el, view)
     view.attach()
     view.trigger("hydrate")
+    window.views ?= {}
+    window.views[view.cid] = view
 
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
@@ -98,7 +100,7 @@ module.exports = hydrateView
 - render innerHTML
     - subviews render their outerHTML
     - subviews call superview.registerSubview()
-- attach registered subviews to their elements    
+- attach registered subviews to their elements
 
 # Overall Flow
 
