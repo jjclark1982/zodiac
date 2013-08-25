@@ -11,7 +11,7 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 ## Directory Organization
 
 [.env](.env) - specify development environment variables  
-[Cakefile](Cakefile) - run tasks in the specified environment  
+[Cakefile](Cakefile) - run tasks in the specified environment with `cake`  
 [Procfile](Procfile) - define production tasks  
 [scripts/](scripts/) - tasks that don't fit in the Cakefile  
 [generators/](generators/) - scaffolds for use with `scaffolt`  
@@ -26,15 +26,17 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 [client/](client/) - original frontend source code  
 [build/](build/) - compiled frontend  
 
-## TODO
+## Code Style Guide
 
-- include basic test script that verifies compilation and has room for expansion
-- add precommit hook to recompile docs so they can be browsable on github
-- switch from handlebars to dust
+When parentheses or braces are optional, use them.
 
-- make a @view helper or >onLoad handler that can connect subviews to their superview asynchronously
+Filenames should be in `kebab-case`. JavaScript symbol names and properties should be in `camelCase`. JavaScript Class constructors should be in `UpperCamelCase`. CSS class names should be in `kebab-case`. Environment variables should be in `ALL_CAPS`.
 
-- switch from sass to stylus unless specifically requested otherwise
+### Custom Backbone Events
+
+- `render:before` - triggered each time a view begins rendering
+- `render:after` - triggered each time a view finishes rendering
+- `hydrate` - triggered once when a serialized view awakens for the first time
 
 ## Documentation
 
@@ -49,6 +51,9 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 - [Express](http://expressjs.com/) - Middleware-oriented asynchronous web server
 based on [Connect](http://www.senchalabs.org/connect/)
 - [Mocha](http://visionmedia.github.com/mocha/) - Unit testing
+- [Riak-js](http://riakjs.com/) - [Riak](http://docs.basho.com/riak/latest/dev/references/http/) client
+- [Passport](http://passportjs.org/) - Authentication
+
 - [Bower](http://twitter.github.com/bower/) - Web component manager
 - [Brunch](http://brunch.io/) - Build tool
 
@@ -60,3 +65,14 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [Rivets](http://rivetsjs.com/) - Reactive data binding, used for declaratively specifying behavior of view elements
 - [Font Awesome](http://fortawesome.github.com/Font-Awesome/) - Icon font
 - [Bourbon Neat](http://neat.bourbon.io/) - Semantic grid framework
+
+## TODO
+
+- include basic test script that verifies compilation and has room for expansion
+- add precommit hook to recompile docs so they can be browsable on github
+
+- make a @view helper or >onLoad handler that can connect subviews to their superview asynchronously
+
+- switch from sass to stylus unless specifically requested otherwise
+
+- switch from node_riak to riak-js for better 2i support

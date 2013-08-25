@@ -47,14 +47,14 @@ module.exports = app
 # app.set('views', __dirname + '/../client')
 # app.engine('dust', consolidate.dust)
 
-dust = require("./dust-helpers")
-# page = require("../client/page")
+dust = require("../client/dust-helpers")
+page = require("../client/page")
 app.get('/', (req, res, next)->
     # res.render('page', {content: "hello everybody"})
-    if process.env.NODE_ENV is 'development'
-        dust.cache = {}
+    # if process.env.NODE_ENV is 'development'
+    #     dust.cache = {}
     try
-        stream = dust.stream('page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
+        stream = page.stream('../page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
     catch e
         console.log("caught", e)
     stream.on('error', (err)->

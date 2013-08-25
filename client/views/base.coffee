@@ -1,11 +1,18 @@
-require("handlebars-config") # define the {{view}} helper
+require("dust-helpers") # define the subview loader helper
+if !Backbone?
+    global._ = require('underscore')
+    global.Backbone = require('backbone')
 
 module.exports = class BaseView extends Backbone.View
     # A class must provide its require path so that it can be attached
-    requirePath: module.id.replace(/^.*\/app\/|(\/index)?(\.[^\/]+)?$/g, '')
+    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
 
     className: 'base-view'
 
+    superview: null
+
+    subviews: null
+    
     attributes: ->
         atts = {
             "data-view": @requirePath.replace(/^views\//,'')
@@ -23,19 +30,21 @@ module.exports = class BaseView extends Backbone.View
             if @collection?.query
                 atts['data-collection-query'] = @collection.query.replace(/^\?/,'')
         return atts
-    
+
     templateContext: ->
         return @
 
     # subclasses should override this function to provide content
-    template: (context)->
-        return ""
+    template: (context, callback)->
+        callback(new Error("No template provided for #{@className}"))
+        return ''
 
-    getInnerHTML: ->
+    getInnerHTML: (callback)->
         context = _.result(@, 'templateContext')
-        return @template(context)
+        @template(context, callback)
 
-    getOuterHTML: ->
+    # server-side function that does not require a DOM
+    getOuterHTML: (callback)->
         attrs = _.defaults({}, _.result(@, 'attributes'))
         if (@id)
             attrs.id = _.result(@, 'id')
@@ -46,52 +55,51 @@ module.exports = class BaseView extends Backbone.View
             ''+key+'="' + value.toString().replace(/"/g, '\\"') + '"'
         ).join(" ")
 
-        return "<#{@tagName} #{attrString}>#{@getInnerHTML()}</#{@tagName}>"
-
-    # subclasses may override this function to perform setup that requires a DOM
-    preRender: ->
-        return @
+        @getInnerHTML((err, inner)->
+            outer = "<#{@tagName} #{attrString}>#{inner}</#{@tagName}>"
+            callback(err, outer)
+        )
 
     render: ->
-        @preRender?()
-        # @rivets?.unbind()
-        @$el.html(@getInnerHTML())
-        @attach()
-        return @
+        @trigger("render:before")
+        @$el.addClass("rendering")
+        @getInnerHTML((err, html)=>
+            if err
+                @$el.addClass("error").attr("data-error", err.message)
+                return
+            @$el.html(html)
+            @$el.removeClass("rendering")
 
-    # subclasses may override this function to perform binding that requires a DOM
-    postRender: ->
+            # the template will have populated @subviews
+            @attach()
+        )
         return @
 
     attach: ($element)->
         if $element? and $element isnt @$el
             @setElement($element)
-        window.cachedViews ?= {}
-        window.cachedViews[@cid] = @
-        @$el.attr('data-cid', @cid)
-        @$el.data('view-attached', true)
 
-        parentCid = @$el.parents('[data-view]').eq(0).data('cid')
-        parentView = window.cachedViews[parentCid]
-        parentView?.registerSubview(@)
+        @$el.attr('data-cid', @cid)
+        @$el.addClass(_.result(@, 'className'))
+        @$el.data('viewAttached', true)
 
         @attachSubviews()
-        # @rivets = rivets.bind?(@$el, @)
-        @postRender?()
+        @trigger("render:after")
         return @
 
     attachSubviews: ->
-        @subviews ?= {}
+        @subviews or= {}
         for cid, subview of @subviews
             $el = @$("[data-cid=#{cid}]")
-            unless $el.data('view-attached')
+            unless $el.data('viewAttached')
+                subview.trigger("render:before")
                 subview.attach($el)
 
     registerSubview: (subview)->
-        @subviews ?= {}
+        @subviews or= {}
         @subviews[subview.cid] = subview
 
-        # if this is a collection view and we are registering a model view:
+        # if this is a collection view and the subview is for a model in that collection:
         # add the model to the collection
         if @collection and subview.model
             if @collection.model is subviow.model.constructor and !subview.model.collection?
@@ -102,11 +110,7 @@ module.exports = class BaseView extends Backbone.View
         return @
 
     remove: ->
-        delete window.cachedViews[@cid]
-        # @rivets?.unbind()
-        @subviews = null
         for cid, subview of @subviews or {}
             subview.remove?()
+        @subviews = null
         super(arguments...)
-
-# TODO: remove dependence on window.cachedViews, both here and in router

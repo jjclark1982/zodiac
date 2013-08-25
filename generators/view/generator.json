@@ -5,11 +5,11 @@
       "to": "client/views/{{name}}/index.coffee"
     },
     {
-      "from": "template.hbs.hbs",
-      "to": "client/views/{{name}}/template.hbs"
+      "from": "template.hbs",
+      "to": "client/views/{{name}}/template.dust"
     },
     {
-      "from": "style.scss.hbs",
+      "from": "style.hbs",
       "to": "client/views/{{name}}/style.scss"
     }
   ]
