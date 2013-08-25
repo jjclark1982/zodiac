@@ -27,7 +27,8 @@
     "handlebars-brunch": ">= 1.5.4 < 1.8",
     "auto-reload-brunch": ">= 1.5 < 1.8",
     "dustjs-linkedin": "~2.0.2",
-    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git"
+    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
+    "riak": "~1.0.3"
   },
   "devDependencies": {
     "docco": "~0.6.2",

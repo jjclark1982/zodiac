@@ -78,3 +78,49 @@ app.get('/', (req, res, next)->
     #     res.send(200, result)
     # )
 )
+
+
+RiakClient = require("riak")
+servers = process.env.RIAK_SERVERS.split(/,/)
+client_id = 'express-app'
+pool_name = 'express-pool'
+
+client = new RiakClient(servers, client_id, pool_name)
+
+app.get('/activities/:id', (req, res, next)->
+    client.get('activities', req.params.id, {}, (err, response, object)->
+        if err then return next(err)
+        res.json(object)
+    )
+)
+
+app.get('/activities_by_city/:city', (req, res, next)->
+    bucket = encodeURIComponent('activities')
+    city = encodeURIComponent(req.params.city)
+
+    pool_options = {
+        path: "/buckets/#{bucket}/index/city_bin/#{city}"
+    }
+    client.pool.get(pool_options, (err, response, object)->
+        if err then return next(err)
+        res.json(JSON.parse(object))
+    )
+)
+
+    #     $.getJSON("/buckets/activities/index/city_bin/#{city}", (result, status, xhr)->
+
+    # pool_options = {
+    #     path: "/riak/" + encodeURIComponent(bucket) + "/" + encodeURIComponent(this.key) + qs,
+    #     headers: this.client.headers(this.options.http_headers),
+    #     retry_not_found: this.should_retry
+    # };
+
+    # if (this.debug_mode) {
+    #     this.client.log("riak request", "pool options: " + JSON.stringify(pool_options));
+    # }
+
+    # if (this.options.body) {
+    #     this.client.pool[this.method](pool_options, this.options.body, on_response);
+    # } else {
+    #     this.client.pool[this.method](pool_options, on_response);
+    # }
