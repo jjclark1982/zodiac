@@ -40,3 +40,41 @@ app.use((req, res, next)->
 app.use(opaqueError)
 
 module.exports = app
+
+
+# consolidate = require('consolidate')
+# app.set('view engine', 'dust')
+# app.set('views', __dirname + '/../client')
+# app.engine('dust', consolidate.dust)
+
+dust = require("./dust-helpers")
+# page = require("../client/page")
+app.get('/', (req, res, next)->
+    # res.render('page', {content: "hello everybody"})
+    if process.env.NODE_ENV is 'development'
+        dust.cache = {}
+    try
+        stream = dust.stream('page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
+    catch e
+        console.log("caught", e)
+    stream.on('error', (err)->
+        if res.headersSent
+            message = 'Error'
+            if process.env.NODE_ENV is 'development'
+                message = err.toString()
+            res.end("[Template #{message}]")
+        else
+            next(err)
+    )
+    stream.on('data', (data)->
+        return unless data.length > 0
+        res.write(data)
+    )
+    stream.on('end', ->
+        res.end()
+    )
+    # page({content: "hello everybody"}, (err, result)->
+    #     if err then return next(err)
+    #     res.send(200, result)
+    # )
+)

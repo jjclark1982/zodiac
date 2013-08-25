@@ -32,6 +32,9 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 - add precommit hook to recompile docs so they can be browsable on github
 - switch from handlebars to dust
 
+- make a @view helper or >onLoad handler that can connect subviews to their superview asynchronously
+
+- switch from sass to stylus unless specifically requested otherwise
 
 ## Documentation
 
@@ -53,7 +56,7 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [jQuery](http://api.jquery.com/) - DOM manipulation and AJAX
 - [Lodash](http://lodash.com/docs) - Functional programming utilities
 - [Backbone](http://backbonejs.org/) - Data transport modeling and event binding
-- [Handlebars](http://handlebarsjs.com/) - Logicless templates, used for filling in initial content of a view
-- [Rivets](http://rivetsjs.com/) - [Reactive](http://en.wikipedia.org/wiki/Reactive_programming) data binding, used for declaratively specifying behavior of view elements
+- [Dust](http://akdubya.github.io/dustjs/) - Asynchronous templates
+- [Rivets](http://rivetsjs.com/) - Reactive data binding, used for declaratively specifying behavior of view elements
 - [Font Awesome](http://fortawesome.github.com/Font-Awesome/) - Icon font
 - [Bourbon Neat](http://neat.bourbon.io/) - Semantic grid framework
