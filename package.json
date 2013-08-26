@@ -11,7 +11,7 @@
     "npm": "1.2.x"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3",
+    "coffee-script": "git://github.com/jashkenas/coffee-script.git",
     "express": "~3.3.5",
     "brunch": "~1.7.2",
     "bower": "~1.2.3",
