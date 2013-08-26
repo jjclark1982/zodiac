@@ -11,12 +11,6 @@
     "npm": "1.2.x"
   },
   "dependencies": {
-    "coffee-script": "git://github.com/jashkenas/coffee-script.git",
-    "express": "~3.3.5",
-    "brunch": "~1.7.2",
-    "bower": "~1.2.3",
-    "spdy": "~1.10.5",
-    "connect-opaque-error": "git://github.com/jjclark1982/connect-opaque-error.git",
     "coffee-script-brunch": ">= 1.0 < 1.8",
     "coffeelint-brunch": ">= 1.4 < 1.8",
     "javascript-brunch": ">= 1.0 < 1.8",
@@ -25,8 +19,14 @@
     "css-brunch": ">= 1.0 < 1.8",
     "clean-css-brunch": ">= 1.0 < 1.8",
     "auto-reload-brunch": ">= 1.5 < 1.8",
-    "dustjs-linkedin": "~2.0.2",
     "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
+    "coffee-script": "git://github.com/jashkenas/coffee-script.git",
+    "express": "~3.3.5",
+    "brunch": "~1.7.2",
+    "bower": "~1.2.3",
+    "spdy": "~1.10.5",
+    "connect-opaque-error": "git://github.com/jjclark1982/connect-opaque-error.git",
+    "dustjs-linkedin": "~2.0.2",
     "lodash": "~1.3.1",
     "backbone": "~1.0.0",
     "riak-js": "~0.10.2"
@@ -35,6 +35,7 @@
     "docco": "~0.6.2",
     "chai": "~1.7.2",
     "mocha": "~1.12.0",
-    "scaffolt": "~0.4.0"
+    "scaffolt": "~0.4.0",
+    "coffeelint": "~0.5.7"
   }
 }

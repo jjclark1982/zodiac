@@ -26,7 +26,5 @@ if (module === require.main) {
     }
 }
 
-module.exports = {
-    server: server,
-    startServer: startServer
-};
+module.exports = server;
+module.exports.startServer = startServer;

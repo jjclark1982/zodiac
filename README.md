@@ -68,7 +68,6 @@ based on [Connect](http://www.senchalabs.org/connect/)
 
 ## TODO
 
-- include basic test script that verifies compilation and has room for expansion
 - add precommit hook to recompile docs so they can be browsable on github
 
 - switch from sass to stylus unless specifically requested otherwise

@@ -49,6 +49,7 @@ module.exports = app
 
 dust = require("../client/dust-helpers")
 app.get('/', (req, res, next)->
+    res.set("Content-Type", "text/html")
     if process.env.NODE_ENV is 'development'
         dust.cache = {}
         for key, val of require.cache
