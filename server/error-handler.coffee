@@ -1,6 +1,4 @@
 http = require("http")
-# connect = require("connect")
-# errorHandler = connect.errorHandler()
 
 module.exports = (err, req, res, next)->
     switch toString.call(err)
@@ -16,18 +14,8 @@ module.exports = (err, req, res, next)->
     err.name = http.STATUS_CODES[res.statusCode]
     err.message or= "cannot #{req.method} #{req.path}"
 
-    # connect.errorHandler.title = 'Server Error'
-    # if (status >= 400 and status < 500)
-    #     connect.errorHandler.title = 'Error'
-
     if req.app.get('env') is 'production'
         delete err.stack
 
-    res.render('error', {error: err})
+    res.render('error', {title: "#{err.status} #{err.name}", error: err})
     return
-
-    errorHandler(err, req, res, next)
-
-    # delete details after logging the error, but before loading it into the template
-    if (process.env.NODE_ENV is 'production' or req.app?.get?('env') is 'production')
-        delete err.stack
