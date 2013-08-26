@@ -1,10 +1,12 @@
 path = require("path")
 express = require("express")
+require("./dust-renderer")
 opaqueError = require("connect-opaque-error")
 
 app = express()
 
 app.set('appName', require('../package.json').name)
+app.set('views', '../client/views')
 app.configure('production', ->
     app.use(express.logger())
 )
@@ -37,41 +39,15 @@ app.use((req, res, next)->
 app.use((req, res, next)->
     next(404)
 )
-app.use(opaqueError)
+app.use((err, req, res, next)->
+    res.send(200, err)
+)
 
 module.exports = app
 
 
-# consolidate = require('consolidate')
-# app.set('view engine', 'dust')
-# app.set('views', __dirname + '/../client')
-# app.engine('dust', consolidate.dust)
-
-dust = require("../client/dust-helpers")
 app.get('/', (req, res, next)->
-    res.set("Content-Type", "text/html")
-    if process.env.NODE_ENV is 'development'
-        dust.cache = {}
-        for key, val of require.cache
-            if key.match(/\.dust$/)
-                delete require.cache[key]
-    stream = dust.stream('page', {content: "<h1>hello everybody</h1>", list: ['a','b','c']})
-    stream.on('error', (err)->
-        if res.headersSent
-            message = 'Error'
-            if process.env.NODE_ENV is 'development'
-                message = err.toString()
-            res.end("[Template #{message}]")
-        else
-            next(err)
-    )
-    stream.on('data', (data)->
-        return unless data.length > 0
-        res.write(data)
-    )
-    stream.on('end', ->
-        res.end()
-    )
+    res.render('widget')
 )
 
 riak = require("riak-js")

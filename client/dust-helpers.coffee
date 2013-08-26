@@ -26,30 +26,9 @@ if (require.extensions)
 
         module.exports.text = text
 
-
-# fs = require('fs')
-# fsPath = require('path')
-# dust.onLoad = (name, callback)->
-#     name = name.replace(/(\.dust)?$/, '')
-#     filename = fsPath.resolve(__dirname, "../client/#{name}.dust")
-#     fs.readFile(filename, 'utf8', (err, result)->
-#         try
-#             callback(err, result)
-#         catch e
-#             callback(e)
-#     )
-
-###
-instead of looking directly for the .dust template,
-the onLoad handler could instantiate the named backbone view
-
-the top-level server-side one streams, but everything else can be chunked
-
-e.g.
-###
-
 # dust.render('page') triggers require('views/page')
-
+# usage: {>page mainView=mainView options=options /}
+# {>"{itemView}" model=. tagName="li" />
 dust.onLoad = (name, callback)->
     try
         module = require("views/"+name)
@@ -68,6 +47,8 @@ dust.onLoad = (name, callback)->
             while cursor.tail?.head
                 cursor = cursor.tail
             options = cursor.head
+            if options and 'options' of options
+                options = options.options
             superview = context.stack.head
 
             view = new viewCtor(options)
@@ -82,56 +63,6 @@ dust.onLoad = (name, callback)->
             )
     
     callback()
-
-# render: ->
-#     @$el.addClass("rendering")
-#     @getInnerHtml((err, html)=>
-#         @$el.html(html)
-#         @$el.removeClass("rendering")
-#         @attach()
-#     )
-
-
-# getInnerHtml: (callback)->
-#     context = _.result(@, 'templateContext')
-#     @template(context, callback)
-#     return @
-
-# ###
-# {#collection.models}
-#     {>itemView model=. parent=???}
-# {/collection.models}
-
-
-# doesn't give us easy access to the root
-# but if we did it as a @helper instead of a >partial
-# the helper function could inspect the root
-# ###
-
-# view: (chunk, context, bodies, params)->
-#     superview = params.superview
-#     unless superview
-#         cursor = context.stack
-#         while cursor.tail
-#             cursor = cursor.tail
-#         superview = cursor
-
-#     viewCtor = require("views/"+params.type)
-#     view = new viewCtor(params)
-
-#     return chunk.map((branch)->
-#         view.getOuterHtml((err, html)->
-#             if err then throw err
-#             branch.write(html)
-#             branch.end()
-#         )
-#     )
-
-# ###
-# but if i register a view with dust.register(name, tmpl)
-# and the tmpl is of the format (chunk, context)->chunk.end()
-# it could insert arbitrary view code between the renderer and the template
-# ###
 
 dust.helpers or= {}
 
