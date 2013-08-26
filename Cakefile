@@ -37,36 +37,6 @@ task 'console', 'Open an interactive prompt', ->
         if require.extensions[path.extname(file)]
             context[moduleName(file)] = require("./server/#{file}")
 
-task 'clean', 'Remove built and managed files', shellScript """
-    rm -rf docs
-    rm -rf build
-    rm -rf bower_components
-    rm -rf node_modules
-"""
-
-task 'install', 'Install dependencies', shellScript """
-    # this script is normally run by `npm install`
-    # if NPM hasn't been run yet, run it now
-    if [ ! -e "./node_modules/" ]; then
-        exec npm install
-    fi
-
-    # compile docs
-    [ -x "$(which docco)" ] && docco -e .coffee Cakefile server/*
-
-    # install sass on production
-    if [ ! -x "$(which sass)" -a "$(uname)" != "Darwin" ]; then
-        export GEM_HOME="${HOME}/.ruby_gems"
-        gem install --bindir "bin" --no-rdoc --no-ri sass
-    fi
-
-    # install bower components
-    bower install
-
-    # build the production client
-    brunch build --optimize
-"""
-
 task 'develop', 'Run server with original code and auto-reloading', shellScript """
     (sleep 1; open http://localhost:#{require("./config").config.server.port}/) &
     brunch watch --server
