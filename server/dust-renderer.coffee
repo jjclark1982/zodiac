@@ -1,6 +1,15 @@
 fsPath = require("path")
 dust = require("../client/dust-helpers")
 
+makeContext = (args...)->
+    context = dust.makeBase({})
+    for arg in args when arg
+        obj = {}
+        for key, val of arg
+            obj[key] = val
+        context = context.push(obj)
+    return context
+
 require("express/lib/response").render = (view, options, callback)->
     res = this
     req = res.req
@@ -32,11 +41,7 @@ require("express/lib/response").render = (view, options, callback)->
             else
                 res.end()
 
-    context = dust.makeBase(app.locals);
-    if res.locals
-        context = context.push(res.locals)
-    if options
-        context = context.push(options)
+    context = makeContext(app.locals, res.locals, options)
 
     if !req.xhr
         context = context.push({mainView: view})

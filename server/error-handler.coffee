@@ -18,4 +18,3 @@ module.exports = (err, req, res, next)->
         delete err.stack
 
     res.render('error', {title: "#{err.status} #{err.name}", error: err})
-    return
