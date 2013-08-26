@@ -1,7 +1,7 @@
 path = require("path")
 express = require("express")
 require("./dust-renderer")
-opaqueError = require("connect-opaque-error")
+errorHandler = require("./error-handler")
 
 app = express()
 
@@ -39,15 +39,13 @@ app.use((req, res, next)->
 app.use((req, res, next)->
     next(404)
 )
-app.use((err, req, res, next)->
-    res.send(200, err)
-)
+app.use(errorHandler)
 
 module.exports = app
 
 
 app.get('/', (req, res, next)->
-    res.render('widget')
+    res.render('widget', {title: "Homepage - #{app.get('appName')}"})
 )
 
 riak = require("riak-js")

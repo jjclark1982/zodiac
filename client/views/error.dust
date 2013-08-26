@@ -1,0 +1,10 @@
+<div style="margin: 2em">
+{#error}
+    <h2>Error {status}: {name}</h2>
+    {#stack}
+        <p style="white-space:pre-wrap;">{.}</p>
+    {:else}
+        <p>{message}</p>
+    {/stack}
+{/error}
+</div>

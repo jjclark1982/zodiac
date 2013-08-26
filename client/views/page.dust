@@ -9,13 +9,13 @@
     <meta name="viewport" content="width=1100, maximum-scale=1.0">
     <link rel="stylesheet" href="stylesheets/app.css">
     <!--[if IE 7]><link rel="stylesheet" href="stylesheets/font-awesome-ie7.min.css"><![endif]-->
+    <title>{#title}{.}{:else}{settings.appName}{/title}</title>
 </head>
 <body>
-    env: {settings.env}
 
     {>header /}
     <div id="routed-content">
-        {mainView}: {>"{mainView}" model=model collection=collection options=options /}
+        {>"{mainView}" model=model collection=collection /}
     </div>
     {>footer /}
 
