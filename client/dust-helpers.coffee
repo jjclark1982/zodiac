@@ -54,31 +54,33 @@ dust.onLoad = (name, callback)->
     try
         module = require("views/"+name)
     catch e
-        return callback(e)
+        try
+            module = require(name)
+        catch e2
+            return callback(e2)
 
-    unless module.prototype?.requirePath
-        # this must be a plain dust template
-        return callback()
+    if module.prototype?.requirePath
+        # this appears to be a backbone view
+        viewCtor = module
+        # fill in the cache so it doesn't try to compile
+        dust.cache[name] = (chunk, context)->
+            cursor = context.stack
+            while cursor.tail?.head
+                cursor = cursor.tail
+            options = cursor.head
+            superview = context.stack.head
 
-    viewCtor = module
-    # fill in the cache so it doesn't try to compile
-    dust.cache[name] = (chunk, context)->
-        cursor = context.stack
-        while cursor.tail?.head
-            cursor = cursor.tail
-        options = cursor.head
-        superview = context.stack.head
-
-        view = new viewCtor(options)
-        superview?.registerSubview?(view)
-        return chunk.map((branch)->
-            view.getOuterHTML((err, html)->
-                if !window? then view.stopListening()
-                if err then throw err
-                branch.write(html)
-                branch.end()
+            view = new viewCtor(options)
+            superview?.registerSubview?(view)
+            return chunk.map((branch)->
+                view.getOuterHTML((err, html)->
+                    if !window? then view.stopListening()
+                    if err then throw err
+                    branch.write(html)
+                    branch.end()
+                )
             )
-        )
+    
     callback()
 
 # render: ->
@@ -130,3 +132,45 @@ dust.onLoad = (name, callback)->
 # and the tmpl is of the format (chunk, context)->chunk.end()
 # it could insert arbitrary view code between the renderer and the template
 # ###
+
+dust.helpers or= {}
+
+# usage: {@bind key='name' tagName='span'}initial value{/bind}
+dust.helpers.bind = (chunk, context, bodies, params)->
+    view = context.stack.head
+    model = view.model
+    key = params.key
+    tagName = params.tagName or 'span'
+
+    if tagName.match(/^input$/i)
+        chunk.write("<#{tagName} data-bind=\"#{key}\" value=\"")
+        if bodies.block
+            bodies.block(chunk, context)
+        else
+            chunk.write(model.get(key))
+        chunk.write("\" />")
+
+        view.$el?.on("input [data-bind=\"#{key}\"]", (event)->
+            value = $(event.target).val()
+            model.set(key, value)
+        )
+        view.listenTo(model, "change:#{key}", (model, value, options)->
+            view.$("#{tagName}[data-bind='#{key}']").each((i, el)->
+                # only match elements of this view, not subviews
+                if $(el).parents('[data-cid]').eq(0).data('cid') is view.cid
+                    $(el).val(value)
+            )
+        )
+    else
+        chunk.write("<#{tagName} data-bind=\"#{key}\">")
+        if bodies.block
+            bodies.block(chunk, context)
+        else
+            chunk.write(model.get(key))
+        chunk.write("</#{tagName}>")
+
+        view.listenTo(model, "change:#{key}", (model, value, options)->
+            view.$("[data-bind='#{key}']").text(value)
+        )
+
+    return chunk
