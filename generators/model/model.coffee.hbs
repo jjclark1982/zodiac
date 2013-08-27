@@ -1,8 +1,9 @@
-module.exports = class {{#camelize}}{{name}}{{/camelize}} extends Backbone.Model
+BaseModel = require("./base")
+
+module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
-    urlRoot: "/data/{{name}}"
+    urlRoot: "/{{name}}s"
+    bucket: "{{name}}s"
 
-    fields: {
-
-    }
-    
+    validate: (attributes, options)->
+        return null

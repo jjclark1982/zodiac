@@ -5,6 +5,7 @@ module.exports = class ListView extends BaseView
     requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
     template: require("./template")
     className: "list-view"
+    tagName: "ul"
 
     initialize: (options)->
         @itemView ?= @options.itemView or 'activity'
@@ -46,7 +47,6 @@ module.exports = class ListView extends BaseView
                 @removeItemView(model)
 
         # insert each current item at the correct location
-        @$ul = @$("ul.item-views").eq(0)
         @$lis = null
         for model, index in collection.models
             @insertItemView(model, collection, _.defaults({at: index}, options))
@@ -59,8 +59,9 @@ module.exports = class ListView extends BaseView
         index = options.at
 
         # check the current state of the dom
-        @$ul or= @$("ul.item-views").eq(0)
-        @$lis or= @$ul.children()
+        @$lis or= @$el.children()
+        if @$lis.length is 0
+            @$el.empty() # remove any 'no items found' text
 
         wasInDom = (itemView.$el.parent().length > 0)
 
@@ -74,7 +75,7 @@ module.exports = class ListView extends BaseView
 
         else
             # insert at the end
-            @$ul.append(itemView.el)
+            @$el.append(itemView.el)
 
         if wasInDom
             @$lis = null
@@ -130,6 +131,9 @@ module.exports = class ListView extends BaseView
     filter: ->
         return unless @collection.filterCond
 
+        @$el.children().detach()
+        # TODO: figure out why each li was being duplicated on load
+
         _.defer(=>
             @populateItems()
 
@@ -144,3 +148,4 @@ module.exports = class ListView extends BaseView
             countStr = "#{count} " + (if count is 1 then 'activity' else 'activities')
             @$(".num-found").text("Found #{countStr} matching your criteria")
         )
+        return @

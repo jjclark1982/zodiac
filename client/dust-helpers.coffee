@@ -26,6 +26,16 @@ if (require.extensions)
 
         module.exports.text = text
 
+mergeContext = (context)->
+    obj = {}
+    cursor = context.stack
+    while cursor.head
+        for key, val of cursor.head
+            obj[key] ?= val
+        cursor = cursor.tail
+    return obj
+
+
 # dust.render('page') triggers require('views/page')
 # usage: {>page mainView=mainView options=options /}
 # {>"{itemView}" model=. tagName="li" />
@@ -43,15 +53,22 @@ dust.onLoad = (name, callback)->
         viewCtor = module
         # fill in the cache so it doesn't try to compile
         dust.cache[name] = (chunk, context)->
+            superview = null
             cursor = context.stack
-            while cursor.tail?.head
+            while cursor.head
+                if typeof cursor.head.registerSubview is 'function'
+                    superview = cursor.head
+                    break
                 cursor = cursor.tail
-            options = cursor.head
-            if options and 'options' of options
-                options = options.options
-            superview = context.stack.head
 
-            view = new viewCtor(context.stack.tail.head)
+            # try to match the template params
+            # if there are none, use the current context
+            options = context.stack.tail?.head or context.stack.head
+            # but never use an existing view as a context, that would create a loop
+            if options is superview
+                options = {}
+
+            view = new viewCtor(options)
             superview?.registerSubview?(view)
             return chunk.map((branch)->
                 view.getOuterHTML((err, html)->
@@ -115,3 +132,25 @@ dust.helpers.keyvalue = (chunk, context, bodies)->
         chunk = chunk.render(bodies.block, context.push(ctx))
 
     return chunk
+
+
+dust.helpers.contextDump = (chunk, context, bodies, params={})->
+    to = params.to or 'output'
+    key = params.key or 'current'
+    try
+        if (key is 'full')
+            array = []
+            cursor = context.stack
+            while cursor
+                array.push(cursor.head or context.global)
+                cursor = cursor.tail
+            dump = JSON.stringify(array, null, '  ')
+        else
+            dump = JSON.stringify(context.current(), null, '  ')
+    catch e
+        dump = e
+    if (to is 'console')
+        console.log(dump)
+        return chunk
+    else
+        return chunk.write(dump)

@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    {>header /}
+    {>header user=user /}
     <div id="routed-content">
         {>"{mainView}" model=model collection=collection /}
     </div>

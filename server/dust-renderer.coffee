@@ -10,26 +10,30 @@ makeContext = (args...)->
         context = context.push(obj)
     return context
 
-require("express/lib/response").render = (view, options, callback)->
+# remove cached dust views and required view code
+# in case it has changed on disk during development
+invalidateCache = (views)->
+    dust.cache = {}
+    viewsDir = fsPath.resolve(views)
+    recompilable = new RegExp("^"+viewsDir+"|\\.dust$", 'g')
+    for key, val of require.cache
+        if key.match(recompilable)
+            delete require.cache[key]
+
+require("express/lib/response").render = (view, options={}, callback)->
     res = this
     req = res.req
     app = res.app
 
-    # invalidate cached views in case they have changed on disk
     if app.get("env") is 'development'
-        dust.cache = {}
-        viewsDir = fsPath.resolve(app.get("views"))
-        recompilable = new RegExp("^"+viewsDir+"|\\.dust$", 'g')
-        for key, val of require.cache
-            if key.match(recompilable)
-                delete require.cache[key]
+        invalidateCache(app.get("views"))
 
     if typeof options is 'function'
         callback = options
-        options = null
+        options = {}
 
     if !callback
-        callback = (err, result)->
+        callback = (err)->
             if err
                 if res.headersSent
                     message = 'Error'
@@ -44,7 +48,7 @@ require("express/lib/response").render = (view, options, callback)->
     context = makeContext(app.locals, res.locals, options)
 
     if !req.xhr
-        context = context.push({mainView: view})
+        context.global.mainView = view
         view = 'page'
 
     res.set("Content-Type", "text/html")

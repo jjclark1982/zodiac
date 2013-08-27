@@ -11,7 +11,7 @@
 collectionsByUrl = {}
 fetchCollection = (data, constructors)->
     collection = null
-    if constructors.collection or data.collectionUrl
+    if data.collectionUrl
         if collectionsByUrl[data.collectionUrl]
             collection = collectionsByUrl[data.collectionUrl]
         else
@@ -25,6 +25,7 @@ fetchCollection = (data, constructors)->
                 collection.fetch()
             , 1)
             collectionsByUrl[data.collectionUrl] = collection
+            collection.fetch({data: collection.query})
 
     return collection
 
@@ -51,6 +52,8 @@ hydrateView = (el, parentView)->
         constructors.model ?= Backbone.Model
         options.model = new constructors.model({}, {url: data.modelUrl})
 
+    # fetch the latest data from the given url.
+    # this is the primary way of loading non-displayed model attributes.
     options.collection = fetchCollection(data, constructors)
 
     # initialize the view, giving it a chance to register for 'change' events
@@ -64,13 +67,9 @@ hydrateView = (el, parentView)->
     window.views ?= {}
     window.views[view.cid] = view
 
-    # fetch the latest data from the given url.
-    # this is the primary way of loading non-displayed model attributes.
-    if data.collectionUrl
-        options.collection.fetch({data: options.collection.query})
-
     # if a newly created model is part of a collection,
     # assume that is because the collection is already being fetched
+    # otherwise, fetch the model
     if data.modelUrl and !options.model.collection
         setTimeout(->
             options.model.fetch()

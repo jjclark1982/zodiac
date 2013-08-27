@@ -1,5 +1,5 @@
-<ul class="item-views">
-    {#collection.models}
-        {>"{itemView}" model=. tagName="li" /}
-    {/collection.models}
-</ul>
+{#collection.models}
+    {>"{itemView}" model=. tagName="li" /}
+{:else}
+    no items found
+{/collection.models}
