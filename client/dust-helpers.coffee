@@ -36,7 +36,7 @@ dust.onLoad = (name, callback)->
         try
             module = require(name)
         catch e2
-            return callback(e2)
+            return callback(e)
 
     if module.prototype?.requirePath
         # this appears to be a backbone view
@@ -51,7 +51,7 @@ dust.onLoad = (name, callback)->
                 options = options.options
             superview = context.stack.head
 
-            view = new viewCtor(options)
+            view = new viewCtor(context.stack.tail.head)
             superview?.registerSubview?(view)
             return chunk.map((branch)->
                 view.getOuterHTML((err, html)->
@@ -104,5 +104,14 @@ dust.helpers.bind = (chunk, context, bodies, params)->
         view.listenTo(model, "change:#{key}", (model, value, options)->
             view.$("[data-bind='#{key}']").text(value)
         )
+
+    return chunk
+
+dust.helpers.keyvalue = (chunk, context, bodies)->
+    items = context.current()
+
+    for key, val of items
+        ctx = {"key" : key, "value" : val}
+        chunk = chunk.render(bodies.block, context.push(ctx))
 
     return chunk

@@ -8,6 +8,26 @@
 #
 # This will instantiate the named view, model, and collection.
 
+collectionsByUrl = {}
+fetchCollection = (data, constructors)->
+    collection = null
+    if constructors.collection or data.collectionUrl
+        if collectionsByUrl[data.collectionUrl]
+            collection = collectionsByUrl[data.collectionUrl]
+        else
+            constructors.collection ?= Backbone.Collection
+            collection = new constructors.collection([], {
+                url: data.collectionUrl
+                model: constructors.collectionModel
+            })
+            collection.query = data.collectionQuery
+            setTimeout(->
+                collection.fetch()
+            , 1)
+            collectionsByUrl[data.collectionUrl] = collection
+
+    return collection
+
 hydrateView = (el, parentView)->
     data = $(el).data()
     return if data['viewAttached']
@@ -31,13 +51,7 @@ hydrateView = (el, parentView)->
         constructors.model ?= Backbone.Model
         options.model = new constructors.model({}, {url: data.modelUrl})
 
-    if constructors.collection or data.collectionUrl
-        constructors.collection ?= Backbone.Collection
-        options.collection = new constructors.collection([], {
-            url: data.collectionUrl
-            model: constructors.collectionModel
-        })
-        options.collection.query = data.collectionQuery
+    options.collection = fetchCollection(data, constructors)
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)

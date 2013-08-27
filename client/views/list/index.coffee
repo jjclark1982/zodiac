@@ -7,7 +7,7 @@ module.exports = class ListView extends BaseView
     className: "list-view"
 
     initialize: (options)->
-        @itemView ?= @options.itemView or 'generic'
+        @itemView ?= @options.itemView or 'activity'
         @itemViewCtor = require("views/"+@itemView)
         @collection ?= new Backbone.Collection()
         @listenTo(@collection, "add", @insertItemView)
@@ -17,6 +17,10 @@ module.exports = class ListView extends BaseView
         @listenTo(@collection, "request", @syncStarted)
         @listenTo(@collection, "sync", @syncFinished)
         @listenTo(@collection, "error", @syncError)
+        @listenTo(@collection, "filter", @filter)
+        @listenToOnce(@collection, "sync", ->
+            @collection.trigger("filter")
+        )
         # @listenTo(@collection, "all", ->console.log(arguments))
         return @
 
@@ -55,6 +59,7 @@ module.exports = class ListView extends BaseView
         index = options.at
 
         # check the current state of the dom
+        @$ul or= @$("ul.item-views").eq(0)
         @$lis or= @$ul.children()
 
         wasInDom = (itemView.$el.parent().length > 0)
@@ -87,6 +92,8 @@ module.exports = class ListView extends BaseView
         return @
 
     getItemView: (model)->
+        @modelViews or= {}
+        @subviews or= {}
         if @modelViews[model.cid]
             itemView = @modelViews[model.cid]
         else for cid, subview of @subviews when subview.model?
@@ -105,6 +112,7 @@ module.exports = class ListView extends BaseView
         return itemView
 
     removeItemView: (model)->
+        return unless model
         @$lis = null
         if @modelViews[model.cid]
             itemView = @modelViews[model.cid]
@@ -118,3 +126,21 @@ module.exports = class ListView extends BaseView
         setTimeout(->
             itemView.remove()
         , animationLength)
+
+    filter: ->
+        return unless @collection.filterCond
+
+        _.defer(=>
+            @populateItems()
+
+            count = 0
+            for model in @collection.models
+                itemView = @getItemView(model)
+                if @collection.filterCond(model)
+                    # itemView.$el.show()
+                    count++
+                else
+                    itemView.$el.detach()
+            countStr = "#{count} " + (if count is 1 then 'activity' else 'activities')
+            @$(".num-found").text("Found #{countStr} matching your criteria")
+        )

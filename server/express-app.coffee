@@ -2,6 +2,7 @@ path = require("path")
 express = require("express")
 require("./dust-renderer")
 errorHandler = require("./error-handler")
+async = require("async")
 
 app = express()
 
@@ -44,8 +45,28 @@ app.use(errorHandler)
 module.exports = app
 
 
+Backbone = require("backbone")
 app.get('/', (req, res, next)->
-    res.render('widget', {title: "Homepage - #{app.get('appName')}"})
+    db.query('activities', {city: "Paris"}, (err, keys, meta)->
+        if err then return next(err)
+        c = new Backbone.Collection()
+
+        async.map(keys, (key, callback)->
+            db.get('activities', key, {}, (err, object, meta)->
+                callback(err, object)
+            )
+        , (err, results)->
+            if err then return next(err)
+            c = new Backbone.Collection(results)
+            c.url = "/activities_by_city/Paris"
+
+            res.render('activities', {
+                collection: c
+            })
+        )
+
+    )
+    # res.render('activities', {title: "Homepage - #{app.get('appName')}"})
 )
 
 riak = require("riak-js")
@@ -64,8 +85,15 @@ app.get('/activities/:id', (req, res, next)->
 )
 
 app.get('/activities_by_city/:city', (req, res, next)->
-    db.query('activities', {city: req.params.city}, (err, object, meta)->
+    db.query('activities', {city: req.params.city}, (err, keys, meta)->
         if err then return next(err)
-        res.json(object)
+        async.map(keys, (key, callback)->
+            db.get('activities', key, {}, (err, object, meta)->
+                callback(err, object)
+            )
+        , (err, results)->
+            if err then return next(err)
+            res.json(results)
+        )
     )
 )

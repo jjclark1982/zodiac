@@ -103,7 +103,7 @@ module.exports = class BaseView extends Backbone.View
         # if this is a collection view and the subview is for a model in that collection:
         # add the model to the collection
         if @collection and subview.model
-            if @collection.model is subviow.model.constructor and !subview.model.collection?
+            if @collection.model is subview.model.constructor and !subview.model.collection?
                 url = _.result(subview.model, 'url')
                 if url.indexOf(@collection.url) is 0
                     subview.model.id ?= url.replace(@collection.url + '/', '')

@@ -1,4 +1,3 @@
-<b>[ListView]</b>
 <ul class="item-views">
     {#collection.models}
         {>"{itemView}" model=. tagName="li" /}

@@ -1,6 +1,6 @@
 # stacktest
 
-Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch.io) frontend and [Riak](http://basho.com/riak/) backend
+Developmental [Express](http://expressjs.com/) server with [Brunch](http://brunch.io) frontend and [Riak](http://basho.com/riak/) backend
 
 ## Usage
 
@@ -23,6 +23,7 @@ Most server modules should export a singleton. Most client modules should export
 - `render:before` - triggered each time a view begins rendering
 - `render:after` - triggered each time a view finishes rendering
 - `hydrate` - triggered once when a serialized view awakens for the first time
+- `filter` - triggered when a collection's `filterCond` has been updated
 
 ### Directory Organization
 
