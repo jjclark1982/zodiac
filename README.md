@@ -8,7 +8,23 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
     echo NODE_ENV=development > .env
     cake develop
 
-## Directory Organization
+## Code Style Guide
+
+Reusable components should be broken into separate repositories that can be installed by `npm` or `bower`.
+
+When parentheses or braces are optional, use them.
+
+Filenames should be in `kebab-case`. JavaScript symbol names and properties should be in `camelCase`. JavaScript Class constructors should be in `UpperCamelCase`. CSS class names should be in `kebab-case`. Environment variables should be in `ALL_CAPS`.
+
+Most server modules should export a singleton. Most client modules should export a class constructor.
+
+### Custom Backbone Events
+
+- `render:before` - triggered each time a view begins rendering
+- `render:after` - triggered each time a view finishes rendering
+- `hydrate` - triggered once when a serialized view awakens for the first time
+
+### Directory Organization
 
 [.env](.env) - specify development environment variables  
 [Cakefile](Cakefile) - run tasks in the specified environment with `cake`  
@@ -26,36 +42,24 @@ Experimental [Express](http://expressjs.com/) server with [Brunch](http://brunch
 [client/](client/) - original frontend source code  
 [build/](build/) - compiled frontend  
 
-## Code Style Guide
-
-When parentheses or braces are optional, use them.
-
-Filenames should be in `kebab-case`. JavaScript symbol names and properties should be in `camelCase`. JavaScript Class constructors should be in `UpperCamelCase`. CSS class names should be in `kebab-case`. Environment variables should be in `ALL_CAPS`.
-
-Most server modules should export a singleton. Most client modules should export a class constructor.
-
-### Custom Backbone Events
-
-- `render:before` - triggered each time a view begins rendering
-- `render:after` - triggered each time a view finishes rendering
-- `hydrate` - triggered once when a serialized view awakens for the first time
-
 ## Documentation
 
 ### Build Tools
 
+You may wish to install some of these globally with `npm install -g`
+
+- [Cake](http://coffeescript.org/documentation/docs/cake.html) - Task runner. Run `cake` with no arguments to see a list of supported tasks.
 - [NPM](https://npmjs.org/doc/cli/npm.html) - Node Package Manager
 - [Bower](http://twitter.github.com/bower/) - Web component manager
 - [Scaffolt](https://github.com/paulmillr/scaffolt) - Module generator
 - [Brunch](http://brunch.io/) - Web app assembler
-- [Cake](http://coffeescript.org/documentation/docs/cake.html) - Task runner
 
 ### Backend Frameworks (installed in `node_modules/`)
 
 - [Express](http://expressjs.com/) - Middleware-oriented asynchronous web server
 based on [Connect](http://www.senchalabs.org/connect/)
 - [Mocha](http://visionmedia.github.com/mocha/) - Unit testing
-- [Riak-js](http://riakjs.com/) - [Riak](http://docs.basho.com/riak/latest/dev/references/http/) client
+- [Riak-js](http://riakjs.com/) - Client for [Riak](http://docs.basho.com/riak/latest/dev/references/http/)
 - [Passport](http://passportjs.org/) - Authentication
 
 ### Frontend Frameworks (installed in `bower_components/`)
@@ -74,7 +78,7 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [Sass](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html)
 - [HTTP/1.1](http://www.w3.org/Protocols/rfc2616/rfc2616.html) - [Header Fields](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html), [Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
-## TODO
+## To Do
 
 - add precommit hook to recompile docs so they can be browsable on github
 

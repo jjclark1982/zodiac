@@ -60,7 +60,7 @@ task 'build', 'Compile the client', shellScript """
     brunch build
 """
 
-task 'test', 'Run tests', shellScript """
+task 'test', 'Run server-side tests', shellScript """
     mocha --compilers coffee:coffee-script --globals _,Backbone test/test_server.coffee
     # open 'http://localhost:#{require("./config").config.server.port}/test'
 """
