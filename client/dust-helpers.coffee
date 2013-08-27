@@ -81,17 +81,18 @@ dust.helpers.bind = (chunk, context, bodies, params)->
             chunk.write(model.get(key))
         chunk.write("\" />")
 
-        view.$el?.on("input [data-bind=\"#{key}\"]", (event)->
-            value = $(event.target).val()
-            model.set(key, value)
-        )
-        view.listenTo(model, "change:#{key}", (model, value, options)->
-            view.$("#{tagName}[data-bind='#{key}']").each((i, el)->
-                # only match elements of this view, not subviews
-                if $(el).parents('[data-cid]').eq(0).data('cid') is view.cid
-                    $(el).val(value)
+        if window?
+            setVal = (event)->
+                value = $(event.target).val()
+                model.set(key, value)
+            view.$el?.on("input [data-bind=\"#{key}\"]", _.throttle(setVal, 30))
+            view.listenTo(model, "change:#{key}", (model, value, options)->
+                view.$("#{tagName}[data-bind='#{key}']").each((i, el)->
+                    # only match elements of this view, not subviews
+                    if $(el).parents('[data-cid]').eq(0).data('cid') is view.cid
+                        $(el).val(value)
+                )
             )
-        )
     else
         chunk.write("<#{tagName} data-bind=\"#{key}\">")
         if bodies.block

@@ -1,14 +1,12 @@
-###
-For any view transmitted as:
-
-    <div data-view="views/document"
-         data-model="models/document"
-         data-model-url="/documents/1">
-        Field: initial value
-    </div>
-
-This will instantiate the named view, model, and collection.
-###
+# For any view transmitted as:
+#
+#     <div data-view="views/document"
+#          data-model="models/document"
+#          data-model-url="/documents/1">
+#         Field: initial value
+#     </div>
+#
+# This will instantiate the named view, model, and collection.
 
 hydrateView = (el, parentView)->
     data = $(el).data()
@@ -76,45 +74,41 @@ $(document).ready(->
 module.exports = hydrateView
 
 
-###
+# # Server Rendering Flow
+# - load json object
+# - instantiate backbone model
+# - instantiate backbone view
+# - get view's outerHTML
+#     - get subviews' outerHTML
+#     - subviews register with parent
+# - stop listening
+#     - remove subviews as well
+# - xmit
+# - find dom elements with [data-view]
+#     - instantiate views for those elements
+#         - instantiate subviews for their child elements
+#         - store those subviews in superview.subviews{} for gc
 
-# Server Rendering Flow
-- load json object
-- instantiate backbone model
-- instantiate backbone view
-- get view's outerHTML
-    - get subviews' outerHTML
-    - subviews register with parent
-- stop listening
-    - remove subviews as well
-- xmit
-- find dom elements with [data-view]
-    - instantiate views for those elements
-        - instantiate subviews for their child elements
-        - store those subviews in superview.subviews{} for gc
+# # Client Rendering Flow
+# - instantiate model
+# - instantiate view
+# - add view to dom
+# - render innerHTML
+#     - subviews render their outerHTML
+#     - subviews call superview.registerSubview()
+# - attach registered subviews to their elements
 
-# Client Rendering Flow
-- instantiate model
-- instantiate view
-- add view to dom
-- render innerHTML
-    - subviews render their outerHTML
-    - subviews call superview.registerSubview()
-- attach registered subviews to their elements
+# # Overall Flow
 
-# Overall Flow
+# subviews are always attached to an existing el.
+# but on the client they already have data,
+# whereas on the wire they need data
 
-subviews are always attached to an existing el.
-but on the client they already have data,
-whereas on the wire they need data
+# so the two cases we need to consider are
+# - post-transmit attach (rehydrate)
+# - post-render attach (claimElement)
 
-so the two cases we need to consider are
-- post-transmit attach (rehydrate)
-- post-render attach (claimElement)
-
-if the post-render attach checked element data and filled in any missing object data,
-it could be used for both cases.
-but that would not let view.initialize() assume model and collection had been set.
-therefore they should be separate
-
-###
+# if the post-render attach checked element data and filled in any missing object data,
+# it could be used for both cases.
+# but that would not let view.initialize() assume model and collection had been set.
+# therefore they should be separate

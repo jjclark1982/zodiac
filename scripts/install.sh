@@ -9,7 +9,7 @@ if [ ! -e "./node_modules/" ]; then
 fi
 
 # compile docs
-[ -x "$(which docco)" ] && docco -e .coffee Cakefile server/*
+[ -x "$(which docco)" ] && docco server/* client/{*,*/*}.coffee
 
 # install sass on production
 if [ ! -x "$(which sass)" -a "$(uname)" != "Darwin" ]; then

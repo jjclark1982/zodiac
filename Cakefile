@@ -52,6 +52,10 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
         break
     task(title, description, shellScript(filename))
 
+task 'docs', 'Compile internal documentation', shellScript """
+    docco server/* client/{*,*/*}.coffee
+"""
+
 task 'build', 'Compile the client', shellScript """
     brunch build
 """

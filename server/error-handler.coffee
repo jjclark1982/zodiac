@@ -17,4 +17,12 @@ module.exports = (err, req, res, next)->
     if req.app.get('env') is 'production'
         delete err.stack
 
-    res.render('error', {title: "#{err.status} #{err.name}", error: err})
+    res.format({
+        json: ->
+            res.json(err)
+        html: ->
+            res.render('error', {title: "#{err.status} #{err.name}", error: err})
+        default: ->
+            res.end(err.message)
+    })
+

@@ -32,6 +32,8 @@ When parentheses or braces are optional, use them.
 
 Filenames should be in `kebab-case`. JavaScript symbol names and properties should be in `camelCase`. JavaScript Class constructors should be in `UpperCamelCase`. CSS class names should be in `kebab-case`. Environment variables should be in `ALL_CAPS`.
 
+Most server modules should export a singleton. Most client modules should export a class constructor.
+
 ### Custom Backbone Events
 
 - `render:before` - triggered each time a view begins rendering
@@ -40,11 +42,13 @@ Filenames should be in `kebab-case`. JavaScript symbol names and properties shou
 
 ## Documentation
 
-### Language Reference
+### Build Tools
 
-- [CoffeeScript](http://coffeescript.org/)
-- [Sass](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html)
-- [HTTP/1.1](http://www.w3.org/Protocols/rfc2616/rfc2616.html) - [Header Fields](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html), [Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+- [NPM](https://npmjs.org/doc/cli/npm.html) - Node Package Manager
+- [Bower](http://twitter.github.com/bower/) - Web component manager
+- [Scaffolt](https://github.com/paulmillr/scaffolt) - Module generator
+- [Brunch](http://brunch.io/) - Web app assembler
+- [Cake](http://coffeescript.org/documentation/docs/cake.html) - Task runner
 
 ### Backend Frameworks (installed in `node_modules/`)
 
@@ -54,17 +58,21 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [Riak-js](http://riakjs.com/) - [Riak](http://docs.basho.com/riak/latest/dev/references/http/) client
 - [Passport](http://passportjs.org/) - Authentication
 
-- [Bower](http://twitter.github.com/bower/) - Web component manager
-- [Brunch](http://brunch.io/) - Build tool
-
 ### Frontend Frameworks (installed in `bower_components/`)
+
 - [jQuery](http://api.jquery.com/) - DOM manipulation and AJAX
-- [Lodash](http://lodash.com/docs) - Functional programming utilities
+- [Lodash](http://lodash.com/docs) - Functional programming utilities based on [Underscore](http://underscorejs.org/)
 - [Backbone](http://backbonejs.org/) - Data transport modeling and event binding
 - [Dust](http://akdubya.github.io/dustjs/) - Asynchronous templates
 - [Rivets](http://rivetsjs.com/) - Reactive data binding, used for declaratively specifying behavior of view elements
 - [Font Awesome](http://fortawesome.github.com/Font-Awesome/) - Icon font
 - [Bourbon Neat](http://neat.bourbon.io/) - Semantic grid framework
+
+### Language Reference
+
+- [CoffeeScript](http://coffeescript.org/)
+- [Sass](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html)
+- [HTTP/1.1](http://www.w3.org/Protocols/rfc2616/rfc2616.html) - [Header Fields](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html), [Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
 ## TODO
 
