@@ -9,25 +9,38 @@
 # This will instantiate the named view, model, and collection.
 
 collectionsByUrl = {}
-fetchCollection = (data, constructors)->
-    collection = null
-    if data.collectionUrl
-        if collectionsByUrl[data.collectionUrl]
-            collection = collectionsByUrl[data.collectionUrl]
-        else
-            constructors.collection ?= Backbone.Collection
-            collection = new constructors.collection([], {
-                url: data.collectionUrl
-                model: constructors.collectionModel
+fetchCollection = (url, query, ctors)->
+    if url
+        collection = collectionsByUrl[url]
+        if !collection
+            ctors.collection ?= Backbone.Collection
+            collection = new ctors.collection([], {
+                url: url
+                model: ctors.model or Backbone.Model
             })
-            collection.query = data.collectionQuery
-            setTimeout(->
-                collection.fetch()
-            , 1)
-            collectionsByUrl[data.collectionUrl] = collection
+            collection.query = query
+            collectionsByUrl[url] = collection
+
             collection.fetch({data: collection.query})
 
     return collection
+
+modelsByUrl = {}
+fetchModel = (url, modelCtor)->
+    if url
+        model = modelsByUrl[url]
+        if !model
+            modelCtor ?= Backbone.Model
+            model = new modelCtor({}, {url: url})
+            modelsByUrl[url] = model
+
+            collection = collectionsByUrl[model.urlRoot]
+            if collection
+                # assume the collection is already fetching the model and will merge
+                collection.add(model)
+            else
+                model.fetch()
+    return model
 
 hydrateView = (el, parentView)->
     data = $(el).data()
@@ -48,13 +61,11 @@ hydrateView = (el, parentView)->
                     console.error("Failed to hydrate", el, ":", e.message)
                     return
 
-    if constructors.model or data.modelUrl
-        constructors.model ?= Backbone.Model
-        options.model = new constructors.model({}, {url: data.modelUrl})
-
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
-    options.collection = fetchCollection(data, constructors)
+    options.collection = fetchCollection(data.collectionUrl, data.collectionQuery, constructors)
+
+    options.model = fetchModel(data.modelUrl, constructors.model)
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)
@@ -66,14 +77,9 @@ hydrateView = (el, parentView)->
     view.trigger("hydrate")
     window.views ?= {}
     window.views[view.cid] = view
-
-    # if a newly created model is part of a collection,
-    # assume that is because the collection is already being fetched
-    # otherwise, fetch the model
-    if data.modelUrl and !options.model.collection
-        setTimeout(->
-            options.model.fetch()
-        , 1)
+    viewName = constructors.view.name
+    viewName = viewName.charAt(0).toLowerCase() + viewName.slice(1)
+    window.views[viewName] or= view
 
 hydrateSubviews = (parentEl, parentView)->
     $('[data-view]', parentEl).each((i, el)->

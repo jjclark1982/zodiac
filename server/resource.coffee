@@ -43,28 +43,41 @@ module.exports = (modelCtor)->
         db.query(bucket, req.query, (err, keys, meta)->
             if err then return next(err)
 
-            # TODO: stream this instead of waiting for complete set
-            async.map(keys, (key, callback)->
-                db.get('activities', key, {}, (err, object, meta)->
-                    callback(err, object)
-                )
-            , (err, results)->
-                if err then return next(err)
-                res.format({
-                    json: ->
+            res.format({
+                json: ->
+                    async.map(keys, (key, callback)->
+                        db.get('activities', key, {}, (err, object, meta)->
+                            callback(err, object)
+                        )
+                    , (err, results)->
+                        if err then return next(err)
                         res.json(results)
-                    html: ->
-                        collection = new Backbone.Collection(results, {
-                            model: modelCtor
-                            url: req.originalUrl.replace(/\?.*$/, '')
-                        })
-                        collection.query = req.originalUrl.replace(/^[^\?]*/,'')
-                        res.render(modelProto.defaultListView, {
-                            itemView: modelProto.defaultView
-                            collection: collection
-                        })
-                })
-            )
+                    )
+                html: ->
+                    modelCtor.prototype.fetch = (options)->
+                        db.get('activities', @id, {}, (err, object, meta)=>
+                            if err then return options.error?(err)
+                            @set(object)
+                            options.success?()
+                        )
+                    collection = new Backbone.Collection([], {
+                        model: modelCtor
+                        url: req.originalUrl.replace(/\?.*$/, '')
+                    })
+                    collection.query = req.originalUrl.replace(/^[^\?]*/,'')
+
+                    for key in keys
+                        model = new modelCtor()
+                        model.id = key
+                        model.needsData = true
+                        collection.add(model)
+
+                    res.writeContinue()
+                    res.render(modelProto.defaultListView, {
+                        itemView: modelProto.defaultView
+                        collection: collection
+                    })
+            })
         )
     )
 

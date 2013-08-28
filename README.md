@@ -84,3 +84,6 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - add precommit hook to recompile docs so they can be browsable on github
 
 - switch from sass to stylus unless specifically requested otherwise
+
+
+-> add .needsData property to models that might want to stream from the server

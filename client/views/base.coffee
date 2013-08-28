@@ -40,8 +40,20 @@ module.exports = class BaseView extends Backbone.View
         return ''
 
     getInnerHTML: (callback)->
-        context = _.result(@, 'templateContext')
-        @template(context, callback)
+        if @model?.needsData
+            @model.fetch({
+                success: =>
+                    @model.needsData = false
+                    @getInnerHTML(callback)
+                error: (model, response, options)=>
+                    callback(response.responseJSON or response or "fetch error")
+            })
+            return
+        try
+            context = _.result(@, 'templateContext')
+            @template(context, callback)
+        catch e
+            callback(e)
 
     # server-side function that does not require a DOM
     getOuterHTML: (callback)->
@@ -56,7 +68,7 @@ module.exports = class BaseView extends Backbone.View
         ).join(" ")
         tagName = @tagName or 'div'
 
-        @getInnerHTML((err, inner)->
+        @getInnerHTML((err, inner)=>
             outer = "<#{tagName} #{attrString}>#{inner}</#{tagName}>"
             callback(err, outer)
         )
