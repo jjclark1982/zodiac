@@ -131,7 +131,7 @@ module.exports = class ListView extends BaseView
     filter: ->
         return unless @collection.filterCond
 
-        @$el.children().detach()
+        # @$el.children().detach()
         # TODO: figure out why each li was being duplicated on load
 
         _.defer(=>

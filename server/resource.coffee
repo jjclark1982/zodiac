@@ -86,7 +86,8 @@ module.exports = (modelCtor)->
             json: ->
                 res.json(res.locals.model)
             html: ->
-                res.render(modelProto.defaultView, {model: res.locals.model})
+                model = new modelCtor(res.locals.model)
+                res.render(modelProto.defaultView, {model: model})
         })
     )
 

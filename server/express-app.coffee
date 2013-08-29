@@ -46,8 +46,7 @@ app.use((req, res, next)->
 app.use(errorHandler)
 
 app.get('/', (req, res, next)->
-    res.render('landing')
+    res.render('landing', {list: [1..30]})
 )
 
 module.exports = app
-

@@ -34,16 +34,14 @@ require("express/lib/response").render = (view, options={}, callback)->
 
     if !callback
         callback = (err)->
-            if err
-                if res.headersSent
-                    message = 'Error'
-                    if app.get("env") is 'development'
-                        message = err.toString()
-                    res.end("[Template #{message}]")
-                else
-                    next(err)
+            return res.end() unless err
+            if res.headersSent
+                message = 'Error'
+                if app.get("env") is 'development'
+                    message = err.toString()
+                res.end("[Template #{message}]")
             else
-                res.end()
+                next(err)
 
     context = makeContext(app.locals, res.locals, options)
 
@@ -51,7 +49,10 @@ require("express/lib/response").render = (view, options={}, callback)->
         context.global.mainView = view
         view = 'page'
 
-    res.set("Content-Type", "text/html")
+    # enable streaming to browser
+    res.writeContinue()
+    res.writeHead(200, {"Content-Type": "text/html"})
+
     stream = dust.stream(view, context)
     stream.on('data', (data)->
         res.write(data) if data.length > 0

@@ -13,18 +13,19 @@ if (require.extensions)
         throw new Error("dust require extension no longer needed")
     require.extensions[".dust"] = (module, filename)->
         fs = require("fs")
-        text = fs.readFileSync(filename, 'utf8')
+        text = fs.readFileSync(filename, 'utf8').trim()
         source = dust.compile(text, filename)
-        dust.loadSource(source, filename)
+        tmpl = dust.loadSource(source, filename)
         if process.env.NODE_PATH
             alias = filename.replace(process.cwd()+'/'+process.env.NODE_PATH+'/', '')
             alias = alias.replace(/^views\//,'')
             alias = alias.replace(/\.dust$/,'')
             dust.cache[alias] = dust.cache[filename]
-        module.exports = (context, callback)->
+        module.exports = tmpl
+        module.exports.render = (context, callback)->
             dust.render(filename, context, callback)
-
-        module.exports.text = text
+        module.exports.stream = (context)->
+            dust.stream(filename, context, callback)
 
 mergeContext = (context)->
     obj = {}
@@ -48,7 +49,7 @@ dust.onLoad = (name, callback)->
         catch e2
             return callback(e)
 
-    if module.prototype?.requirePath
+    if module.prototype?.registerSubview
         # this appears to be a backbone view
         viewCtor = module
         # fill in the cache so it doesn't try to compile
@@ -68,17 +69,23 @@ dust.onLoad = (name, callback)->
             if options is superview
                 options = {}
 
-            view = new viewCtor(options)
-            superview?.registerSubview?(view)
-            return chunk.map((branch)->
-                view.getOuterHTML((err, html)->
-                    if !window? then view.stopListening()
-                    if err then throw err
-                    branch.write(html)
-                    branch.end()
+            try
+                view = new viewCtor(options)
+                superview?.registerSubview?(view)
+                return chunk.map((branch)->
+                    tagName = view.tagName or 'div'
+                    attrString = view.attrString()
+                    branch.write("<#{tagName} #{attrString}>")
+
+                    view.templateContext((context)->
+                        context = dust.makeBase({}).push(context)
+                        branch = view.template(branch, context)
+                        branch.write("</#{tagName}>\n")
+                        branch.end()
+                    )
                 )
-            )
-    
+            catch e
+                return chunk.setError(e)
     callback()
 
 dust.helpers or= {}

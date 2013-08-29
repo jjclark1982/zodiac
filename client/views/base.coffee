@@ -31,45 +31,50 @@ module.exports = class BaseView extends Backbone.View
                 atts['data-collection-query'] = @collection.query.replace(/^\?/,'')
         return atts
 
-    templateContext: ->
-        return @
-
-    # subclasses should override this function to provide content
-    template: (context, callback)->
-        callback(new Error("No template provided for #{@className}"))
-        return ''
-
-    getInnerHTML: (callback)->
-        if @model?.needsData
-            @model.fetch({
-                success: =>
-                    @model.needsData = false
-                    @getInnerHTML(callback)
-                error: (model, response, options)=>
-                    callback(response.responseJSON or response or "fetch error")
-            })
-            return
-        try
-            context = _.result(@, 'templateContext')
-            @template(context, callback)
-        catch e
-            callback(e)
-
-    # server-side function that does not require a DOM
-    getOuterHTML: (callback)->
+    attrString: ->
         attrs = _.defaults({}, _.result(@, 'attributes'))
         if (@id)
             attrs.id = _.result(@, 'id')
         if (@className)
             attrs['class'] = _.result(@, 'className')
 
-        attrString = (for key, value of attrs when value?
+        str = (for key, value of attrs when value?
             ''+key+'="' + value.toString().replace(/"/g, '\\"') + '"'
         ).join(" ")
-        tagName = @tagName or 'div'
+        return str
 
+    templateContext: (callback)->
+        # rendering asynchronously means we can pass a model into a view before it has data
+        if @model?.needsData
+            @model.fetch({
+                success: =>
+                    @model.needsData = false
+                    callback(@)
+                error: (model, response, options)=>
+                    callback(response.responseJSON or response or "fetch error")
+            })
+        else
+            callback(@)
+
+    # subclasses should override this function to provide content
+    # TODO: treat @template as a (chunk, context) fn
+    template: (context, callback)->
+        callback(new Error("No template provided for #{@className}"))
+        return ''
+
+    getInnerHTML: (callback)->
+        @templateContext((context)=>
+            try
+                @template.render(context, callback)
+            catch e
+                callback(e)
+        )
+
+    # server-side function that does not require a DOM
+    getOuterHTML: (callback)->
+        tagName = @tagName or 'div'
         @getInnerHTML((err, inner)=>
-            outer = "<#{tagName} #{attrString}>#{inner}</#{tagName}>"
+            outer = "<#{tagName} #{@attrString()}>#{inner}</#{tagName}>"
             callback(err, outer)
         )
 
