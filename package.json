@@ -1,5 +1,6 @@
 {
   "name": "stacktest",
+  "repository": "git@github.com:DestinationSoftware/stacktest.git",
   "version": "0.0.1",
   "scripts": {
     "install": "cake install",
@@ -21,7 +22,7 @@
     "auto-reload-brunch": ">= 1.5 < 1.8",
     "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
     "coffee-script": "git://github.com/jashkenas/coffee-script.git",
-    "express": "~3.3.5",
+    "express": "3.3.5",
     "brunch": "~1.7.2",
     "bower": "~1.2.3",
     "spdy": "~1.10.5",

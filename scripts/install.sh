@@ -21,4 +21,4 @@ fi
 bower install
 
 # build the production client
-brunch build --optimize
+brunch build --production
