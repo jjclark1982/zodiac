@@ -51,7 +51,7 @@ module.exports = class BaseView extends Backbone.View
                     @model.needsData = false
                     callback(@)
                 error: (model, response, options)=>
-                    callback(response.responseJSON or response or "fetch error")
+                    callback(response?.responseJSON or response or "fetch error")
             })
         else
             callback(@)

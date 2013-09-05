@@ -27,17 +27,21 @@ fetchCollection = (url, query, ctors)->
 
 modelsByUrl = {}
 fetchModel = (url, modelCtor)->
+    # TODO: support models with no urlRoot
     if url
         model = modelsByUrl[url]
         if !model
             modelCtor ?= Backbone.Model
             model = new modelCtor({}, {url: url})
+            model.id = url.replace(modelCtor.prototype.urlRoot + '/', '')
             modelsByUrl[url] = model
 
             collection = collectionsByUrl[model.urlRoot]
             if collection
                 # assume the collection is already fetching the model and will merge
-                collection.add(model)
+                # don't fire an 'add' event because the collection view is
+                # presumably already populated
+                collection.add(model, {silent: true})
             else
                 model.fetch()
     return model

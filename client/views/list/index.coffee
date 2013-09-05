@@ -8,7 +8,9 @@ module.exports = class ListView extends BaseView
     tagName: "ul"
 
     initialize: (options)->
-        @itemView ?= @options.itemView or 'activity'
+        @itemView ?= @options.itemView or 'generic'
+        # TODO: load itemView from el attr if present
+        # data-ify all string options?
         @itemViewCtor = require("views/"+@itemView)
         @collection ?= new Backbone.Collection()
         @listenTo(@collection, "add", @insertItemView)
@@ -19,9 +21,9 @@ module.exports = class ListView extends BaseView
         @listenTo(@collection, "sync", @syncFinished)
         @listenTo(@collection, "error", @syncError)
         @listenTo(@collection, "filter", @filter)
-        @listenToOnce(@collection, "sync", ->
-            @collection.trigger("filter")
-        )
+        # @listenToOnce(@collection, "sync", ->
+        #     @collection.trigger("filter")
+        # )
         # @listenTo(@collection, "all", ->console.log(arguments))
         return @
 
@@ -149,3 +151,7 @@ module.exports = class ListView extends BaseView
             @$(".num-found").text("Found #{countStr} matching your criteria")
         )
         return @
+
+# hydrate order of events:
+# attach list view
+# instantiate model for 
