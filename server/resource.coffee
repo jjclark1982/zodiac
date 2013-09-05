@@ -3,10 +3,7 @@ async = require('async')
 riak = require("riak-js")
 servers = process.env.RIAK_SERVERS.split(/,/)
 
-db = riak.getClient({pool:{
-    servers: servers
-    options: {}
-}})
+db = riak.getClient({pool:{servers: servers, options: {}}})
 
 # app.get('/activities/:id', (req, res, next)->
 #     db.get('activities', req.params.id, {}, (err, object, meta)->

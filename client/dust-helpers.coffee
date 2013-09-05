@@ -11,21 +11,43 @@ module.exports = dust
 if (require.extensions)
     if require.extensions['.dust']
         throw new Error("dust require extension no longer needed")
-    require.extensions[".dust"] = (module, filename)->
-        fs = require("fs")
-        text = fs.readFileSync(filename, 'utf8').trim()
-        source = dust.compile(text, filename)
-        tmpl = dust.loadSource(source, filename)
+
+    setDustAlias = (filename)->
         if process.env.NODE_PATH
             alias = filename.replace(process.cwd()+'/'+process.env.NODE_PATH+'/', '')
             alias = alias.replace(/^views\//,'')
             alias = alias.replace(/\.dust$/,'')
             dust.cache[alias] = dust.cache[filename]
+
+    loadDustFile = (filename, callback)->
+        fs = require('fs')
+        if callback
+            # async version
+            fs.readFile(filename, 'utf8', (err, text)->
+                if err then return callback(err)
+                source = dust.compile(text.trim(), filename)
+                tmpl = dust.loadSource(source, filename)
+                setDustAlias(filename)
+                callback(null, tmpl)
+            )
+        else
+            # sync version
+            text = fs.readFileSync(filename, 'utf8')
+            source = dust.compile(text.trim(), filename)
+            tmpl = dust.loadSource(source, filename)
+            setDustAlias(filename)
+            return tmpl
+
+    require.extensions[".dust"] = (module, filename)->
+        tmpl = loadDustFile(filename)
         module.exports = tmpl
         module.exports.render = (context, callback)->
             dust.render(filename, context, callback)
         module.exports.stream = (context)->
             dust.stream(filename, context, callback)
+        module.exports.reload = (callback)->
+            loadDustFile(filename, callback)
+
 
 mergeContext = (context)->
     obj = {}
