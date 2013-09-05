@@ -183,3 +183,7 @@ dust.helpers.contextDump = (chunk, context, bodies, params={})->
         return chunk
     else
         return chunk.write(dump)
+
+dust.filters or= {}
+dust.filters.price = (value)->
+    return "$" + value.toString().replace(/\..*$/, '')
