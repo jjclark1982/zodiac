@@ -187,3 +187,6 @@ dust.helpers.contextDump = (chunk, context, bodies, params={})->
 dust.filters or= {}
 dust.filters.price = (value)->
     return "$" + value.toString().replace(/\..*$/, '')
+
+dust.filters.integerPrice = (value)->
+    return value.toString().replace(/(\$\d+)\.\d\d/g, '$1')
