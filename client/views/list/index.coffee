@@ -151,7 +151,3 @@ module.exports = class ListView extends BaseView
             @$(".num-found").text("Found #{countStr} matching your criteria")
         )
         return @
-
-# hydrate order of events:
-# attach list view
-# instantiate model for 
