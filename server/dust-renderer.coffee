@@ -68,7 +68,7 @@ responsePrototype.render = (view, options={}, callback)->
         unless res.headersSent
             # enable streaming to browser
             res.writeContinue()
-            res.writeHead(200, {'Content-Type': 'text/html'})
+            res.writeHead(res.statusCode or 200, {'Content-Type': 'text/html'})
         res.write(data)
     )
     stream.on('error', callback)

@@ -112,7 +112,7 @@ dust.onLoad = (name, callback)->
 
 dust.helpers or= {}
 
-# usage: {@bind key='name' tagName='span'}initial value{/bind}
+# usage: {@bind key="name" tagName="span"}initial value{/bind}
 dust.helpers.bind = (chunk, context, bodies, params)->
     view = context.stack.head
     model = view.model

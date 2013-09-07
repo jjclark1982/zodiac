@@ -17,14 +17,18 @@ app.use(express.bodyParser())
 app.use(express.methodOverride())
 app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
 app.use(express.cookieSession())
-app.use(express.csrf({value: (req)->
-    req.query?._csrf or req.headers['x-csrf-token'] or req.signedCookies.csrfToken
-}))
-app.use((req, res, next)->
-    res.cookie('csrfToken', req.session._csrf, {httpOnly: true, signed: true})
-    res.locals._csrf = req.session._csrf
-    next()
-)
+# TODO
+# app.use(express.csrf({value: (req)->
+#     req.query?._csrf or req.headers['x-csrf-token'] or req.signedCookies.csrfToken
+# }))
+# app.use((req, res, next)->
+#     req.csrfToken((err, token)->
+#         if err then return next(err)
+#         res.cookie('csrfToken', token, {httpOnly: true, signed: true})
+#         res.locals._csrf = token
+#         next()
+#     )
+# )
 
 app.use(express.favicon())
 app.use(express.static(path.resolve(__dirname, '../build')))
@@ -46,7 +50,21 @@ app.use((req, res, next)->
 app.use(errorHandler)
 
 app.get('/', (req, res, next)->
-    res.render('landing', {list: [1..30]})
+    res.render('landing')
+)
+app.get('/slow', (req, res, next)->
+    res.render('slow')
+)
+app.get('/error/:status', (req, res, next)->
+    next(parseInt(req.params.status))
+)
+app.get('/info', (req, res, next)->
+    info = {
+        session: req.session
+        headers: req.headers
+        server: req.connection.server
+    }
+    res.render('page', {model:require("util").inspect(info)})
 )
 
 module.exports = app

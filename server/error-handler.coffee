@@ -9,10 +9,13 @@ module.exports = (err, req, res, next)->
         when "[object String]"
             err = new Error(err)
 
-    if (err.status) then res.statusCode = err.status
-    if (res.statusCode < 400) then res.statusCode = 500
-    err.name = http.STATUS_CODES[res.statusCode]
-    err.message or= "cannot #{req.method} #{req.path}"
+    err.status or= 500
+    err.name = http.STATUS_CODES[err.status] or 'unknown'
+
+    if err.status >= 400
+        err.message or= "cannot #{req.method} #{req.path}"
+
+    res.statusCode = err.status
 
     if req.app.get('env') is 'production'
         delete err.stack

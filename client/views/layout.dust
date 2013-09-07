@@ -17,7 +17,7 @@
     <div id="routed-content">
         {>"{mainView}" model=model collection=collection /}
     </div>
-    {>footer:nocontext /}
+    {>footer:no-context /}
 
     <style>.streaming-indicator{ display: none; }</style>
     <script src="/javascripts/vendor.js"></script>

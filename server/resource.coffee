@@ -51,22 +51,25 @@ module.exports = (modelCtor)->
                         res.json(results)
                     )
                 html: ->
-                    modelCtor.prototype.fetch = (options)->
-                        db.get('activities', @id, {}, (err, object, meta)=>
-                            if err then return options.error?(err)
-                            @set(object)
-                            options.success?()
-                        )
+                    # modelCtor.prototype.fetch = 
                     collection = new Backbone.Collection([], {
                         model: modelCtor
                         url: req.originalUrl.replace(/\?.*$/, '')
                     })
                     collection.query = req.originalUrl.replace(/^[^\?]*/,'')
 
-                    for key in keys
+                    for key, i in keys then do (key,i)->
                         model = new modelCtor()
                         model.id = key
                         model.needsData = true
+                        model.fetch = (options)->
+                            process.nextTick(=>
+                                db.get('activities', @id, {}, (err, object, meta)=>
+                                    if err then return options.error?(err)
+                                    @set(object)
+                                    options.success?()
+                                )
+                            )
                         collection.add(model)
 
                     res.writeContinue()
