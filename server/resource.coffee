@@ -43,6 +43,7 @@ module.exports = (modelCtor)->
             res.format({
                 json: ->
                     async.map(keys, (key, callback)->
+                        # TODO: pass through req.headers for things like cache-control
                         db.get('activities', key, {}, (err, object, meta)->
                             callback(err, object)
                         )
@@ -61,15 +62,16 @@ module.exports = (modelCtor)->
                     for key, i in keys then do (key,i)->
                         model = new modelCtor()
                         model.id = key
-                        model.needsData = true
-                        model.fetch = (options)->
-                            process.nextTick(=>
-                                db.get('activities', @id, {}, (err, object, meta)=>
-                                    if err then return options.error?(err)
-                                    @set(object)
-                                    options.success?()
+                        if i < 5
+                            model.needsData = true
+                            model.fetch = (options)->
+                                process.nextTick(=>
+                                    db.get('activities', @id, {}, (err, object, meta)=>
+                                        if err then return options.error?(err)
+                                        @set(object)
+                                        options.success?()
+                                    )
                                 )
-                            )
                         collection.add(model)
 
                     res.writeContinue()

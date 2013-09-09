@@ -15,7 +15,7 @@
 
     {>header user=user /}
     <div id="routed-content">
-        {>"{mainView}" model=model collection=collection /}
+        {>"{mainView}" /}
     </div>
     {>footer:no-context /}
 

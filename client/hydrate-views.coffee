@@ -67,9 +67,12 @@ hydrateView = (el, parentView)->
 
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
-    options.collection = fetchCollection(data.collectionUrl, data.collectionQuery, constructors)
+    if data.collectionUrl
+        options.collection = fetchCollection(data.collectionUrl,
+            data.collectionQuery, constructors)
 
-    options.model = fetchModel(data.modelUrl, constructors.model)
+    if data.modelUrl
+        options.model = fetchModel(data.modelUrl, constructors.model)
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)

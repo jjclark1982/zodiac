@@ -55,7 +55,7 @@ responsePrototype.render = (view, options={}, callback)->
             else
                 next(err)
 
-    context = makeContext(app.locals, res.locals, options)
+    context = makeContext(app.locals, res.locals, options, {})
 
     if !req.xhr
         context.global.mainView = view
@@ -64,6 +64,9 @@ responsePrototype.render = (view, options={}, callback)->
     stream = dust.stream(view, context)
     stream.on('data', (data)->
         return unless data.length > 0
+        unless res.connection.writable
+            # TODO: place some backpressure on the template
+            return
         
         unless res.headersSent
             # enable streaming to browser
