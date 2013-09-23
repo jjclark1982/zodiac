@@ -4,6 +4,10 @@
 // so that the server can be started with `node` even if `coffee` is not in the PATH.
 require('coffee-script');
 var server;
+
+//either load [`SPDY.COFFEE`](spdy-server.html) or [`HTTP.COFFEE`](http-server.html) files, depending on
+//whether there is a USE_SPDY flag in the `environment`. If present, this means: use
+//the [SPDY](http://en.wikipedia.org/wiki/SPDY) protocol, otherwise default to HTTP.
 if (process.env.USE_SPDY) {
     server = require('./spdy-server');
 }
@@ -18,6 +22,8 @@ function startServer(port, path, callback) {
 
 // When launched directly via `node server`, start the server.
 if (module === require.main) {
+    //If the `environment` directs it, create [node clusters](http://nodejs.org/api/cluster.html)
+    //by leveraging [`CLUSTER.COFFEE`](cluster.html)
     if (process.env.USE_CLUSTER) {
         require("./cluster")(startServer);
     }

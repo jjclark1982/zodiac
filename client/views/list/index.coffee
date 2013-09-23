@@ -27,6 +27,11 @@ module.exports = class ListView extends BaseView
         # @listenTo(@collection, "all", ->console.log(arguments))
         return @
 
+    attributes: ->
+        args = super(arguments...)
+        args["data-item-view"] = @itemView
+        return args
+
     syncStarted: (collection, xhr, options = {})->
         @$el.addClass("loading")
         xhr.always(=>

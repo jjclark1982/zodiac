@@ -74,6 +74,9 @@ hydrateView = (el, parentView)->
     if data.modelUrl
         options.model = fetchModel(data.modelUrl, constructors.model)
 
+    if data.itemView
+        options.itemView = data.itemView
+
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)
 
