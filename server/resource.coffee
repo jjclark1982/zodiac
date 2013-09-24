@@ -1,25 +1,26 @@
+# load the [`express` node module](http://expressjs.com/)
 express = require('express')
+# load the [`async` node module](https://github.com/caolan/async)
 async = require('async')
+# load the [`riak-js` node module](http://riakjs.com/)
 riak = require("riak-js")
+# set the servers variable based on the number IDed in the `.env` variable
 servers = process.env.RIAK_SERVERS.split(/,/)
 
+# instantiate a riak db with `servers` number of servers
 db = riak.getClient({pool:{servers: servers, options: {}}})
 
-# app.get('/activities/:id', (req, res, next)->
-#     db.get('activities', req.params.id, {}, (err, object, meta)->
-#         if err then return next(err)
-#         res.json(object)
-#     )
-# )
-
-# app.get('/activities_by_city/:city', (req, res, next)->
-#     db.query('activities', {city: req.params.city}, (err, keys, meta)->
-#         if err then return next(err)
-#     )
-# )
+# load the [`lodash` node module](http://lodash.com/) globally so that the models that get loaded by the function below
+# have access to it. Lodash ~= Underscore, with better performance.
 global._ = require('lodash')
+
+# load the [`backbone` node module](http://backbonejs.org/) globally so that the models that get loaded by the function
+#below have access to it
 global.Backbone = require('backbone')
 
+# #### Middleware factory
+
+# exports a function that maps a backbone model to express middleware that handles standard REST operations
 module.exports = (modelCtor)->
     modelName = modelCtor.name
     modelProto = modelCtor.prototype
@@ -43,8 +44,8 @@ module.exports = (modelCtor)->
             res.format({
                 json: ->
                     async.map(keys, (key, callback)->
-                        # TODO: pass through req.headers for things like cache-control
-                        db.get('activities', key, {}, (err, object, meta)->
+                        #TODO: pass through req.headers for things like cache-control
+                        db.get(bucket, key, {}, (err, object, meta)->
                             callback(err, object)
                         )
                     , (err, results)->
@@ -95,6 +96,20 @@ module.exports = (modelCtor)->
 
     return router.middleware
 
+    router.put('/:modelId', (req, res, next)->
+        #TODO: re-run validator on res.locals.model
+        db.save(bucket, req.body.id, req.body, {returnbody: true}, (err, object, meta)->
+            if (err)
+                return next(err)
+            else
+                res.set({
+                    'ETag' : meta.etag,
+                    'last-modified' : meta.lastMod
+                })
+                res.status(meta.statusCode)
+                return res.json(object)
+        )
+    )
 
 
 # Backbone = require("backbone")

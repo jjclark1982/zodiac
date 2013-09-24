@@ -1,11 +1,11 @@
-# For any view transmitted as:
+# For any view transmitted as:  
 #
-#     <div data-view="views/document"
-#          data-model="models/document"
-#          data-model-url="/documents/1">
-#         Field: initial value
-#     </div>
-#
+#     ```<div data-view="views/document"  
+#          data-model="models/document"  
+#          data-model-url="/documents/1">  
+#         Field: initial value  
+#     </div>  
+# ```  
 # This will instantiate the named view, model, and collection.
 
 collectionsByUrl = {}

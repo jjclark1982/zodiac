@@ -28,5 +28,6 @@ bower_components/
 /.env
 /db
 /keys
+/doc
 /docs
 /build

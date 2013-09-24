@@ -53,7 +53,11 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
     task(title, description, shellScript(filename))
 
 task 'docs', 'Compile internal documentation', shellScript """
-    docco server/* client/{*,*/*}.coffee
+    groc README.md server/* client/{*,*/*,*/*/*} scripts/*
+"""
+
+task 'push-docs', 'Compile internal documentation and upload to GitHub-Pages', shellScript """
+    groc --github README.md server/* client/{*,*/*,*/*/*} scripts/*
 """
 
 task 'build', 'Compile the client', shellScript """

@@ -43,7 +43,7 @@ exports.config =
       pattern: /^client\/.*\.coffee$/
       options:
         max_line_length:
-          value: 100
+          value: 120
         indentation:
           value: 4
         no_implicit_braces:
@@ -51,4 +51,6 @@ exports.config =
         no_implicit_parens:
           level: "warn"
         no_trailing_semicolons:
+          level: "ignore"
+        no_trailing_whitespace:
           level: "ignore"
