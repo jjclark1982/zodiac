@@ -37,6 +37,7 @@
     "chai": "~1.7.2",
     "mocha": "~1.12.0",
     "scaffolt": "~0.4.0",
-    "coffeelint": "~0.5.7"
+    "coffeelint": "~0.5.7",
+    "groc": "~0.6.1"
   }
 }

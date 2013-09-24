@@ -9,7 +9,6 @@ module.exports = class ListView extends BaseView
 
     initialize: (options)->
         @itemView ?= @options.itemView or 'generic'
-        # TODO: load itemView from el attr if present
         # data-ify all string options?
         @itemViewCtor = require("views/"+@itemView)
         @collection ?= new Backbone.Collection()
