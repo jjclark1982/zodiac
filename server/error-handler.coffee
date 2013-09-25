@@ -1,6 +1,14 @@
+# # error-handler.coffee
+# ### Directing mistaken traffic
+
+# *This file exports a function that renders the correct error-handler depending on response format and error type.*
+# ***
+
+# import the node `http` module
 http = require("http")
 
 module.exports = (err, req, res, next)->
+    # parse the error passed to the function
     switch toString.call(err)
         when "[object Number]"
             status = err
@@ -20,6 +28,7 @@ module.exports = (err, req, res, next)->
     if req.app.get('env') is 'production'
         delete err.stack
 
+    #return the error in the correct format, with a custom HTML template if appropriate
     res.format({
         json: ->
             res.json(err)
@@ -29,3 +38,6 @@ module.exports = (err, req, res, next)->
             res.end(err.message)
     })
 
+# ***
+# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it is designed to render tempates, or
+# step into [RESOURCE.COFFEE](resource.html) to see how the riak database and middleware factory are set up.

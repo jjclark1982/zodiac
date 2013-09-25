@@ -34,8 +34,10 @@ task 'console', 'Open an interactive prompt', ->
     repl = require('coffee-script/lib/coffee-script/repl')
     context = repl.start({prompt: "#{packageDef.name}> "}).context
     for file in fs.readdirSync("./server")
-        if require.extensions[path.extname(file)]
+        try
             context[moduleName(file)] = require("./server/#{file}")
+        catch e
+            null
 
 # Provide commands for any scripts in the `scripts` directory
 for basename in fs.readdirSync("./scripts") then do (basename)->
@@ -52,9 +54,26 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
         break
     task(title, description, shellScript(filename))
 
-task 'docs', 'Compile internal documentation', shellScript """
-    groc README.md server/* client/{*,*/*,*/*/*} scripts/*
-"""
+task 'docs', 'Compile internal documentation', ->
+    groc = require("groc")
+    groc.LANGUAGES.Dust = {
+        nameMatchers: [ '.dust' ],
+        pygmentsLexer: 'html',
+        multiLineComment: [ '<!--',
+            '',
+            '-->',
+            '{!',
+            '',
+            '!}' ],
+        strictMultiLineEnd: true,
+        ignorePrefix: '#',
+        foldPrefix: '^'
+    }
+    groc.CLI(['README.md',
+        'server/*',
+        'client/{*,*/*,*/*/*}'
+        'scripts/*'
+    ], (->))
 
 task 'push-docs', 'Compile internal documentation and upload to GitHub-Pages', shellScript """
     groc --github README.md server/* client/{*,*/*,*/*/*} scripts/*

@@ -1,7 +1,16 @@
+# # dust-renderer.coffee
+# ### Rendering re-do
+
+# *This file overrides the default `res.render()` function with an asynchronous version.*
+# ***
+
+
 fsPath = require("path")
+# Load [DUST-HELPERS.COFFEE](../client/dust-helpers.html): custom-written helpers for Dust templating 
 dust = require("../client/dust-helpers")
 
-# dust works best with plain objects
+# Dust works best with plain objects. This function takes in a series of arguments and returns a flattened dust 
+# `context` that contains a straightforward key: value store of these arguments.
 makeContext = (args...)->
     context = dust.makeBase({})
     for arg in args when arg
@@ -13,21 +22,21 @@ makeContext = (args...)->
 
 # During development, we want to reload templates that have changed on disk.
 # Emptying the dust cache will cause them to be reloaded.
-# But if templates get cached as a side-effect of a require() extension,
-# we must also empty the relevant require() cache.
+# But if templates get cached as a side-effect of a `require()` extension,
+# we must also empty the relevant `require()` cache.
 # This can cause a synchronous file read during a callback,
 # so it is not suitable for production.
 invalidateCache = (views)->
     dust.cache = {}
 
-    viewsDir = fsPath.resolve(views)
-    # regex to match any module in viewsDir or any module that ends in .dust
+    viewsDir = fsPath.resolve(__dirname, views)
+    # regex to match any module in `viewsDir` or any module that ends in `.dust`
     recompilable = new RegExp("^"+viewsDir+"|\\.dust$", 'g')
     for key, val of require.cache
         if key.match(recompilable)
             delete require.cache[key]
 
-# the default res.render() does not support streaming
+# the default `res.render()` does not support streaming
 # so we override it with one that does
 responsePrototype = require("express/lib/response")
 responsePrototype.render = (view, options={}, callback)->
@@ -57,7 +66,9 @@ responsePrototype.render = (view, options={}, callback)->
 
     context = makeContext(app.locals, res.locals, options, {})
 
-    if !req.xhr
+    # unless we get a request to partially render content, render the [`layout`](../../client/views/layout.dust) view,
+    # passing it the view associated with the current model as a `mainView` variable.
+    if !req.xhr        
         context.global.mainView = view
         view = 'layout'
 
@@ -65,7 +76,7 @@ responsePrototype.render = (view, options={}, callback)->
     stream.on('data', (data)->
         return unless data.length > 0
         unless res.connection.writable
-            # TODO: place some backpressure on the template
+            #TODO: place some backpressure on the template
             return
         
         unless res.headersSent
@@ -76,3 +87,8 @@ responsePrototype.render = (view, options={}, callback)->
     )
     stream.on('error', callback)
     stream.on('end', callback)
+# ***
+# ***NEXT**: Step into [RESOURCE.COFFEE](resource.html) to see how the riak database and middleware factory are set up
+# or step into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to process errors.*
+
+#Actually, if we've gotten this far, we probably want to start looking into views...

@@ -1,8 +1,8 @@
 
-# # Express App
+# # express-app.coffee
 # ### The Big Enchilada
 
-# *This file establishes the order of express middleware files*
+# *This file establishes the order of express middleware files.*
 # ***
 
 # load the `path` node module
@@ -117,7 +117,7 @@ app.use(app.router)
 # * Parse the `Cookie` header field and populate req.cookies with cookie names, passing in either the `EXPRESS_SECRET`
 # variable in the `environment`, or a custom secret variable.
 app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
-# * Provide cookie-based sessions & populate req.session (*with cookie data?*)
+# * Provide cookie-based sessions & populate req.session with cookie data
 app.use(express.cookieSession())
 # * Load favicons
 app.use(express.favicon())
@@ -181,3 +181,8 @@ app.get('/info', (req, res, next)->
 
 # Exports the application
 module.exports = app
+
+# ***
+# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it is designed to render tempates, 
+# step into [RESOURCE.COFFEE](resource.html) to see how the riak database and middleware factory are set up, or step
+# into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to process errors.

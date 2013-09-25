@@ -22,9 +22,19 @@ Most server modules should export a singleton. Most client modules should export
 
 - `render:before` - triggered each time a view begins rendering
 - `render:after` - triggered each time a view finishes rendering
-- `hydrate` - triggered once when a serialized view awakens for the first time
-- `filter` - triggered when a collection's `filterCond` has been updated
+- `hydrate` - triggered on a view once when it has attached to a DOM element after being transmitted and instantiated separately
+- `filter` - triggered on a collection when a its `filterCond` has been updated
 
+### Load order / file support
+```
+[                  /server/index.js                           ]
+[ spdy-server.coffee or http-server.coffee |  cluster.coffee  ]
+[            express-app.coffee            |__________________]
+[resource.coffee | error-handler.coffee | dust-renderer.coffee]
+[_______________________________________| dust-helpers.coffee ]
+[                                       | layout.dust         ]
+[                                       | {model-based views} ]
+```
 ### Directory Organization
 
 [.env](.env) - specify development environment variables  
@@ -35,7 +45,7 @@ Most server modules should export a singleton. Most client modules should export
 
 [package.json](package.json) - specify server libraries for installation with `npm`  
 [node_modules/](node_modules/) - installed server libraries  
-[server/](server/) - original backend source code  
+[server/](server/index.html) - original backend source code  
 
 [config.coffee](config.coffee) - `brunch` configuration  
 [bower.json](bower.json) - specify client libraries for installation with `bower`  
@@ -78,12 +88,3 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [CoffeeScript](http://coffeescript.org/)
 - [Sass](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html)
 - [HTTP/1.1](http://www.w3.org/Protocols/rfc2616/rfc2616.html) - [Header Fields](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html), [Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
-
-## To Do
-
-- add precommit hook to recompile docs so they can be browsable on github
-
-- switch from sass to stylus unless specifically requested otherwise
-
-
--> add .needsData property to models that might want to stream from the server
