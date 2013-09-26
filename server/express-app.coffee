@@ -129,7 +129,11 @@ app.use(express.static(path.resolve(__dirname, '../build')))
 # [resource.coffee](resource.html) file and maps to the endpoints described in the
 # [middleware factory](resource.html#middleware-factory) that it exports.
 for model in [require("models/book")] when model.prototype.urlRoot
-    app.use(model.prototype.urlRoot, resource(model))
+    app.use(model.prototype.urlRoot, resource({model: model}))
+app.use('genBooks', resource({
+    model: require('models/book'),
+    itemView: 'generic',
+    listView: 'list'}))
 # * Check to see if any of the specified [`global routes`](#global-routings) below have been triggered
 app.use(app.router)
 # * assume a 404 error if none of the above click, pass along via `next()` to [`errorHandler`](error-handler.html)

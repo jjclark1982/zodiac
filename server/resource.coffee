@@ -28,11 +28,15 @@ global.Backbone = require('backbone')
 # #### Middleware factory
 
 # Exports a function that maps a backbone model to express middleware that handles standard REST operations
-module.exports = (modelCtor)->
+module.exports = (options = {})->
     # Inherits relevant variables from the model the function is called with
+    modelCtor = options.model
     modelName = modelCtor.name
     modelProto = modelCtor.prototype
-    bucket = modelProto.bucket
+    bucket = options.bucket ? modelProto.bucket
+    itemView = options.itemView ? modelProto.defaultView
+    listView = options.listView ? modelProto.defaultListView
+    
 
     # Sets up a new express router with the following substack:
     router = new express.Router()
@@ -90,22 +94,22 @@ module.exports = (modelCtor)->
                     res.writeContinue()
                     # note that this, and all other `res.render()` functions, employ 
                     # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
-                    res.render(modelProto.defaultListView, {
-                        itemView: modelProto.defaultView
+                    res.render(listView, {
+                        itemView: itemView
                         collection: collection
                     })
             })
         )
     )
 
-    # * Provides a route that GETs either a JSON representation, or the `defaultView`, of the passed-in model by ID.
+    # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
     router.get('/:modelId.:format?', (req, res, next)->
         res.format({
             json: ->
                 res.json(res.locals.model)
             html: ->
                 model = new modelCtor(res.locals.model)
-                res.render(modelProto.defaultView, {model: model})
+                res.render(itemView, {model: model})
         })
     )
 
