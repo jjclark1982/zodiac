@@ -12,6 +12,8 @@
     <title>{#title}{.}{:else}{settings.appName}{/title}</title>
 </head>
 <body>
+    {>header /}
+    {>footer /}
 
     {>header user=user /}
     <div id="routed-content">
