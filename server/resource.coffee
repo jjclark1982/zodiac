@@ -45,6 +45,7 @@ module.exports = (options = {})->
     router.param('modelId', (req, res, next, modelId)->
         db.get(bucket, modelId, {}, (err, object, meta)->
             if err then return next(err)
+            object.id = modelId
             res.locals.model = object
             res.locals.meta = meta
             next()
@@ -62,6 +63,7 @@ module.exports = (options = {})->
                     async.map(keys, (key, callback)->
                         #TODO: pass through req.headers for things like cache-control
                         db.get(bucket, key, {}, (err, object, meta)->
+                            object.id = key
                             callback(err, object)
                         )
                     , (err, results)->
@@ -132,7 +134,7 @@ module.exports = (options = {})->
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
     router.put('/:modelId', (req, res, next)->
         #TODO: re-run validator on res.locals.model
-        db.save(bucket, req.body.id, req.body, {returnbody: true}, (err, object, meta)->
+        db.save(bucket, req.params.modelId, req.body, {returnbody: true}, (err, object, meta)->
             if (err)
                 return next(err)
             else

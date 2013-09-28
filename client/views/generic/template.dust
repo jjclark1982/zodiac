@@ -1,2 +1,13 @@
-<b>[GenericView]</b>
-<pre>{@contextDump:options /}</pre>
+<form method="POST" action="{model.url}">
+    <fieldset>
+        <legend><a href="{model.url}">{model.url}</a><span class="show-when-loading"> DANGER RANGED GARDEN</span></legend>
+            {@keyvalue:model.attributes}
+                <label class="field-{key}">{key}: 
+                    <input type="text" name="{key}" value="{value}">
+                </label>
+                <br>
+            {/keyvalue}
+    <button type="submit" name="_method" value="PUT">Save</button>
+    <button type="submit" name="_method" value="DELETE">Delete</button>
+    </fieldset>
+</form>

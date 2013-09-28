@@ -130,7 +130,7 @@ app.use(express.static(path.resolve(__dirname, '../build')))
 # [middleware factory](resource.html#middleware-factory) that it exports.
 for model in [require("models/book")] when model.prototype.urlRoot
     app.use(model.prototype.urlRoot, resource({model: model}))
-app.use('genBooks', resource({
+app.use('/genBooks', resource({
     model: require('models/book'),
     itemView: 'generic',
     listView: 'list'}))

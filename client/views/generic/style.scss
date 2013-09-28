@@ -1,3 +1,11 @@
 .generic-view {
-    
+    .field-id {
+        display: none;
+    }
+    .show-when-loading {
+        display: none;   
+    }
+    &.loading .show-when-loading{
+        display: inline-block;
+    }
 }

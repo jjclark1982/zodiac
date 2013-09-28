@@ -2,6 +2,7 @@
 # ### Directing mistaken traffic
 
 # *This file exports a function that renders the correct error-handler depending on response format and error type.*
+# See [HTTP Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 # ***
 
 # import the node `http` module
@@ -17,6 +18,7 @@ module.exports = (err, req, res, next)->
         when "[object String]"
             err = new Error(err)
 
+    # if we have gotten to the error handler without a numeric status, assume 500 Server Error
     err.status or= 500
     err.name = http.STATUS_CODES[err.status] or 'unknown'
 
