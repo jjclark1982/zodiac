@@ -5,30 +5,39 @@ unless window?
     Backbone.View.prototype._ensureElement = (->)
     Backbone.View.prototype.delegateEvents = (->)
 
+normalizePath = (requirePath='')->
+    return requirePath.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+
 module.exports = class BaseView extends Backbone.View
-    # A class must provide its require path so that it can be attached
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    # A class that provides its requirePath can be re-instantiated after serialization
+    requirePath: module.id
 
     className: 'base-view'
 
+    # A view must keep track of its subviews to facilitate garbage-collection and re-rendering
     subviews: null
     
     attributes: ->
-        atts = {
-            "data-view": @requirePath.replace(/^views\//,'')
-            "data-model": @model?.requirePath?.replace(/^models\//,'')
-            "data-collection": @collection?.requirePath
-            "data-collection-model":
-                @collection?.model?.prototype.requirePath?.replace(/^models\//,'')
-        }
-        if window?
-            atts['data-cid'] = @cid
+        atts = {}
+        atts['data-view'] = normalizePath(@requirePath).replace(/^views\//,'')
+        if @model?.requirePath
+            atts['data-model'] = normalizePath(@model.requirePath)?.replace(/^models\//,'')
+        if @collection?.requirePath
+            atts['data-collection'] = normalizePath(@collection.requirePath)
+        if @collection?.model?.requirePath
+            atts['data-collection-model'] = @collection?.model?.prototype.requirePath?.replace(/^models\//,'')
+
         try
             atts['data-model-url'] = _.result(@model, 'url')
         try
             atts['data-collection-url'] = _.result(@collection, 'url')
             if @collection?.query
                 atts['data-collection-query'] = @collection.query.replace(/^\?/,'')
+
+        #the cid is useful on the client, but don't include it over the wire
+        if window?
+            atts['data-cid'] = @cid
+
         return atts
 
     attrString: ->
@@ -44,12 +53,13 @@ module.exports = class BaseView extends Backbone.View
         return str
 
     templateContext: (callback)->
+        # TODO: make it more clear that this simply returns @ at the correct time
         # rendering asynchronously means we can pass a model into a view before it has data
         if @model?.needsData
             @model.fetch({
                 success: =>
                     @model.needsData = false
-                    callback(@)
+                    callback(null, @)
                 error: (model, response, options)=>
                     callback(response?.responseJSON or response or "fetch error")
             })
@@ -57,13 +67,13 @@ module.exports = class BaseView extends Backbone.View
             callback(@)
 
     # subclasses should override this function to provide content
-    # TODO: treat @template as a (chunk, context) fn
     template: (context, callback)->
         callback(new Error("No template provided for #{@className}"))
         return ''
 
     getInnerHTML: (callback)->
-        @templateContext((context)=>
+        @templateContext((error, context)=>
+            if error then return callback(error)
             try
                 @template.render(context, callback)
             catch e

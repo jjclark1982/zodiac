@@ -10,7 +10,7 @@
     },
     {
       "from": "style.hbs",
-      "to": "client/views/{{name}}/style.scss"
+      "to": "client/views/{{name}}/style.styl"
     }
   ]
 }

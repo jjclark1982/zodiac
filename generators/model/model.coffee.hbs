@@ -1,9 +1,27 @@
-BaseModel = require("./base")
+BaseModel = require("models/base")
 
 module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    # A model that provides its requirePath can be re-instantiated from its url after serialization
+    requirePath: module.id
     urlRoot: "/{{name}}s"
     bucket: "{{name}}s"
+
+    # The router consults a model's defaultView and defaultListView to present it
+    defaultView: "generic"
+    defaultListView: "list"
+
+    # Define fields with established types to support general-purpose displays and editors
+    #fields: [
+    #    {
+    #        name: "name",
+    #        type: "string"
+    #    },
+    #    {
+    #        name: "creator",
+    #        type: "pointer",
+    #        target: "_User"
+    #    }
+    #]
 
     validate: (attributes, options)->
         return null

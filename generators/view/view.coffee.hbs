@@ -1,12 +1,11 @@
-# # {{#camelize}}{{name}}-view{{/camelize}}
-# ### [GENERAL DESCRIPTION]
-
-# *This view...*
-# ***
-
 BaseView = require("views/base")
 
 module.exports = class {{#camelize}}{{name}}-view{{/camelize}} extends BaseView
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
-    template: require("./template")
+    # A view that provides its requirePath can be re-instantiated after serialization
+    requirePath: module.id
+
+    # The CSS class for this view
     className: "{{name}}-view"
+
+    # BaseView's `render()` function uses the subclass's provided template
+    template: require("./template")
