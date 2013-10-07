@@ -24,6 +24,8 @@ else {
 
 // Provide a `startServer` function for compatibility with [Brunch](http://brunch.io/).
 function startServer(port, path, callback) {
+    console.log("port argument:", port);
+    console.log("port env:", process.env.PORT);
     server.listen(port || process.env.PORT, callback);
 }
 
