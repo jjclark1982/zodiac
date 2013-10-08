@@ -59,7 +59,7 @@ module.exports = class BaseView extends Backbone.View
             @model.fetch({
                 success: =>
                     @model.needsData = false
-                    callback(null, @)
+                    callback(@)
                 error: (model, response, options)=>
                     callback(response?.responseJSON or response or "fetch error")
             })
@@ -72,8 +72,7 @@ module.exports = class BaseView extends Backbone.View
         return ''
 
     getInnerHTML: (callback)->
-        @templateContext((error, context)=>
-            if error then return callback(error)
+        @templateContext((context)=>
             try
                 @template.render(context, callback)
             catch e
