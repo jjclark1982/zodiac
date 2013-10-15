@@ -15,8 +15,7 @@
     "backbone": "~1.0.0",
     "normalize-css": "~2.1.2",
     "font-awesome": "~3.2.1",
-    "typeahead.js": "~0.9.3",
-    "jquery-dateFormat": "git://github.com/phstc/jquery-dateFormat.git"
+    "typeahead.js": "~0.9.3"
   },
   "overrides": {
     "backbone": {
