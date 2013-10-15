@@ -33,7 +33,10 @@ module.exports = (err, req, res, next)->
     #return the error in the correct format, with a custom HTML template if appropriate
     res.format({
         json: ->
-            res.json(err)
+            try
+                res.json(err)
+            catch e
+                res.end(err.message)
         html: ->
             res.render('error', {title: "#{err.status} #{err.name}", error: err})
         default: ->

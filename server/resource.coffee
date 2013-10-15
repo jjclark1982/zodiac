@@ -111,6 +111,7 @@ module.exports = (options = {})->
             db.query(bucket, req.query, callback)
         else
             #TODO: refactor this with above
+            #TODO: rate-limiting
             res.format({
                 json: ->
                     db.getAll(bucket, {}, (err, objects, meta)->
@@ -118,22 +119,27 @@ module.exports = (options = {})->
                         res.json(objects)
                     )
                 html: ->
-                    #TODO: support needsData for collections too
+                    #TODO: support needsData for collections
                     collection = new Backbone.Collection([], {
                         model: modelCtor
                         url: req.originalUrl
                     })
-                    #TODO: stream keys WHY ISNT IT WORKING
-                    res.getAll(bucket, {}, (err, objects, meta)->
+
+                    db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
                         if err then return next(err)
-                        for object in objects or []
-                            collection.add(new modelCtor(object))
+
                         res.render(listView, {
                             itemView: itemView
                             collection: collection
                         })
-                    )
-                    
+                    ).on('keys', (keys=[])->
+                        #TODO: support needsData
+                        for key in keys
+                            model = new modelCtor()
+                            model.id = key
+                        collection.add(model)
+
+                    ).start()
             })
     )
 
