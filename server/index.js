@@ -8,13 +8,13 @@
 // ***
 
 // This module bootstraps support for [CoffeeScript](http://coffeescript.org/)
-// so that the server can be started with `node` even if `coffee` is not in the PATH.
+// so that the server can be started with `node server` even if `coffee` is not in the PATH.
 require('coffee-script');
-var server;
 
 // either load into memory [`SPDY.COFFEE`](spdy-server.html) or [`HTTP.COFFEE`](http-server.html), depending on whether
 // there is a USE_SPDY flag in the `environment`. If present, this means: use the 
 // [SPDY](http://en.wikipedia.org/wiki/SPDY) protocol; otherwise, default to HTTP.
+var server;
 if (process.env.USE_SPDY) {
     server = require('./spdy-server');
 }
@@ -24,8 +24,6 @@ else {
 
 // Provide a `startServer` function for compatibility with [Brunch](http://brunch.io/).
 function startServer(port, path, callback) {
-    console.log("port argument:", port);
-    console.log("port env:", process.env.PORT);
     server.listen(port || process.env.PORT, callback);
 }
 
@@ -47,4 +45,3 @@ module.exports.startServer = startServer;
 // ***
 // ***NEXT**: Step into [`SPDY.COFFEE`](spdy-server.html) or [`HTTP.COFFEE`](http-server.html) and observe how
 // they instantiate the server that is referenced here.*
-

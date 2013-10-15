@@ -1,3 +1,5 @@
+#!/usr/bin/env coffee
+
 # # spdy-server.coffee
 # ### SPeeDY express setup
 
@@ -5,8 +7,6 @@
 # with the [SPDY](http://en.wikipedia.org/wiki/SPDY) protocol,
 # a performance-optimized alternative to [HTTPS](http://en.wikipedia.org/wiki/HTTP_Secure).*
 # ***
-
-#!/usr/bin/env coffee
 
 spdy = require("spdy")
 path = require("path")

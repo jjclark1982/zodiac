@@ -1,10 +1,10 @@
+#!/usr/bin/env coffee
+
 # # http-server.coffee
 # ### Vanilla-flavored express setup
 
 # *This file instantiates an [express](http://expressjs.com/) application with the regular HTTP protocol.*
 # ***
-
-#!/usr/bin/env coffee
 
 # Load the [node HTTP module](http://nodejs.org/api/http.html)
 http = require('http')
@@ -14,7 +14,32 @@ http = require('http')
 expressApp = require('./express-app')
 
 # Instantiate server, passing the [`EXPRESS.COFFEE`](express-app.html) middleware stack.
-server = http.createServer(expressApp)
+server = http.createServer((req, res)->
+    if server.gracefullyClosing
+        res.writeHead(503, {
+            "Connection": "close"
+            "Content-Type": "text/plain"
+            "Retry-After": server.timeout/1000|0
+        })
+        res.end("Server is in the process of restarting")
+    else
+        expressApp(req, res)
+)
+server.timeout = 30*1000
+
+# Support stopping the server gracefully
+process.on("SIGTERM", ->
+    server.gracefullyClosing = true
+    console.log("Received kill signal (SIGTERM), shutting down gracefully.")
+    server.close(->
+        console.log("Closed out remaining connections.")
+        process.exit()
+    )
+    setTimeout(->
+        console.error("Could not close connections in time, forcefully shutting down.")
+        process.exit(1)
+    , server.timeout)
+)
 
 # Add listener to throw errors on error. If the error is that the port is already in use, pick a different port at 
 # random (`server.listen(0)` picks a random port).
@@ -30,6 +55,21 @@ server.once('listening', ->
     console.log('HTTP server listening on port', server.address().port)
 )
 
+# Support auto-reloading when source code changes
+if process.env.NODE_ENV is 'development'
+    chokidar = require("chokidar")
+    _ = require("lodash")
+
+    reloadApp = ->
+        expressApp = null
+        for moduleId of require.cache when moduleId.indexOf(__dirname) is 0
+            delete require.cache[moduleId]
+        console.log("Reloading Express App")
+        expressApp = require("./express-app")
+
+    chokidar.watch(__dirname).on("all", _.debounce(reloadApp, 10))
+
+
 # Export the server object
 module.exports = server
 
@@ -39,5 +79,3 @@ if module is require.main
 
 # ***
 # ***NEXT**: Step into the [`EXPRESS.COFFEE`](express-app.html) middleware stack and observe how that stack is formed.*
-
-
