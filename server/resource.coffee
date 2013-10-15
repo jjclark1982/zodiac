@@ -37,6 +37,13 @@ module.exports = (options = {})->
     itemView = options.itemView ? modelProto.defaultView
     listView = options.listView ? modelProto.defaultListView
     
+    renderItem = (res, item)->
+        res.format({
+            json: ->
+                res.json(item)
+            html: ->
+                res.render(itemView, {model: new modelCtor(item)})
+        })
 
     # Sets up a new express router with the following substack:
     router = new express.Router()
@@ -55,7 +62,7 @@ module.exports = (options = {})->
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/', (req, res, next)->
-        db.query(bucket, req.query, (err, keys, meta)->
+        callback = (err, keys, meta)->
             if err then return next(err)
 
             res.format({
@@ -85,7 +92,7 @@ module.exports = (options = {})->
                             model.needsData = true
                             model.fetch = (options)->
                                 process.nextTick(=>
-                                    db.get('activities', @id, {}, (err, object, meta)=>
+                                    db.get(bucket, @id, {}, (err, object, meta)=>
                                         if err then return options.error?(err)
                                         @set(object)
                                         options.success?()
@@ -93,7 +100,6 @@ module.exports = (options = {})->
                                 )
                         collection.add(model)
 
-                    res.writeContinue()
                     # note that this, and all other `res.render()` functions, employ 
                     # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
                     res.render(listView, {
@@ -101,18 +107,40 @@ module.exports = (options = {})->
                         collection: collection
                     })
             })
-        )
+        if Object.keys(req.query).length > 0
+            db.query(bucket, req.query, callback)
+        else
+            #TODO: refactor this with above
+            res.format({
+                json: ->
+                    db.getAll(bucket, {}, (err, objects, meta)->
+                        if err then return next(err)
+                        res.json(objects)
+                    )
+                html: ->
+                    #TODO: support needsData for collections too
+                    collection = new Backbone.Collection([], {
+                        model: modelCtor
+                        url: req.originalUrl
+                    })
+                    #TODO: stream keys WHY ISNT IT WORKING
+                    res.getAll(bucket, {}, (err, objects, meta)->
+                        if err then return next(err)
+                        for object in objects or []
+                            collection.add(new modelCtor(object))
+                        res.render(listView, {
+                            itemView: itemView
+                            collection: collection
+                        })
+                    )
+                    
+            })
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
+    #TODO: handle multiple options
     router.get('/:modelId.:format?', (req, res, next)->
-        res.format({
-            json: ->
-                res.json(res.locals.model)
-            html: ->
-                model = new modelCtor(res.locals.model)
-                res.render(itemView, {model: model})
-        })
+        renderItem(res, res.locals.model)
     )
 
     # * Provides a route to instantiate an object in the riak DB.
@@ -127,7 +155,7 @@ module.exports = (options = {})->
                     'last-modified' : meta.lastMod
                 })
                 res.status(meta.statusCode)
-                return res.json(object)
+                renderItem(res, object)
         )
     )
 
@@ -143,7 +171,7 @@ module.exports = (options = {})->
                     'last-modified' : meta.lastMod
                 })
                 res.status(meta.statusCode)
-                return res.json(object)
+                renderItem(res, object)
         )
     )
 
@@ -152,11 +180,18 @@ module.exports = (options = {})->
         for key, val of req.body
             res.locals.model[key] = val
 
-# Backbone = require("backbone")
-# app.get('/', (req, res, next)->
-#     db.query('activities', {city: "Paris"}, (err, keys, meta)->
-#         if err then return next(err)
-#         c = new Backbone.Collection()
+        db.save(bucket, req.params.modelId, res.locals.model, {returnbody: true}, (err, object, meta)->
+            if (err)
+                return next(err)
+            else
+                res.set({
+                    'ETag' : meta.etag,
+                    'last-modified' : meta.lastMod
+                })
+                res.status(meta.statusCode)
+                renderItem(res, object)
+        )
+    )
 
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB
     router.delete('/:modelId', (req, res, next)->
@@ -164,6 +199,7 @@ module.exports = (options = {})->
             if (err)
                 return next(err)
             else
+                res.location(modelProto.urlRoot)
                 res.status(204)
                 res.end()
         )
