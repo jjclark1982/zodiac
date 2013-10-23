@@ -3,7 +3,7 @@ BaseView = require("views/base")
 delay = 1
 
 module.exports = class SlowView extends BaseView
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    requirePath: module.id
     # template: require("./template")
     className: "slow-view"
 

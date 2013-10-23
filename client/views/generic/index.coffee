@@ -1,7 +1,7 @@
 BaseView = require("views/base")
 
 module.exports = class GenericView extends BaseView
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    requirePath: module.id
     template: require("./template")
     className: "generic-view"
 

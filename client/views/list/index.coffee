@@ -2,7 +2,7 @@ BaseView = require("views/base")
 animationLength = 10
 
 module.exports = class ListView extends BaseView
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    requirePath: module.id
     template: require("./template")
     className: "list-view"
     tagName: "ul"

@@ -7,7 +7,7 @@
 BaseView = require("views/base")
 
 module.exports = class LightboxView extends BaseView
-    requirePath: module.id.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+    requirePath: module.id
     template: require("./template")
     className: "lightbox-view"
         
