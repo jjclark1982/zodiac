@@ -5,17 +5,9 @@
 # [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) operations that might be commonly performed on it.*
 # ***
 
-# Load the [`express` node module](http://expressjs.com/)
 express = require('express')
-# Load the [`async` node module](https://github.com/caolan/async)
 async = require('async')
-# Load the [`riak-js` node module](http://riakjs.com/)
-riak = require("riak-js")
-# Set the `servers` variable based on the number IDed in the `environment`
-servers = process.env.RIAK_SERVERS.split(/,/)
-
-# Instantiate a riak db with `servers` number of servers
-db = riak.getClient({pool:{servers: servers, options: {}}})
+db = require("./db")
 
 # Load the [`lodash` node module](http://lodash.com/) globally so that the models that get loaded by the function below
 # have access to it. Lodash ~= Underscore, with better performance.
