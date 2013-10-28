@@ -10,20 +10,20 @@ module.exports = class GenericView extends BaseView
         "submit form": "handleSubmit"
         "change input": "updateField"
     }
-    
+
     initialize: (options)->
         @listenTo(@model, "request", @syncStarted)
         @listenTo(@model, "sync", @syncFinished)
-    
+
     syncStarted: (model, xhr, options)->
         @$el.addClass("loading")
-    
+
     syncFinished: (model, xhr, options)->
         @$el.removeClass("loading")
-    
+
     clickButton: (event)->
         @lastClicked = event.target
-    
+
     handleSubmit: (event)->
         $form = $(event.target)
         query = $form.serialize()
@@ -34,7 +34,7 @@ module.exports = class GenericView extends BaseView
         event.stopPropagation()
 
         switch $(@lastClicked).val()
-            when 'PUT'                
+            when 'PUT'
                 @model.save()
             when 'DELETE'
                 @model.destroy()
