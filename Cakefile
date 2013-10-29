@@ -1,3 +1,4 @@
+config = require("./config").config
 fs = require 'fs'
 path = require 'path'
 child_process = require 'child_process'
@@ -75,7 +76,7 @@ task 'docs', 'Compile internal documentation', ->
         'scripts/*'
     ], (->))
 
-task 'push-docs', 'Compile internal documentation and upload to GitHub-Pages', shellScript """
+task 'docs:upload', 'Compile internal documentation and upload to GitHub-Pages', shellScript """
     groc --github README.md server/* client/{*,*/*,*/*/*} scripts/*
 """
 
@@ -85,7 +86,7 @@ task 'build', 'Compile the client', shellScript """
 
 task 'test', 'Run server-side tests', shellScript """
     mocha --compilers coffee:coffee-script --globals _,Backbone test/test_server.coffee
-    # open 'http://localhost:#{require("./config").config.server.port}/test'
+    # open 'http://localhost:#{config.server.port}/test'
 """
 
 task 'start', 'Run the server', shellScript """
@@ -93,6 +94,6 @@ task 'start', 'Run the server', shellScript """
 """
 
 task 'develop', 'Run server with auto-reloading', shellScript """
-    (sleep 1; open 'http://localhost:#{require("./config").config.server.port}/') &
+    (sleep 1; open 'http://localhost:#{config.server.port}/') &
     brunch watch --server
 """
