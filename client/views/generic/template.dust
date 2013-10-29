@@ -3,7 +3,7 @@
         <legend><a href="{model.url}">{model.url}</a><i class="show-when-loading icon-spinner icon-spin"></i></legend>
             {@keyvalue:model.attributes}
                 <label class="field-{key}">{key}:
-                    <input type="text" name="{key}" value="{value}">
+                    <input type="text" name="{key}" class="input-{key}" value="{value}">
                 </label>
                 <br>
             {/keyvalue}
