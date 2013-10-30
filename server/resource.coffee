@@ -30,6 +30,17 @@ module.exports = (options = {})->
     listView = options.listView ? modelProto.defaultListView
     
     renderItem = (res, item)->
+        meta = res.locals.meta
+        res.set({
+            'ETag': meta.etag,
+            'last-modified': meta.lastMod
+        })
+        #todo: check if req matches cache and return 304
+        for name, value of meta._headers when name.match(/^x-riak/)
+            res.set(name, value)
+
+        item._meta = res.locals.meta._headers
+
         res.format({
             json: ->
                 res.json(item)
@@ -143,15 +154,18 @@ module.exports = (options = {})->
 
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
-        db.save(bucket, null, req.body, {returnbody: true, index: {group: 'all'}}, (err, object, meta)->
+        delete req.body._meta
+        model = new modelCtor(req.body)
+        # run the backbone validator
+        unless model.isValid()
+            res.status(403)
+            return next(new Error(model.validationError))
+
+        db.save(bucket, null, model.toJSON(), {returnbody: true}, (err, object, meta)->
             if (err)
                 return next(err)
             else
                 object.id = meta.key
-                res.set({
-                    'ETag' : meta.etag,
-                    'last-modified' : meta.lastMod
-                })
                 res.status(meta.statusCode)
                 renderItem(res, object)
         )
@@ -159,15 +173,22 @@ module.exports = (options = {})->
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
     router.put('/:modelId', (req, res, next)->
-        #TODO: re-run validator on res.locals.model
-        db.save(bucket, req.params.modelId, req.body, {returnbody: true}, (err, object, meta)->
+        model = new modelCtor(res.locals.model)
+        delete req.body._meta
+        model.attributes = req.body # set all attributes
+        model.id = req.params.modelId
+        # run the backbone validator
+        unless model.isValid()
+            res.status(403)
+            return next(new Error(model.validationError))
+
+        meta = res.locals.meta
+        meta.returnbody = true
+        db.save(bucket, req.params.modelId, model.toJSON(), meta, (err, object, meta)->
             if (err)
                 return next(err)
             else
-                res.set({
-                    'ETag' : meta.etag,
-                    'last-modified' : meta.lastMod
-                })
+                res.locals.meta = meta
                 res.status(meta.statusCode)
                 renderItem(res, object)
         )
@@ -175,17 +196,21 @@ module.exports = (options = {})->
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
     router.patch('/:modelId', (req, res, next)->
-        for key, val of req.body
-            res.locals.model[key] = val
+        model = new modelCtor(res.locals.model)
+        delete req.body._meta
+        model.set(req.body) # set only transmitted attributes
+        # run the backbone validator
+        unless model.isValid()
+            res.status(403)
+            return next(new Error(model.validationError))
 
-        db.save(bucket, req.params.modelId, res.locals.model, {returnbody: true}, (err, object, meta)->
+        meta = res.locals.meta
+        meta.returnbody = true
+        db.save(bucket, req.params.modelId, model.toJSON(), meta, (err, object, meta)->
             if (err)
                 return next(err)
             else
-                res.set({
-                    'ETag' : meta.etag,
-                    'last-modified' : meta.lastMod
-                })
+                res.locals.meta = meta
                 res.status(meta.statusCode)
                 renderItem(res, object)
         )

@@ -19,7 +19,9 @@ module.exports = (err, req, res, next)->
             err = new Error(err)
 
     # if we have gotten to the error handler without a numeric status, assume 500 Server Error
-    err.status or= 500
+    if res.statusCode >= 400
+        err.status = res.statusCode
+    err.status ?= 500
     err.name = http.STATUS_CODES[err.status] or 'unknown'
 
     if err.status >= 400
@@ -34,7 +36,7 @@ module.exports = (err, req, res, next)->
     res.format({
         json: ->
             try
-                res.json(err)
+                res.json({status: err.status, name: err.name, message: err.message})
             catch e
                 res.end(err.message)
         html: ->
