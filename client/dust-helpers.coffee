@@ -188,5 +188,16 @@ dust.filters or= {}
 dust.filters.price = (value)->
     return "$" + value.toString().replace(/\..*$/, '')
 
+dust.filters.fakePrice = (value)->
+    value = parseInt(value) * 5/4
+    return "$" + value.toString().replace(/\..*$/, '')
+
+dust.filters.className = (value) ->
+    return value.replace(/\W+/g, '-')
+
 dust.filters.integerPrice = (value)->
     return value.toString().replace(/(\$\d+)\.\d\d/g, '$1')
+
+dust.filters.date = (value)->
+    return $?.format.date( new Date( value ), 'MMMM yyyy' )
+
