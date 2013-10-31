@@ -1,4 +1,8 @@
 riak = require("riak-js")
+
+unless process.env.RIAK_SERVERS
+    console.error("Cannot connect to database: RIAK_SERVERS environment variable must be set")
+
 servers = process.env.RIAK_SERVERS.split(/,/)
 
 if servers.length > 1
