@@ -55,7 +55,7 @@ module.exports = (options = {})->
     router.param('modelId', (req, res, next, modelId)->
         db.get(bucket, modelId, {}, (err, object, meta)->
             if err then return next(err)
-            object.id = modelId
+            object[modelProto.idAttribute or 'id'] = modelId
             res.locals.model = object
             res.locals.meta = meta
             next()
@@ -73,7 +73,7 @@ module.exports = (options = {})->
                     async.map(keys, (key, callback)->
                         #TODO: pass through req.headers for things like cache-control
                         db.get(bucket, key, {}, (err, object, meta)->
-                            object.id = key
+                            object[modelProto.idAttribute or 'id'] = key
                             object._vclock = meta.vclock
                             callback(err, object)
                         )
@@ -167,8 +167,7 @@ module.exports = (options = {})->
             if (err)
                 return next(err)
             else
-                object.id = meta.key
-                res.status(meta.statusCode)
+                object[modelProto.idAttribute or 'id'] = meta.key
                 renderItem(res, object)
         )
     )
