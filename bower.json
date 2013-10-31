@@ -39,6 +39,10 @@
         "dependencies": {
           "jquery": "~1.9.1"
       }
+    },
+    "console-polyfill": {
+      "main": "index.js",
+      "dependencies": {}
     }
   }
 }
