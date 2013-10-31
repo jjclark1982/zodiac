@@ -1,4 +1,3 @@
-config = require("./config").config
 fs = require 'fs'
 path = require 'path'
 child_process = require 'child_process'
@@ -19,6 +18,8 @@ try
     process.env = env
 catch e
     env = process.env
+
+config = require("./config").config
 
 # Helper function to run a shell script
 shellScript = (source = '')-> ->
