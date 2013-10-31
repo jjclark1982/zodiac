@@ -24,6 +24,8 @@ module.exports = class ListView extends BaseView
         #     @collection.trigger("filter")
         # )
         # @listenTo(@collection, "all", ->console.log(arguments))
+        if window?
+            $(document).on("scroll", @handleScroll)
         return @
 
     attributes: ->
@@ -121,6 +123,7 @@ module.exports = class ListView extends BaseView
     removeItemView: (model)->
         return unless model
         @$lis = null
+        @modelViews ?= {}
         if @modelViews[model.cid]
             itemView = @modelViews[model.cid]
             delete @modelViews[model.cid]
@@ -155,3 +158,18 @@ module.exports = class ListView extends BaseView
             @$(".num-found").text("Found #{countStr} matching your criteria")
         )
         return @
+
+    handleScroll: (event)=>
+        # for each item view
+            # if it is near the viewport and needs data or rendering
+                # render it
+        # ideally, assume a linear flow so we can stop looking once we are off screen
+        # and only start looking around the previous leave off
+        # TODO: does this need to handle resize, too?
+        # console.log(event.target.body.scrollTop)
+        return
+
+    remove: ->
+        if window?
+            $(document).off("scroll", @handleScroll)
+        super(arguments...)
