@@ -20,35 +20,113 @@ global.Backbone = require('backbone')
 # #### Middleware factory
 
 # Exports a function that maps a backbone model to express middleware that handles standard REST operations
-module.exports = (options = {})->
+module.exports = (moduleOptions = {})->
     # Inherits relevant variables from the model the function is called with
-    modelCtor = options.model
+    modelCtor = moduleOptions.model
     modelName = modelCtor.name
     modelProto = modelCtor.prototype
-    bucket = options.bucket ? modelProto.bucket
-    itemView = options.itemView ? modelProto.defaultView
-    listView = options.listView ? modelProto.defaultListView
-    
-    renderItem = (res, item)->
-        meta = res.locals.meta
-        if meta
-            res.set({
-                'ETag': meta.etag,
-                'last-modified': meta.lastMod
-            })
-            #todo: cache control even if meta is not set as expected
-            #todo: check if req matches cache and return 304
-            for name, value of meta._headers when name.match(/^x-riak/)
-                res.set(name, value)
+    bucket = moduleOptions.bucket ? modelProto.bucket
+    itemView = moduleOptions.itemView ? modelProto.defaultView
+    listView = moduleOptions.listView ? modelProto.defaultListView
 
-            item._vclock = res.locals.meta.vclock
+    renderItem = (req, res, next, item)->
+        meta = res.locals.meta or {}
+
+        # support "not modified" responses
+        # note that 
+        res.set({
+            'ETag': meta.etag,
+            'last-modified': meta.lastMod
+            'Vary': 'Accept,Accept-Encoding'
+        })
+        for name, value of meta._headers when name.match(/^x-riak/)
+            res.set(name, value)
+
+        item._vclock = meta.vclock
 
         res.format({
             json: ->
+                if req.fresh then return res.end(304)
                 res.json(item)
             html: ->
+                res.set({'ETag': meta.etag + "h"})
+                if req.fresh then return res.end(304)
                 res.render(itemView, {model: new modelCtor(item)})
         })
+
+    renderList = (req, res, next, keys)->
+        res.format({
+            json: ->
+                async.map(keys, (key, callback)->
+                    #TODO: pass through req.headers for things like cache-control
+                    db.get(bucket, key, {}, (err, object, meta)->
+                        object[modelProto.idAttribute or 'id'] = key
+                        object._vclock = meta.vclock
+                        callback(err, object)
+                    )
+                , (err, results)->
+                    if err then return next(err)
+                    res.json(results)
+                )
+            html: ->
+                collection = new Backbone.Collection([], {
+                    model: modelCtor
+                    url: req.originalUrl.replace(/\?.*$/, '')
+                })
+                collection.query = req.originalUrl.replace(/^[^\?]*/,'')
+
+                for key, i in keys then do (key,i)->
+                    model = new modelCtor()
+                    model.id = key
+                    if i < 5
+                        model.needsData = true
+                        model.fetch = (options)->
+                            process.nextTick(=>
+                                db.get(bucket, @id, {}, (err, object, meta)=>
+                                    if err then return options.error?(err)
+                                    @set(object)
+                                    options.success?()
+                                )
+                            )
+                    collection.add(model)
+
+                # note that this, and all other `res.render()` functions, employ 
+                # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
+                res.render(listView, {
+                    collection: collection
+                })
+        })
+
+    saveItem = (req, res, next, options={})->
+        vclock = req.body?._vclock or res.locals.meta?.vclock
+        delete req.body._vclock
+
+        model = new modelCtor(res.locals.object)
+        if options.merge
+            model.set(req.body)
+            delete options.merge
+        else
+            model.attributes = req.body # set all attributes
+        model.id = req.params.modelId # don't support renaming for now
+        # run the backbone validator
+        unless model.isValid()
+            res.status(403)
+            return next(new Error(model.validationError))
+
+        options.returnbody = true
+        options.vclock = vclock
+        if model.index
+            options.index = _.result(model, 'index')
+
+        db.save(bucket, req.params.modelId, model.toJSON(), options, (err, object, meta)->
+            res.status(meta.statusCode)
+            if (err) then return next(err)
+
+            res.locals.meta = meta
+            object[modelProto.idAttribute or 'id'] = meta.key
+            renderItem(req, res, next, object)
+        )
+
 
     # Sets up a new express router with the following substack:
     router = new express.Router()
@@ -58,7 +136,7 @@ module.exports = (options = {})->
         db.get(bucket, modelId, {}, (err, object, meta)->
             if err then return next(err)
             object[modelProto.idAttribute or 'id'] = modelId
-            res.locals.model = object
+            res.locals.object = object
             res.locals.meta = meta
             next()
         )
@@ -67,55 +145,13 @@ module.exports = (options = {})->
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/', (req, res, next)->
-        callback = (err, keys, meta)->
-            if err then return next(err)
-
-            res.format({
-                json: ->
-                    async.map(keys, (key, callback)->
-                        #TODO: pass through req.headers for things like cache-control
-                        db.get(bucket, key, {}, (err, object, meta)->
-                            object[modelProto.idAttribute or 'id'] = key
-                            object._vclock = meta.vclock
-                            callback(err, object)
-                        )
-                    , (err, results)->
-                        if err then return next(err)
-                        res.json(results)
-                    )
-                html: ->
-                    # modelCtor.prototype.fetch = 
-                    collection = new Backbone.Collection([], {
-                        model: modelCtor
-                        url: req.originalUrl.replace(/\?.*$/, '')
-                    })
-                    collection.query = req.originalUrl.replace(/^[^\?]*/,'')
-
-                    for key, i in keys then do (key,i)->
-                        model = new modelCtor()
-                        model.id = key
-                        if i < 5
-                            model.needsData = true
-                            model.fetch = (options)->
-                                process.nextTick(=>
-                                    db.get(bucket, @id, {}, (err, object, meta)=>
-                                        if err then return options.error?(err)
-                                        @set(object)
-                                        options.success?()
-                                    )
-                                )
-                        collection.add(model)
-
-                    # note that this, and all other `res.render()` functions, employ 
-                    # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
-                    res.render(listView, {
-                        itemView: itemView
-                        collection: collection
-                    })
-            })
         if Object.keys(req.query).length > 0
-            db.query(bucket, req.query, callback)
+            db.query(bucket, req.query, (err, keys, meta)->
+                if err then return next(err)
+                renderList(req, res, next, keys)
+            )
         else
+            return next(503)
             #TODO: refactor this with above
             #TODO: rate-limiting
             res.format({
@@ -152,85 +188,22 @@ module.exports = (options = {})->
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
     #TODO: handle multiple options
     router.get('/:modelId.:format?', (req, res, next)->
-        renderItem(res, res.locals.model)
+        renderItem(req, res, next, res.locals.object)
     )
 
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
-        model = new modelCtor(req.body)
-        # run the backbone validator
-        unless model.isValid()
-            res.status(403)
-            return next(new Error(model.validationError))
-
-        meta = {returnbody: true}
-        db.save(bucket, null, model.toJSON(), meta, (err, object, meta)->
-            res.status(meta.statusCode)
-            if (err)
-                return next(err)
-            else
-                object[modelProto.idAttribute or 'id'] = meta.key
-                renderItem(res, object)
-        )
+        saveItem(req, res, next, {create: true})
     )
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
     router.put('/:modelId', (req, res, next)->
-        if req.body?.vclock
-            res.locals.meta.vclock = req.body.vclock
-        delete req.body._vclock
-
-        model = new modelCtor(res.locals.model)
-        model.attributes = req.body # set all attributes
-        model.id = req.params.modelId # don't support renaming for now
-        # run the backbone validator
-        unless model.isValid()
-            res.status(403)
-            return next(new Error(model.validationError))
-
-        meta = {}
-        meta.returnbody = true
-        meta.vclock = res.locals.meta.vclock
-        if model.index
-            meta.index = _.result(model, 'index')
-
-        db.save(bucket, req.params.modelId, model.toJSON(), meta, (err, object, meta)->
-            if (err)
-                return next(err)
-            else
-                res.locals.meta = meta
-                res.status(meta.statusCode)
-                renderItem(res, object)
-        )
+        saveItem(req, res, next)
     )
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
     router.patch('/:modelId', (req, res, next)->
-        if req.body?.vclock
-            res.locals.meta.vclock = req.body.vclock
-        delete req.body._vclock
-
-        model = new modelCtor(res.locals.model)
-        model.set(req.body) # set only transmitted attributes
-        model.id = req.params.modelId
-        # run the backbone validator
-        unless model.isValid()
-            res.status(403)
-            return next(new Error(model.validationError))
-
-        meta = {}
-        meta.returnbody = true
-        if model.index
-            meta.index = _.result(model, 'index')
-
-        db.save(bucket, req.params.modelId, model.toJSON(), meta, (err, object, meta)->
-            if (err)
-                return next(err)
-            else
-                res.locals.meta = meta
-                res.status(meta.statusCode)
-                renderItem(res, object)
-        )
+        saveItem(req, res, next, {merge: true})
     )
 
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB

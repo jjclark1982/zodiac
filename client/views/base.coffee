@@ -24,8 +24,9 @@ module.exports = class BaseView extends Backbone.View
             atts['data-model'] = normalizePath(@model.requirePath)?.replace(/^models\//,'')
         if @collection?.requirePath
             atts['data-collection'] = normalizePath(@collection.requirePath)
-        if @collection?.model?.requirePath
-            atts['data-collection-model'] = @collection?.model?.prototype.requirePath?.replace(/^models\//,'')
+        if @collection?.model
+            cmp = normalizePath(@collection.model.prototype.requirePath).replace(/^models\//,'')
+            atts['data-collection-model'] = cmp
 
         try
             atts['data-model-url'] = _.result(@model, 'url')
