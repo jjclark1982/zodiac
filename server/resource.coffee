@@ -34,7 +34,8 @@ module.exports = (options = {})->
         res.set({
             'ETag': meta.etag,
             'last-modified': meta.lastMod
-        })
+        }) if meta
+        #todo: cache control even if meta is not set as expected
         #todo: check if req matches cache and return 304
         for name, value of meta._headers when name.match(/^x-riak/)
             res.set(name, value)
