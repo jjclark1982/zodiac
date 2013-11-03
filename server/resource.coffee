@@ -31,16 +31,17 @@ module.exports = (options = {})->
     
     renderItem = (res, item)->
         meta = res.locals.meta
-        res.set({
-            'ETag': meta.etag,
-            'last-modified': meta.lastMod
-        }) if meta
-        #todo: cache control even if meta is not set as expected
-        #todo: check if req matches cache and return 304
-        for name, value of meta._headers when name.match(/^x-riak/)
-            res.set(name, value)
+        if meta
+            res.set({
+                'ETag': meta.etag,
+                'last-modified': meta.lastMod
+            })
+            #todo: cache control even if meta is not set as expected
+            #todo: check if req matches cache and return 304
+            for name, value of meta._headers when name.match(/^x-riak/)
+                res.set(name, value)
 
-        item._vclock = res.locals.meta.vclock
+            item._vclock = res.locals.meta.vclock
 
         res.format({
             json: ->
