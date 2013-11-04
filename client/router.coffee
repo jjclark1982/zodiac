@@ -19,7 +19,6 @@ class Router extends Backbone.Router
                 modelCtor: Backbone.Model
                 url: document.location.pathname
             })
-            window.dbo = options
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             if model
@@ -33,6 +32,8 @@ class Router extends Backbone.Router
             @lightbox = new Lightbox({heroEl: view.$el})
             @lightbox.render()
             $(document.body).append(@lightbox.$el)
+            @lightbox.$el.css({height: $(document).height() + "px"})
+            document.body.scrollTop = 0.1
         else
             @setMainView(view)
             #TODO: have 'setMainView' and 'setModalView'
