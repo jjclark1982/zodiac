@@ -36,11 +36,14 @@ module.exports = (moduleOptions = {})->
         # note that 
         res.set({
             'ETag': meta.etag,
-            'last-modified': meta.lastMod
+            'Last-Modified': meta.lastMod
             'Vary': 'Accept,Accept-Encoding'
+            'Location': modelProto.urlRoot + '/' + meta.key
         })
-        for name, value of meta._headers when name.match(/^x-riak/)
+        for name, value of meta._headers when name.match(/^x-riak/i)
             res.set(name, value)
+        #TODO: translate "Link" header
+        #TODO: consider redirecting if originalUrl doesn't match Location
 
         item._vclock = meta.vclock
 
@@ -186,7 +189,7 @@ module.exports = (moduleOptions = {})->
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
-    #TODO: handle multiple options
+    #TODO: handle multiple options in case of editing conflict
     router.get('/:modelId.:format?', (req, res, next)->
         renderItem(req, res, next, res.locals.object)
     )
@@ -194,6 +197,7 @@ module.exports = (moduleOptions = {})->
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
         saveItem(req, res, next, {create: true})
+        #TODO: investigate whether we need to set "location" header
     )
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
@@ -209,12 +213,11 @@ module.exports = (moduleOptions = {})->
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB
     router.delete('/:modelId', (req, res, next)->
         db.remove(bucket, req.params.modelId, (err, object, meta)->
-            if (err)
-                return next(err)
-            else
-                res.location(modelProto.urlRoot)
-                res.status(204)
-                res.end()
+            if (err) then return next(err)
+
+            res.location(modelProto.urlRoot)
+            res.status(204)
+            res.end()
         )
     )
 

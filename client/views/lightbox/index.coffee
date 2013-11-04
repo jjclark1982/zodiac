@@ -13,7 +13,7 @@ module.exports = class LightboxView extends BaseView
         
     initialize: (options)->
         @listenTo(@, 'render:after', ->
-            @$(".hero").prepend(@options.heroEl)
+            @$(".hero").prepend(options.heroEl)
         )
 
     events: {
@@ -21,6 +21,6 @@ module.exports = class LightboxView extends BaseView
     }
     
     close: (event)->
-        if event.target is this.el
+        if event.target.parentElement is @el or event.target.parentElement.parentElement is @el
             window.history.back()
-        
+            @remove()

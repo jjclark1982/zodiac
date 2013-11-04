@@ -1,37 +1,25 @@
 class Router extends Backbone.Router
     routes: {
         "": "landing"
-        "books(/)(?*query)": "books"
-        "books/:id": "book"
     }
 
-    books: (query="") ->
+    landing: ->
         view = @getPoppedView()
         unless view
-            options = _.defaults({}, {
-                viewCtor: require("views/library")
-                collectionCtor: require("collections/library")
-                collectionOptions: { url: document.location.pathname }
-                collectionQuery: query
-            })
-
-            view = new options.viewCtor({
-                collection: new options.collectionCtor([], options.collectionOptions)
-            })
-            view.collection.query = options.collectionQuery
+            ActivitySearchView = require("views/activity-search")
+            view = new ActivitySearchView()
             view.render()
-            view.collection.fetch({data: view.collection.query})
         @setMainView(view)
-
-    book: (id) ->
-        console.log("showing model view")
+   
+    showModelView: (options={})->
         view = @getPoppedView()
         unless view
-            options = _.defaults({}, {
-                viewCtor: require("views/book")
-                modelCtor: require("models/book")
+            options = _.defaults(options, {
+                viewCtor: Backbone.View
+                modelCtor: Backbone.Model
                 url: document.location.pathname
             })
+            window.dbo = options
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             if model
@@ -41,52 +29,19 @@ class Router extends Backbone.Router
             view.render()
             model.fetch() if model.isNew()
         if lightbox
-            console.log("lightbox happen")
             Lightbox = require("views/lightbox")
             @lightbox = new Lightbox({heroEl: view.$el})
             @lightbox.render()
             $(document.body).append(@lightbox.$el)
         else
             @setMainView(view)
-        
-#      routeName = Model.name
-#     module.exports.route(route, routeName, (id)->
-#         @showModelView({
-#             viewCtor: require("views/" + Model.prototype.defaultView)
-#             modelCtor: Model
-#         })
-#     )
-        
-    landing: ->
-        view = @getPoppedView()
-        unless view
-            ActivitiesView = require("views/activities")
-            view = new ActivitiesView()
-            view.render()
-        @setMainView(view)
-   
-    showModelView: (options={})->
-        console.log("showing model view")
-        view = @getPoppedView()
-        unless view
-            options = _.defaults(options, {
-                viewCtor: Backbone.View
-                modelCtor: Backbone.Model
-                url: document.location.pathname
-            })
-
-            model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
-            model ?= new options.modelCtor({}, {url: options.url})
-            view = new options.viewCtor({model: model})
-            view.render()
-            model.fetch() if model.isNew()
-        @setMainView(view)
+            #TODO: have 'setMainView' and 'setModalView'
 
     showCollectionView: (options={})->
         view = @getPoppedView()
         unless view
             options = _.defaults(options, {
-                viewCtor: require("views/collection-base")
+                viewCtor: require("views/list")
                 collectionCtor: Backbone.Collection
                 collectionOptions: { url: document.location.pathname }
             })
@@ -160,6 +115,7 @@ class Router extends Backbone.Router
         else
             depth = window.history.state?.depth
             view = @recentViews[depth]
+            #TODO: deal with depth underflow when going "back" to a routable, unloaded view
             return view
 
     invalidateCache: ->
@@ -231,30 +187,31 @@ class Router extends Backbone.Router
 
 module.exports = new Router()
 
-# modelsToRoute = [
-#     'activity'
-# ]
+modelsToRoute = [
+    'activity'
+]
 
-# for modelName in modelsToRoute then do (modelName)->
-#     Model = require("models/#{modelName}")
-#     urlRoot = Model.prototype.urlRoot.replace(/^\//, '')
+for modelName in modelsToRoute then do (modelName)->
+    Model = require("models/#{modelName}")
+    urlRoot = Model.prototype.urlRoot.replace(/^\//, '')
 
-#     route = urlRoot + '(/)(?*query)'
-#     routeName = Model.name + "Collection"
-#     module.exports.route(route, routeName, (query)->
-#         @showCollectionView({
-#             viewCtor: require("views/" + Model.prototype.defaultCollectionView)
-#             collectionCtor: Backbone.Collection
-#             collectionOptions: { url: document.location.pathname, model: Model }
-#             collectionQuery: query
-#         })
-#     )
+    route = urlRoot + '(/)(?*query)'
+    routeName = Model.name + "Collection"
+    module.exports.route(route, routeName, (query)->
+        query or= document.location.search.replace(/^\?/,'')
+        @showCollectionView({
+            viewCtor: require("views/" + Model.prototype.defaultListView)
+            collectionCtor: Backbone.Collection
+            collectionOptions: { url: document.location.pathname, model: Model }
+            collectionQuery: query
+        })
+    )
 
-#     route = urlRoot + '/:id'
-#     routeName = Model.name
-#     module.exports.route(route, routeName, (id)->
-#         @showModelView({
-#             viewCtor: require("views/" + Model.prototype.defaultView)
-#             modelCtor: Model
-#         })
-#     )
+    route = urlRoot + '/:id'
+    routeName = Model.name #TODO: consider how this interacts with minification
+    module.exports.route(route, routeName, (id)->
+        @showModelView({
+            viewCtor: require("views/" + Model.prototype.defaultView)
+            modelCtor: Model
+        })
+    )
