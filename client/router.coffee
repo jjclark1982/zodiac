@@ -61,7 +61,7 @@ class Router extends Backbone.Router
         return mainView
 
     setMainView: (view)->
-        @lightbox?.remove()
+        @lightbox?.dismiss()
         @modalView = null
         currentView = @mainView
         return if currentView is view

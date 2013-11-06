@@ -12,8 +12,11 @@ module.exports = class LightboxView extends BaseView
     className: "lightbox-view"
     
     events: {
-        "click": "close"
+        "click": "clickBackground"
     }
+
+    initialize: (options)->
+        $(document).on('keyup', @pressEscape)
 
     showView: (view)->
         @listenTo(@, 'render:after', ->
@@ -26,13 +29,17 @@ module.exports = class LightboxView extends BaseView
         $(document.body).append(@$el)
         @render()
 
-    close: (event)->
+    clickBackground: (event)->
         if event.target.parentElement is @el
+            @dismiss()
+
+    pressEscape: (event)=>
+        if event.keyCode is 27
             @dismiss()
 
     dismiss: ->
         $(document.body).css("overflow", "")
-        window.history.back()
-        @remove()
-
-# todo: bind escape key to close
+        $(document).off('keyup', @pressEscape)
+        if (@$el.parent().length > 0)
+            window.history.back()
+            @remove()
