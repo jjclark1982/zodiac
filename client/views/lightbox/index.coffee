@@ -10,17 +10,29 @@ module.exports = class LightboxView extends BaseView
     requirePath: module.id
     template: require("./template")
     className: "lightbox-view"
-        
-    initialize: (options)->
-        @listenTo(@, 'render:after', ->
-            @$(".hero").prepend(options.heroEl)
-        )
-
+    
     events: {
         "click": "close"
     }
+
+    showView: (view)->
+        @listenTo(@, 'render:after', ->
+            @$(".container").empty().append(view.$el)
+        )
+        @show()
     
+    show: ->
+        $(document.body).css("overflow", "hidden")
+        $(document.body).append(@$el)
+        @render()
+
     close: (event)->
-        if event.target.parentElement is @el or event.target.parentElement.parentElement is @el
-            window.history.back()
-            @remove()
+        if event.target.parentElement is @el
+            @dismiss()
+
+    dismiss: ->
+        $(document.body).css("overflow", "")
+        window.history.back()
+        @remove()
+
+# todo: bind escape key to close

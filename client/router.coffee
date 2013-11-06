@@ -1,3 +1,6 @@
+Lightbox = require("views/lightbox")
+
+
 class Router extends Backbone.Router
     routes: {
         "": "landing"
@@ -22,18 +25,15 @@ class Router extends Backbone.Router
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             if model
-                lightbox = true
+                shouldShowModal = true
             model ?= new options.modelCtor({}, {url: options.url})
             view = new options.viewCtor({model: model})
             view.render()
             model.fetch() if model.isNew()
-        if lightbox
-            Lightbox = require("views/lightbox")
-            @lightbox = new Lightbox({heroEl: view.$el})
-            @lightbox.render()
-            $(document.body).append(@lightbox.$el)
-            @lightbox.$el.css({height: $(document).height() + "px"})
-            document.body.scrollTop = 0.1
+        if shouldShowModal
+            @modalView = view
+            @lightbox = new Lightbox()
+            @lightbox.showView(view)
         else
             @setMainView(view)
             #TODO: have 'setMainView' and 'setModalView'
@@ -62,6 +62,7 @@ class Router extends Backbone.Router
 
     setMainView: (view)->
         @lightbox?.remove()
+        @modalView = null
         currentView = @mainView
         return if currentView is view
 
@@ -153,6 +154,7 @@ class Router extends Backbone.Router
 
             # intercept links that can be handled by this router
             $(document).delegate("a", "click", (event)->
+                event.preventDefault()
                 return if event.metaKey # let users open links in new tab
                 link = this
                 if module.exports.navigateToLink(link)

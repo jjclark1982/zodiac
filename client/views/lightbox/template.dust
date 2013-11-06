@@ -1,5 +1,2 @@
-<div class="container">
-    <!-- <a href="javascript:history.back()">[x]</a> -->
-    <div class="hero"></div>
-    <br style="clear: both" />
-</div>
+<div class="container"></div>
+<br style="clear: both" />
