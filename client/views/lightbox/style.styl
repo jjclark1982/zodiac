@@ -1,3 +1,5 @@
+@import 'nib'
+
 .lightbox-view {
     background-color: rgba(0, 0, 0, .75);
     position: fixed;
@@ -6,8 +8,28 @@
     width: 100%;
     height: 100%;
     z-index: 20000;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: scroll;
+    animation-name: fadein;
+    animation-duration: 333ms;
+    animation-timing-function: linear;
+    animation-iteration-count: 1;
     .container {
+        animation-name: rolldown;
+        animation-duration: 666ms;
+        animation-timing-function: ease;
+        animation-iteration-count: 1;
         padding: 2em 0;
+        overflow: hidden;
     }
+}
+
+@-webkit-keyframes fadein {
+    from { background-color: rgba(0,0,0, 0); }
+    to   { background-color: rgba(0,0,0, 0.75); }
+}
+
+@-webkit-keyframes rolldown {
+    from { height: 0; }
+    to   { height: 100%; }
 }
