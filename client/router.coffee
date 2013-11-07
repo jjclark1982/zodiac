@@ -154,7 +154,6 @@ class Router extends Backbone.Router
 
             # intercept links that can be handled by this router
             $(document).delegate("a", "click", (event)->
-                event.preventDefault()
                 return if event.metaKey # let users open links in new tab
                 link = this
                 if module.exports.navigateToLink(link)
