@@ -28,6 +28,7 @@ module.exports = (moduleOptions = {})->
     bucket = moduleOptions.bucket ? modelProto.bucket
     itemView = moduleOptions.itemView ? modelProto.defaultView
     listView = moduleOptions.listView ? modelProto.defaultListView
+    idAttribute = modelProto.idAttribute or 'id'
 
     renderItem = (req, res, next, item)->
         meta = res.locals.meta or {}
@@ -74,7 +75,7 @@ module.exports = (moduleOptions = {})->
                 async.map(keys, (key, callback)->
                     #TODO: pass through req.headers for things like cache-control
                     db.get(bucket, key, {}, (err, object, meta)->
-                        object[modelProto.idAttribute or 'id'] = key
+                        object[idAttribute] = key
                         object._vclock = meta.vclock
                         callback(err, object)
                     )
@@ -123,11 +124,18 @@ module.exports = (moduleOptions = {})->
 
         model = new modelCtor(res.locals.object)
         if options.merge
+             # set only the transmitted attributes
             model.set(req.body)
             delete options.merge
         else
-            model.attributes = req.body # set all attributes
-        model.id = req.params.modelId # don't support renaming for now
+            # set all attributes
+            model.attributes = req.body
+            model.set(model.attributes)
+
+        # support setting the id of a new object
+        modelId = req.params.modelId or model.id
+        model.id = modelId
+
         # run the backbone validator
         unless model.isValid()
             res.status(403)
@@ -138,13 +146,17 @@ module.exports = (moduleOptions = {})->
         if model.index
             options.index = _.result(model, 'index')
 
-        db.save(bucket, req.params.modelId, model.toJSON(), options, (err, object, meta)->
+        db.save(bucket, modelId, model.toJSON(), options, (err, object, meta)->
             res.status(meta.statusCode)
             if (err) then return next(err)
 
             res.locals.meta = meta
-            object[modelProto.idAttribute or 'id'] = meta.key
-            renderItem(req, res, next, object)
+            object[idAttribute] = meta.key
+
+            if options.create
+                res.redirect(modelProto.urlRoot + '/' + meta.key)
+            else
+                renderItem(req, res, next, object)
         )
 
 
@@ -155,7 +167,7 @@ module.exports = (moduleOptions = {})->
     router.param('modelId', (req, res, next, modelId)->
         db.get(bucket, modelId, {}, (err, object, meta)->
             if err then return next(err)
-            object[modelProto.idAttribute or 'id'] = modelId
+            object[idAttribute] = modelId
             res.locals.object = object
             res.locals.meta = meta
             next()
@@ -239,7 +251,8 @@ module.exports = (moduleOptions = {})->
     )
 
     router.get("/:modelId/versions", (req, res, next)->
-        
+        #TBD
+        next()
     )
 
     for linkName, linkDef of modelProto.links or {}
