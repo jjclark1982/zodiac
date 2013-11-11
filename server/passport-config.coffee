@@ -66,7 +66,7 @@ middleware.use((req, res, next)->
 middleware.use((req, res, next)->
     if !req.url.indexOf('/users/me') # starts with
         if req.session.passport.user
-            req.url = '/users/' + req.session.passport.user.id
+            req.url = '/users/' + req.session.passport.user
         else
             return next(401)
     next()
