@@ -106,7 +106,6 @@ middleware.post('/users', (req, res, next)->
             next() # let the normal resource handler finish the POST
         )
     )
-    hash(req.)
 )
 
 module.exports = middleware
