@@ -15,9 +15,9 @@
     animation-timing-function: ease-out;
     animation-iteration-count: 1;
     .container {
-        animation-name: rolldown;
+        animation-name: slideup;
         animation-duration: 333ms;
-        animation-timing-function: linear
+        animation-timing-function: ease-out
         animation-iteration-count: 1;
         padding: 2em 0;
         overflow: hidden;
@@ -32,4 +32,9 @@
 @-webkit-keyframes rolldown {
     from { height: 0; }
     to   { height: 100%; }
+}
+
+@-webkit-keyframes slideup {
+    from { margin-top: 100%; }
+    to   { margin-top: 0; }
 }

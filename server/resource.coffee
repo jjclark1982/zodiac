@@ -54,7 +54,18 @@ module.exports = (moduleOptions = {})->
             html: ->
                 res.set({'ETag': meta.etag + "h"})
                 if req.fresh then return res.end(304)
-                res.render(itemView, {model: new modelCtor(item)})
+
+                # TODO: see if title can be set in a more coherent way
+                try
+                    ItemView = require('views/'+itemView)
+                    view = new ItemView({model: new modelCtor(item)})
+                    title = _.result(view, 'title') or ''
+                catch e
+                    null
+                res.render(itemView, {
+                    model: new modelCtor(item)
+                    title: title
+                })
         })
 
     renderList = (req, res, next, keys)->
@@ -95,8 +106,14 @@ module.exports = (moduleOptions = {})->
 
                 # note that this, and all other `res.render()` functions, employ 
                 # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
+
+                try
+                    title = _.result(require('views/'+listView).prototype, 'title') or ''
+                catch e
+                    null
                 res.render(listView, {
                     collection: collection
+                    title: title
                 })
         })
 
@@ -221,6 +238,16 @@ module.exports = (moduleOptions = {})->
         )
     )
 
+    router.get("/:modelId/versions", (req, res, next)->
+        
+    )
+
+    for linkName, linkDef of modelProto.links or {}
+        router.get("/:modelId/#{linkName}", (req, res, next)->
+            res.json(linkDef)
+            #TOOD: show the linked item(s) with their natural views
+        )
+        # TODO: support POST/DELETE to edit links
 
     return router.middleware
 

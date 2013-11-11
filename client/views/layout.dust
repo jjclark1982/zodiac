@@ -20,8 +20,6 @@
     </div>
     {>footer:no-context /}
 
-
-
     <script src="/javascripts/vendor.js"></script>
     <script src="/javascripts/app.js"></script>
     <script>require('initialize')</script>

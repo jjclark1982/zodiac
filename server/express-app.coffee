@@ -85,7 +85,7 @@ app.use(errorHandler)
 
 # MAP '/' to the 'landing' view
 app.get('/', (req, res, next)->
-    res.render('landing')
+    res.render('landing', {title: "Search Activities"})
 )
 # MAP '/slow' to the 'slow' view -- for streaming testing
 app.get('/slow', (req, res, next)->

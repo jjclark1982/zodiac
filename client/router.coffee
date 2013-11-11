@@ -61,6 +61,7 @@ class Router extends Backbone.Router
         return mainView
 
     setMainView: (view)->
+        document.title = _.result(view, 'title')
         @lightbox?.remove().dismiss()
         @modalView = null
         currentView = @mainView
@@ -155,7 +156,10 @@ class Router extends Backbone.Router
             # intercept links that can be handled by this router
             $(document).delegate("a", "click", (event)->
                 return if event.metaKey # let users open links in new tab
-                link = this
+                if @debug
+                    event.preventDefault()
+
+                link = event.currentTarget
                 if module.exports.navigateToLink(link)
                     event.preventDefault()
             )
@@ -200,6 +204,7 @@ for modelName in modelsToRoute then do (modelName)->
     route = urlRoot + '(/)(?*query)'
     routeName = Model.name + "Collection"
     module.exports.route(route, routeName, (query)->
+        document.title = Model.prototype.collectionTitle or ''
         query or= document.location.search.replace(/^\?/,'')
         @showCollectionView({
             viewCtor: require("views/" + Model.prototype.defaultListView)

@@ -19,7 +19,9 @@ module.exports = class LightboxView extends BaseView
         $(document).on('keyup', @pressEscape)
 
     showView: (view)->
-        @listenTo(@, 'render:after', ->
+        @prevTitle = document.title
+        document.title = _.result(view, 'title')
+        @listenToOnce(@, 'render:after', ->
             @$(".container").empty().append(view.$el)
         )
         @show()
@@ -41,6 +43,7 @@ module.exports = class LightboxView extends BaseView
             @dismiss()
 
     dismiss: ->
+        document.title = @prevTitle
         $(document.body).css({
             "overflow": ""
             "padding-right": ""
