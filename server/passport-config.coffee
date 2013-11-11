@@ -8,7 +8,7 @@ hash = (password, salt, callback)->
     keylen = 128
     iterations = 12345
     if callback?
-        crypto.pbkdf2(password, salt, keylen, iterations, callback)
+        crypto.pbkdf2(password, salt, iterations, keylen, callback)
     else
         callback = salt
         crypto.randomBytes(keylen, (err, salt)->
@@ -28,10 +28,11 @@ validatePassword = (password='')->
 db = require("./db")
 
 passport.serializeUser (user, done) ->
-    done(null, user.attributes.username)
+    done(null, user.username)
 
 passport.deserializeUser (id, done) ->
-    done(null, {attributes: {username: id}})
+    done(null, {username: id})
+    # TODO: fetch obj from db or w/e
 
 
 passport.use(new LocalStrategy ((username, password, done) ->
@@ -43,7 +44,7 @@ passport.use(new LocalStrategy ((username, password, done) ->
         hash(password, user.password_salt, (err, hash)->
             if err then return done(err)
 
-            if hash is user.password_hash
+            if hash.toString("base64") is user.password_hash
                 return done(null, user)
             else
                 return done(null, false, {message: "wrong password"})
@@ -74,7 +75,7 @@ middleware.use((req, res, next)->
 middleware.post('/login', passport.authenticate('local',  {
     successRedirect: '/',
     failureRedirect: '/login',
-    failureFlash: true
+    failureFlash: false
 }))
 
 middleware.get('/login', (req, res, next)-> 
@@ -99,8 +100,8 @@ middleware.post('/users', (req, res, next)->
             e.statusCode = 409
             return next(e)
 
-        hash(req.body.username, (err, salt, hash)->
-            req.body.password_hash = hash
+        hash(req.body.password, (err, salt, hash)->
+            req.body.password_hash = hash.toString('base64')
             req.body.password_salt = salt
             delete req.body.password
             next() # let the normal resource handler finish the POST
