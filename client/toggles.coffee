@@ -11,11 +11,12 @@ return unless window?
 $(document).on("click", "[data-toggle]", (event)->
     $toggler = $(this)
     classToToggle = $toggler.data("toggleClass") or "open"
-    $parent = $toggler
+    $cursor = $toggler
     for type in $toggler.data("toggle").split(/\s/)
         continue if type is ''
-        $parent = $parent.parents("."+type).eq(0)
-        $parent.toggleClass(classToToggle)
+        unless $cursor.hasClass(type)
+            $cursor = $cursor.parents("."+type).eq(0)
+        $cursor.toggleClass(classToToggle)
 )
 
 # provide radio-button-style selection group functionality. e.g.:
