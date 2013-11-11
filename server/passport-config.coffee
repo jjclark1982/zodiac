@@ -20,7 +20,10 @@ hash = (password, salt, callback)->
             )
         )
 
-
+validatePassword = (password='')->
+    if password.length < 5
+        return "password must be at least 5 characters long"
+    return null
 
 db = require("./db")
 
@@ -32,7 +35,7 @@ passport.deserializeUser (id, done) ->
 
 
 passport.use(new LocalStrategy ((username, password, done) ->
-    db.get('users', username, (err, meta, user)->
+    db.get('users', username, (err, user, meta)->
         if meta.statusCode is 404
             return done(null, false, {message: "no such user"})
         if err then return done(err)
@@ -81,6 +84,29 @@ middleware.get('/login', (req, res, next)->
 middleware.get('/logout', (req, res, next)-> 
     req.logout()
     res.redirect('/')
+)
+
+middleware.post('/users', (req, res, next)->
+    db.get('users', req.body.username, (err, user, meta)->
+        if meta.statusCode isnt 404
+            e = new Error("username #{req.body.username} is already taken")
+            e.statusCode = 409
+            return next(e)
+
+        passwordError = validatePassword(req.body.password)
+        if passwordError
+            e = new Error(passwordError)
+            e.statusCode = 409
+            return next(e)
+
+        hash(req.body.username, (err, salt, hash)->
+            req.body.password_hash = hash
+            req.body.password_salt = salt
+            delete req.body.password
+            next() # let the normal resource handler finish the POST
+        )
+    )
+    hash(req.)
 )
 
 module.exports = middleware

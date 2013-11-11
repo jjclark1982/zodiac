@@ -19,6 +19,7 @@ module.exports = (err, req, res, next)->
             err = new Error(err)
 
     # if we have gotten to the error handler without a numeric status, assume 500 Server Error
+    # TODO: use err.statusCode here and everywhere else
     if res.statusCode >= 400
         err.status = res.statusCode
     err.status ?= 500
