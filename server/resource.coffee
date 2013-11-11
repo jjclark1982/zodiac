@@ -50,11 +50,12 @@ module.exports = (moduleOptions = {})->
 
         res.format({
             json: ->
-                if req.fresh then return res.end(304)
+                #TODO: make cache-control actually work
+                # if req.fresh then return res.end(304)
                 res.json(item)
             html: ->
                 res.set({'ETag': meta.etag + "h"})
-                if req.fresh then return res.end(304)
+                # if req.fresh then return res.end('', 304)
 
                 # TODO: see if title can be set in a more coherent way
                 try
