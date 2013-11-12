@@ -1,9 +1,10 @@
+crypto = require("crypto")
 express = require("express")
 passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
+db = require("./db")
 
 # cryptographic hash function
-crypto = require("crypto")
 hash = (password, salt, callback)->
     keylen = 128
     iterations = 12345
@@ -25,17 +26,18 @@ validatePassword = (password='')->
         return "password must be at least 5 characters long"
     return null
 
-db = require("./db")
+passport.serializeUser((user, callback)->
+    callback(null, user.username)
+)
 
-passport.serializeUser (user, done) ->
-    done(null, user.username)
+passport.deserializeUser((id, callback)->
+    db.get('users', id, (err, user, meta)->
+        if err then return next(err)
+        callback(null, user)
+    )
+)
 
-passport.deserializeUser (id, done) ->
-    done(null, {username: id})
-    # TODO: fetch obj from db or w/e
-
-
-passport.use(new LocalStrategy ((username, password, done) ->
+passport.use(new LocalStrategy((username, password, done)->
     db.get('users', username, (err, user, meta)->
         if meta.statusCode is 404
             return done(null, false, {message: "no such user"})
@@ -52,30 +54,49 @@ passport.use(new LocalStrategy ((username, password, done) ->
     )
 ))
 
-
 middleware = express()
 
 middleware.use(passport.initialize())
 middleware.use(passport.session())
 middleware.use((req, res, next)-> 
     res.locals.session = req.session
-    next()
+    res.locals.user = req.user
+    return next()
+    return next() unless req.session?.passport?.user
+    db.get('users', req.session.passport.user, (err, user, meta)->
+        if err then return next(err)
+        req.login(user, (err)->
+            if err then return next(err)
+            next()
+        )
+    )
 )
+middleware.use(middleware.router)
+
 
 # remap `/users/me` to the logged-in user, if any
 middleware.use((req, res, next)->
     if !req.url.indexOf('/users/me') # starts with
         if req.session.passport.user
-            req.url = '/users/' + req.session.passport.user
+            req.url = req.url.replace(/^\/users\/me/, '/users/'+req.session.passport.user)
         else
             return next(401)
     next()
+)
+
+# disallow editing for non logged in users
+middleware.use((req, res, next)->
+    if req.method in ["GET", "HEAD", "OPTIONS"] or req.session?.passport?.user
+        return next()
+    else
+        return next(401)
 )
 
 middleware.post('/login', passport.authenticate('local',  {
     successRedirect: '/',
     failureRedirect: '/login',
     failureFlash: false
+    # TODO: support showing useful messages
 }))
 
 middleware.get('/login', (req, res, next)-> 
@@ -84,7 +105,7 @@ middleware.get('/login', (req, res, next)->
 
 middleware.get('/logout', (req, res, next)-> 
     req.logout()
-    res.redirect('/')
+    res.redirect(req.get("referer") or '/')
 )
 
 middleware.post('/users', (req, res, next)->
@@ -105,8 +126,11 @@ middleware.post('/users', (req, res, next)->
             req.body.password_salt = salt
             delete req.body.password
             next() # let the normal resource handler finish the POST
+            # TODO: automatically call req.login()
         )
     )
 )
+
+# TODO: disallow editing based on user session, csrf token, etc
 
 module.exports = middleware

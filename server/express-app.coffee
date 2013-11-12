@@ -16,7 +16,7 @@ require("./dust-renderer")
 resource = require("./resource")
 # load the [custom error handler](error-handler.html)
 errorHandler = require("./error-handler")
-passport = require("./passport-config")
+passportConfig = require("./passport-config")
 
 # Instantiate the listener for the server
 app = express()
@@ -47,12 +47,18 @@ app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
 # * Provide cookie-based sessions & populate req.session with cookie data
 app.use(express.cookieSession())
 
-app.use(passport)
+# render a cart after a POST to the current cart object
+app.post("/users/me/cart", (req, res, next)->
+    res.render("cart", {items: [{attributes:req.body}]})
+)
+
+app.use(passportConfig)
 
 # * Load favicons
 app.use(express.favicon())
 # * Load static URLs defined in the /build directory
 app.use(express.static(path.resolve(__dirname, '../build')))
+
 
 # * For all models in a defined `[list]` that have a defined `urlroot` in their prototype, mount that model at that
 # `urlroot`. This loop runs on `require` and generates a mount for all `urlroots` in `model`s in the provided list.
@@ -91,6 +97,7 @@ app.get('/error/:status', (req, res, next)->
 # MAP '/info' to information about the setup for testing
 app.get('/info', (req, res, next)->
     info = {
+        user: req.user
         session: req.session
         headers: req.headers
         server: req.connection.server
