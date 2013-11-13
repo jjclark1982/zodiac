@@ -32,7 +32,9 @@ passport.serializeUser((user, callback)->
 
 passport.deserializeUser((id, callback)->
     db.get('users', id, (err, user, meta)->
-        if err then return next(err)
+        if err?.statusCode is 404
+            return callback(null, null) # log in as null
+        if err then return callback(err)
         callback(null, user)
     )
 )

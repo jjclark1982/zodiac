@@ -22,7 +22,7 @@ module.exports = (err, req, res, next)->
     # TODO: use err.statusCode here and everywhere else
     if res.statusCode >= 400
         err.status = res.statusCode
-    err.status ?= 500
+    err.status ?= err.statusCode or 500
     err.name = http.STATUS_CODES[err.status] or 'unknown'
 
     if err.status >= 400
