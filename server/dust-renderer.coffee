@@ -75,7 +75,7 @@ responsePrototype.render = (view, options={}, callback)->
     stream = dust.stream(view, context)
     stream.on('data', (data)->
         return unless data.length > 0
-        unless res.connection.writable
+        unless res.connection?.writable
             #TODO: place some backpressure on the template
             return
         

@@ -47,11 +47,7 @@ app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
 # * Provide cookie-based sessions & populate req.session with cookie data
 app.use(express.cookieSession())
 
-# render a cart after a POST to the current cart object
-app.post("/users/me/cart", (req, res, next)->
-    res.render("cart", {items: [{attributes:req.body}]})
-)
-
+# * Load the authentication and session-handling middlewares
 app.use(passportConfig)
 
 # * Load favicons

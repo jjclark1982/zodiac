@@ -78,7 +78,7 @@ middleware.use(middleware.router)
 middleware.use((req, res, next)->
     if !req.url.indexOf('/users/me') # starts with
         if req.session.passport.user
-            req.url = req.url.replace(/^\/users\/me/, '/users/'+req.session.passport.user)
+            req.url = req.url.replace(/^\/users\/me($|\/|\?)/, '/users/'+req.session.passport.user+'$1')
         else
             return next(401)
     next()

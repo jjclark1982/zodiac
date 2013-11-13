@@ -113,7 +113,7 @@ module.exports = class ListView extends BaseView
             options = _.defaults({}, {
                 model: model
                 tagName: "li"
-            }, @options.itemViewOptions)
+            }, @options.itemViewOptions)  #TODO: update this for backbone 1.1
             itemView = new @itemViewCtor(options)
             itemView.render()
             @subviews[itemView.cid] = itemView

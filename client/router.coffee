@@ -4,6 +4,7 @@ Lightbox = require("views/lightbox")
 class Router extends Backbone.Router
     routes: {
         "": "landing"
+        "users/me/cart": "cart"
     }
 
     landing: ->
@@ -12,6 +13,12 @@ class Router extends Backbone.Router
             ActivitySearchView = require("views/activity-search")
             view = new ActivitySearchView()
             view.render()
+        @setMainView(view)
+
+    cart: ->
+        CartView = require("views/cart")
+        view = new CartView()
+        view.render()
         @setMainView(view)
    
     showModelView: (options={})->
@@ -25,18 +32,12 @@ class Router extends Backbone.Router
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             if model
-                shouldShowModal = true
+                @isModal = true
             model ?= new options.modelCtor({}, {url: options.url})
             view = new options.viewCtor({model: model})
             view.render()
             model.fetch() if model.isNew()
-        if shouldShowModal
-            @modalView = view
-            @lightbox = new Lightbox()
-            @lightbox.showView(view)
-        else
-            @setMainView(view)
-            #TODO: have 'setMainView' and 'setModalView'
+        @setMainView(view)
 
     showCollectionView: (options={})->
         view = @getPoppedView()
@@ -62,6 +63,19 @@ class Router extends Backbone.Router
 
     setMainView: (view)->
         document.title = _.result(view, 'title')
+        if @isModal
+            @modalDepth ?= -1
+            @modalDepth += 1
+            @modalView = view
+            if !@lightbox
+                @lightbox = new Lightbox()
+                @lightbox.showView(view)
+            else
+                @lightbox.addItem(view)
+            # TODO: use goToItem when receiving popped state
+            @saveState(view)
+            return
+
         @lightbox?.remove().dismiss()
         @modalView = null
         currentView = @mainView
@@ -101,7 +115,7 @@ class Router extends Backbone.Router
             view.$el.removeClass(comingClass)
         , 1)
 
-    saveState: ->
+    saveState: (currentView=@mainView)->
         @initDate ?= new Date()
         @recentViews ?= []
         @previousDepth ?= 0
@@ -109,8 +123,9 @@ class Router extends Backbone.Router
             initDate: @initDate
             mainView: @mainView?.cid
             depth: @recentViews.length
+            isModal: @isModal
         })
-        @recentViews.push(@mainView)
+        @recentViews.push(currentView)
 
     getPoppedView: ->
         if window.history.state?.initDate?.getTime() isnt @initDate.getTime()
@@ -118,6 +133,7 @@ class Router extends Backbone.Router
         else
             depth = window.history.state?.depth
             view = @recentViews[depth]
+            @isModal = window.history.state?.isModal
             #TODO: deal with depth underflow when going "back" to a routable, unloaded view
             return view
 
@@ -222,3 +238,16 @@ for modelName in modelsToRoute then do (modelName)->
             modelCtor: Model
         })
     )
+
+
+###
+
+would like to have a main-routed-content and a modal-routed-content
+each associated with a router
+both consulting the same routing table
+and the first one to intercept a click/submit would react to it
+
+
+with the modal-routed-content div always present, it could easily transition between shown and hidden
+
+###

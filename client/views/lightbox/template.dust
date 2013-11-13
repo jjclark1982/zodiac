@@ -1,3 +1,3 @@
-<a class="close-link" href="javascript:history.back()"><i class="icon-close-button"></i></a>
-<div class="container"></div>
+<div class="history-items"></div>
 <br style="clear: both" />
+<a class="close-link" href="javascript:history.back()"><i class="icon-close-button"></i></a>

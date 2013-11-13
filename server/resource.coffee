@@ -257,11 +257,22 @@ module.exports = (moduleOptions = {})->
     )
 
     for linkName, linkDef of modelProto.links or {}
-        router.get("/:modelId/#{linkName}", (req, res, next)->
-            res.json(linkDef)
-            #TOOD: show the linked item(s) with their natural views
+        target = require("models/"+linkDef.target)
+        targetProto = target.prototype
+
+        router.post("/:modelId/#{linkName}", (req, res, next)->
+            console.log(req.body)
+            # create the object or overwrite it, i don't know
+            # 
+            # posting to a cart is weird because we are adding to an item, not to a collection
+            res.render(targetProto.defaultView)
         )
-        # TODO: support POST/DELETE to edit links
+        router.get("/:modelId/#{linkName}", (req, res, next)->
+            # res.json(linkDef)
+            # show the linked item(s) with their natural views
+            res.render(targetProto.defaultView)
+        )
+        # in any case, we need to preserve links much the same way we are preserving indexes
 
     return router.middleware
 
