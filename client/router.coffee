@@ -120,7 +120,7 @@ class Router extends Backbone.Router
             modalView: @modalView?.cid
             depth: @recentViews.length
             isModal: @isModal
-        })
+        }, document.title, document.location)
         @recentViews.push(currentView)
 
     hasPoppedState: ->
@@ -151,8 +151,12 @@ class Router extends Backbone.Router
             delete window.views[oldView.cid]
             oldView.remove()
 
-    navigateToLink: (link)->
-        if link.origin is document.location.origin
+    navigateToLink: (link, options={})->
+        options = _.defaults(options, {
+            replace: false
+            trigger: true
+        })
+        if !link.origin? or link.origin is document.location.origin
             for handler in Backbone.history.handlers
                 if handler.route.test(link.pathname.substr(1) + link.search)
                     @invalidateCache()
@@ -180,11 +184,12 @@ class Router extends Backbone.Router
             $(document).delegate("a", "click", (event)->
                 return if event.metaKey # let users open links in new tab
                 if @debug
-                    event.preventDefault()
+                    event.preventDefault(event)
+                    return false
 
                 link = event.currentTarget
                 if module.exports.navigateToLink(link)
-                    event.preventDefault()
+                    event.preventDefault(event)
             )
 
             # intercept forms that can be handled by this router
@@ -207,7 +212,7 @@ class Router extends Backbone.Router
                 link = document.createElement("a")
                 link.href = this.action + "?" + query
                 if module.exports.navigateToLink(link)
-                    event.preventDefault()
+                    event.preventDefault(event)
             )
             # @on("all", ->console.log(@constructor.name,arguments, history.state))
         )
