@@ -1,3 +1,4 @@
+require("models/user")
 require("hydrate-views")
 window.router = require("router")
 
