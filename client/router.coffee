@@ -1,5 +1,5 @@
-Lightbox = require("views/lightbox")
-
+NavigationView = require("views/navigation")
+LightboxView = require("views/lightbox")
 
 class Router extends Backbone.Router
     routes: {
@@ -33,6 +33,7 @@ class Router extends Backbone.Router
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             if model
                 @isModal = true
+                @modalStartDepth = window.history.state?.depth or @recentViews.length
             model ?= new options.modelCtor({}, {url: options.url})
             view = new options.viewCtor({model: model})
             view.render()
@@ -57,78 +58,76 @@ class Router extends Backbone.Router
         @setMainView(view)
 
     getMainView: ->
-        cid = $("#routed-content").children("[data-view]").data("cid")
+        cid = @mainNavigator.$el.children().children("[data-view]").data("cid")
         mainView = window.views[cid]
         return mainView
 
     setMainView: (view)->
         document.title = _.result(view, 'title')
-        if @isModal
-            @modalDepth ?= -1
-            @modalDepth += 1
+        if @isModal or (@hasPoppedState() and window.history.state.isModal)
             @modalView = view
-            if !@lightbox
-                @lightbox = new Lightbox()
-                @lightbox.showView(view)
+
+            unless @modalNavigator
+                @modalNavigator = new NavigationView({className: "left-right-navigation-view"})
+            unless @lightbox
+                @lightbox = new LightboxView()
+                @lightbox.showView(@modalNavigator)
+                @listenToOnce(@lightbox, "dismissed", ->
+                    modalDepth = 1 + @modalNavigator.currentIndex
+                    window.history.go(-modalDepth)
+                )
+
+            if @hasPoppedState()
+                modalDepth = window.history.state.depth - @modalStartDepth
+                if @modalNavigator.items.length > modalDepth
+                    @modalNavigator.goToIndex(modalDepth)
+                else
+                    @modalNavigator.addItem(view)
             else
-                @lightbox.addItem(view)
-            # TODO: use goToItem when receiving popped state
-            @saveState(view)
+                @modalNavigator.addItem(view)
+                @saveState()
+
+            @modalView.delegateEvents()
+
             return
 
-        @lightbox?.remove().dismiss()
+        @lightbox?.dismiss({silent: true})
+        @lightbox = null
+        @modalNavigator = null
         @modalView = null
-        currentView = @mainView
-        return if currentView is view
+        @isModal = false
 
+        return if view is @mainView
         @mainView = view
-        if window.history.state?.mainView isnt view.cid
+
+        if @hasPoppedState()
+            @mainNavigator.goToIndex(window.history.state.depth)
+        else
+            @mainNavigator.addItem(view)
             @saveState()
 
-        comingClass = "coming-from-future" #give me your clothes and motorcycle
-        goingClass = "going-to-history" #dust in the wind, dude
-        if window.history.state?.depth?
-            if window.history.state.depth <= @previousDepth
-                comingClass = "coming-from-history"
-                goingClass = "going-to-future"
-        @previousDepth = window.history.state?.depth
-
-        # $("#routed-content").addClass("history-moving-#{direction}")
-        # setTimeout(->
-        #     $("#routed-content").removeClass("history-moving-#{direction}")
-        #     currentView?.$el.detach()
-        # , 250)
-
-        currentView?.$el.addClass(goingClass)
-        # clearTimeout(@detachTimeout)
-        # @detachTimeout = setTimeout(=>
-        #     $("#routed-content").children(".going-to-history").detach()
-        #     $("#routed-content").children(".going-to-future").detach()
-        # , 250)
-        setTimeout(->
-            if currentView?.$el.hasClass(goingClass)
-                currentView?.$el.detach().removeClass(goingClass)
-        , 1)
-        view.$el.addClass(comingClass).removeClass(".going-to-history .going-to-future")
-        $("#routed-content").append(view.$el)
-        setTimeout(->
-            view.$el.removeClass(comingClass)
-        , 1)
-
-    saveState: (currentView=@mainView)->
+    saveState: ->
+        if @isModal
+            currentView = @modalView
+        else
+            currentView = @mainView
         @initDate ?= new Date()
         @recentViews ?= []
         @previousDepth ?= 0
         window.history.replaceState?({
             initDate: @initDate
             mainView: @mainView?.cid
+            modalView: @modalView?.cid
             depth: @recentViews.length
             isModal: @isModal
         })
         @recentViews.push(currentView)
 
+    hasPoppedState: ->
+        return (window.history.state?.initDate?.getTime() is @initDate.getTime())
+
     getPoppedView: ->
-        if window.history.state?.initDate?.getTime() isnt @initDate.getTime()
+        if !@hasPoppedState()
             return null
         else
             depth = window.history.state?.depth
@@ -163,6 +162,14 @@ class Router extends Backbone.Router
 
     initialize: ->
         $(document).ready(=>
+            # create the main navigator. the modal navigator will be created on demand
+            @mainNavigator = new NavigationView({
+                id: "main-navigator"
+                el: $("#main-navigator")
+            })
+            if @mainNavigator.$el.parent().length is 0
+                $(document.body).append(@mainNavigator.$el)
+
             # set the initial state
             window.views ?= {}
             @initDate = new Date()
@@ -181,7 +188,6 @@ class Router extends Backbone.Router
             )
 
             # intercept forms that can be handled by this router
-
             $(document).delegate("form", "click", (event)->
                 $(this).data("lastClicked", event.target)
             )

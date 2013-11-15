@@ -88,6 +88,7 @@ middleware.use((req, res, next)->
 
 # disallow editing for non logged in users
 middleware.use((req, res, next)->
+    #TODO: allow creating accounts without already having one, e.g. for anonymous session tracking
     if req.method in ["GET", "HEAD", "OPTIONS"] or req.session?.passport?.user
         return next()
     else

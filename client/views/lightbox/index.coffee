@@ -9,75 +9,62 @@ BaseView = require("views/base")
 module.exports = class LightboxView extends BaseView
     requirePath: module.id
     template: require("./template")
-    className: "lightbox-view"
+    className: "lightbox-view hidden"
     
-    events: {
-        "click": "clickBackground"
-    }
-
-    initialize: (options)->
-        $(document).on('keyup', @pressEscape)
-
     showView: (view)->
-        @prevTitle = document.title
-        document.title = _.result(view, 'title')
+        @navigator = view
         @listenToOnce(@, 'render:after', ->
-            @addItem(view)
+            @$el.children(".lightbox-content").append(view.$el)
         )
         @show()
     
     show: ->
+        $(document).on('keyup', @pressEscape)
         $(document.body).css({
             "overflow": "hidden"
             "padding-right": getScrollBarWidth() + "px"
         })
         $(document.body).append(@$el)
         @render()
+        setTimeout(=>
+            @$el.removeClass("hidden")
+        , 1)
 
-    addItem: (view)->
-        @items ?= []
-        @items.push(view)
+    dismiss: (options={})->
+        @silent = options.silent
+        $(document).off('keyup', @pressEscape)
+        @$el.addClass("hidden")
 
-        $item = $('<div class="history-item">')
-        $item.append(view.$el)
+    events: {
+        "click .navigation-item>*": "clickForeground"
+        "click .close-link": "clickBackground"
+        "click": "clickBackground"
+        "transitionend": "finishDismissing"
+    }
 
-        $items = @$el.children(".history-items")
-        $items.append($item)
-        if @items.length > 1
-            # let a redraw happen after adding so we get the right animation
-            setTimeout(=>
-                @goToItem(@items.length-1)
-            , 1)
-        else
-            # no horizontal animation
-            @goToItem(@items.length-1)
-
-    goToItem: (index)->
-        $items = @$el.children(".history-items")
-        $items.children().removeClass("present")
-        $items.children().eq(index).addClass("present")
-        @$el.children(".close-link").attr("href", "javascript:history.go(-#{index+1})")
-        return this
+    clickForeground: (event)->
+        return true
+        $target = $(event.target)
+        if $target.is("a") or $target.is("a *")
+            event.stopPropagation()
 
     clickBackground: (event)->
-        if event.target.parentElement is @el
+        $target = $(event.target)
+        if $target.parents().length < 6
             @dismiss()
 
     pressEscape: (event)=>
         if event.keyCode is 27
             @dismiss()
 
-    dismiss: ->
-        document.title = @prevTitle
-        $(document.body).css({
-            "overflow": ""
-            "padding-right": ""
-        })
-        $(document).off('keyup', @pressEscape)
-        if (@$el.parent().length > 0)
-            window.history.back()
+    finishDismissing: (event)->
+        if event.target is @el and @$el.hasClass("hidden")
+            $(document.body).css({
+                "overflow": ""
+                "padding-right": ""
+            })
             @remove()
-
+            @trigger("dismissed") unless @silent
 
 getScrollBarWidth = ()->
     inner = document.createElement('p')
@@ -162,5 +149,10 @@ then there is no need to apply a 'present' class
 
 but we would be more dependent on keeping offscreen items in memory
 and have no great way to stop them from contributing to the scrollbar
+
+* * *
+
+when going to a new history-item, the container should scroll to its top
+and we should double-check that the background scrollbar is hidden
 
 ###

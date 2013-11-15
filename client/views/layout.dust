@@ -12,13 +12,15 @@
     <title>{#title}{.}{:else}{settings.appName}{/title}</title>
 </head>
 <body>
-    {>header session=session/}
-    {>footer /}
 
-    <div id="routed-content">
-        {>"{mainView}" /}
-    </div>
-    {>footer:no-context /}
+    {>expedia-header user=session.passport.user /}
+    {! {>footer /} !}
+
+    <ul id="main-navigator" class="navigation-view">
+        <li class="navigation-item current">
+            {>"{mainView}" /}
+        </li>
+    </ul>
 
     <script src="/javascripts/vendor.js"></script>
     <script src="/javascripts/app.js"></script>

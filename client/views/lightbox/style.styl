@@ -10,66 +10,33 @@
     z-index: 20000;
     overflow-x: hidden;
     overflow-y: scroll;
-    animation-name: fade-in;
-    animation-duration: 333ms;
-    animation-timing-function: ease-out;
-    animation-iteration-count: 1;
 
-    > .history-items {
-        animation-name: slide-up;
-        animation-duration: 333ms;
-        animation-timing-function: ease-out
-        animation-iteration-count: 1;
+    transition: background-color 333ms ease;
+    &.hidden {
+        background-color: transparent;
+        > .lightbox-content {
+            margin-top: 100%;
+        }
+    }
+
+    > .lightbox-content {
         padding: 3em 0;
         width: 100%;
-        overflow-x: hidden;
+        height: 100%;
+        box-sizing: border-box;
 
-        > .history-item {
-            position: absolute; // don't contribute to scrollbar
-            left: -100%
-            transition: left 333ms ease;
-            width: 100%;
-            overflow-x: auto;
-            float: left;
-        }
-        > .history-item.present {
-            position: relative; // contribute to scrollbar and support transition
-            left: 0;
-        }
-        > .history-item.present ~ .history-item {
-            left: 100%;
-        }
-
+        transition: margin-top 333ms ease;
     }
 
     > a.close-link {
         text-decoration: none;
+        cursor: pointer;
         color: white;
         position: fixed;
         top: 1em;
         right: 2em;
         &:hover {
-            text-shadow: 0px 1px 4px rgba(255, 255, 255, 0.9);
+            text-shadow: 0px 0px 4px rgba(255, 255, 255, 0.9);
         }
     }
-}
-
-@-webkit-keyframes fade-in {
-    from { background-color: rgba(0,0,0, 0); }
-    to   { background-color: rgba(0,0,0, 0.75); }
-}
-
-@-webkit-keyframes slide-up {
-    from { margin-top: 100%; }
-    to   { margin-top: 0; }
-}
-
-@-webkit-keyframes roll-down {
-    from { height: 0; }
-    to   { height: 100%; }
-}
-
-@-webkit-keyframes slide-left {
-    from { left: 100%; }
-    to   { left: 0; }
 }
