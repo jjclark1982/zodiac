@@ -1,4 +1,3 @@
-
 # # express-app.coffee
 # ### The Big Enchilada
 
@@ -17,6 +16,7 @@ resource = require("./resource")
 # load the [custom error handler](error-handler.html)
 errorHandler = require("./error-handler")
 passportConfig = require("./passport-config")
+RiakStore = require("./riak-store")
 
 # Instantiate the listener for the server
 app = express()
@@ -44,8 +44,11 @@ app.use(express.methodOverride())
 # * Parse the `Cookie` header field and populate req.cookies with cookie names, passing in either the `EXPRESS_SECRET`
 # variable in the `environment`, or a custom secret variable.
 app.use(express.cookieParser(process.env.EXPRESS_SECRET or 'cookie secret'))
-# * Provide cookie-based sessions & populate req.session with cookie data
-app.use(express.cookieSession())
+# * Provide riak-based sessions indexed by a signed cookie and populate req.session
+app.use(express.session({
+    secret: process.env.EXPRESS_SECRET or 'session secret'
+    store: new RiakStore({bucket: 'sessions'})
+}))
 
 # * Load the authentication and session-handling middlewares
 app.use(passportConfig)
