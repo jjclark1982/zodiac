@@ -93,6 +93,7 @@ class Router extends Backbone.Router
 
         @lightbox?.dismiss({silent: true})
         @lightbox = null
+        # TODO: don't delete a modalNavigator that could still hold future items we want to see again
         @modalNavigator = null
         @modalView = null
         @isModal = false
