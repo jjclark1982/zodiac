@@ -1,11 +1,38 @@
+@import '../global-style.styl'
+
 .generic-view {
     .field-id {
         display: none;
     }
-    .show-when-loading {
-        display: none;   
+
+    .show-when-success{
+        color: green;
     }
-    &.loading .show-when-loading{
+
+    .show-when-error{
+        color: red;
+    }
+
+
+    .show-when-loading, .show-when-error, .show-when-success{
+        display: none;
+    }
+
+    &.loading .show-when-loading, &.error .show-when-error, &.success .show-when-success {
         display: inline-block;
     }
+
+    @keyframes grow-and-fade {
+      0% {
+        transform: scale(1.0, 1.0);
+        opacity: 1;
+        display: inline-block;
+      }
+      100% {
+        transform: scale(4.0, 4.0);
+        opacity: 0;
+        display: inline-block;
+      }
+    }
+
 }

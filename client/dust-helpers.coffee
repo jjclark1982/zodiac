@@ -170,6 +170,12 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
                     <input type="text" name="#{params.name}" class="input-#{params.name}"
                         value="#{params.model.get(params.name) or ''}">
                      </label>""")
+        when "boolean"
+            return chunk.write(
+                """<label class="field-#{params.name}">#{params.name}:
+                    <input type="checkbox" name="#{params.name}" class="input-#{params.name}"
+                        value="1" #{if params.model.get(params.name) then 'checked' else ''}>
+                     </label>""")
         else
             return chunk.write(
                 """<!--no editor supported for this type: #{params.type} -->"""

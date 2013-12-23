@@ -21,3 +21,16 @@ text-box-light = #f2f2f2;
 body{
     font-family: "Lato";
 }
+
+.icon-spin {
+  animation: spin 2s infinite linear;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}

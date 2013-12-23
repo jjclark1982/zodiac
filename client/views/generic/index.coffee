@@ -14,6 +14,7 @@ module.exports = class GenericView extends BaseView
     initialize: (options)->
         @listenTo(@model, "request", @syncStarted)
         @listenTo(@model, "sync", @syncFinished)
+        @listenTo(@model, "error", @syncError)
         if @model.fields
             @fields = @model.fields
         else
@@ -24,6 +25,11 @@ module.exports = class GenericView extends BaseView
 
     syncFinished: (model, xhr, options)->
         @$el.removeClass("loading")
+
+    syncError: (collection, xhr, options = {})->
+        @$el.removeClass("loading")
+        @$el.addClass("error").attr("data-error", "#{xhr.status} #{xhr.statusText}")
+        @$(".show-when-error").attr("title", "#{xhr.status} #{xhr.statusText}")
 
     clickButton: (event)->
         @lastClicked = event.target
@@ -37,12 +43,22 @@ module.exports = class GenericView extends BaseView
         event.preventDefault()
         event.stopPropagation()
 
+
+
         switch $(@lastClicked).val()
             when 'PUT'
-                @model.save()
+                @model.save(@model.attributes, {"success": () =>
+                    @$el.addClass("success")
+                    setTimeout( =>
+                        @$el.removeClass("success")
+                    , 1000)
+                })
             when 'DELETE'
                 @model.destroy()
 
     updateField: (event)->
         $input = $(event.target)
-        @model.set(event.target.name, $input.val())
+        if $input.is(':checkbox')
+            @model.set(event.target.name, $input.is(':checked'))
+        else
+            @model.set(event.target.name, $input.val())
