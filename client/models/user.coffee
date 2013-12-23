@@ -4,13 +4,25 @@ module.exports = class User extends BaseModel
     requirePath: module.id
     urlRoot: "/users"
     bucket: "users"
-    idAttribute: "username"
 
-    fields: {
-        username: String
-        email: String
-        permissions: [String]
-    }
+    fields: [
+        {
+           name: "username",
+           type: "readonly"
+        },
+        {
+           name: "password",
+           type: "password"
+        },
+        {
+           name: "email",
+           type: "string"
+        },
+        {
+           name: "permissions",
+           type: "array"
+        }
+    ]
 
     links: {
         cart: {
@@ -18,6 +30,8 @@ module.exports = class User extends BaseModel
             target: 'cart'
         }
     }
+
+    allowListAll: true
 
     validate: (attributes, options)->
         return null

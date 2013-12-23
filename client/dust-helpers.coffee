@@ -170,6 +170,24 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
                     <input type="text" name="#{params.name}" class="input-#{params.name}"
                         value="#{params.model.get(params.name) or ''}">
                      </label>""")
+        when "password"
+            return chunk.write(
+                """<label class="field-#{params.name}">#{params.name}:
+                    <input type="password" name="#{params.name}" class="input-#{params.name}"
+                        value="#{params.model.get(params.name) or ''}">
+                     </label>""")
+        when "readonly"
+            if params.model.get(params.name)?
+                return chunk.write(
+                    """<label class="field-#{params.name}">#{params.name}:
+                            #{params.model.get(params.name)}
+                        </label>""")
+            else
+                return chunk.write(
+                    """<label class="field-#{params.name}">#{params.name}:
+                    <input type="text" name="#{params.name}" class="input-#{params.name}"
+                        value="#{params.model.get(params.name) or ''}">
+                     </label>""")
         when "boolean"
             return chunk.write(
                 """<label class="field-#{params.name}">#{params.name}:

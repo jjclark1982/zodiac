@@ -1,11 +1,11 @@
 <form method="POST" action="/login">
     <fieldset>
         <legend>Log in to your account</legend>
-        <label>Username: 
+        <label>Username:
             <input name="username"></input>
         </label>
         <br>
-        <label>Password: 
+        <label>Password:
             <input name="password" type="password"></input>
         </label>
         <br>
@@ -13,23 +13,24 @@
     </fieldset>
 </form>
 
-or
+<!-- or
 
 <form method="POST" action="/users">
     <fieldset>
         <legend>Create a new account</legend>
-        <label>Username: 
+        <label>Username:
             <input name="username"></input>
         </label>
         <br>
-        <label>Email: 
+        <label>Email:
             <input name="email"></input>
         </label>
         <br>
-        <label>Password: 
+        <label>Password:
             <input name="password" type="password"></input>
         </label>
         <br>
         <button type="submit">Sign up</button>
     </fieldset>
 </form>
+ -->

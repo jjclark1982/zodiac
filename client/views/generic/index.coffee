@@ -29,7 +29,13 @@ module.exports = class GenericView extends BaseView
     syncError: (collection, xhr, options = {})->
         @$el.removeClass("loading")
         @$el.addClass("error").attr("data-error", "#{xhr.status} #{xhr.statusText}")
-        @$(".show-when-error").attr("title", "#{xhr.status} #{xhr.statusText}")
+        try
+            message = JSON.parse(xhr.responseText).message
+
+        catch e
+            message = ""
+
+        @$(".show-when-error").attr("title", "#{xhr.status} #{xhr.statusText}: #{message}")
 
     clickButton: (event)->
         @lastClicked = event.target
