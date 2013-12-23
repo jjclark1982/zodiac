@@ -186,8 +186,6 @@ module.exports = (moduleOptions = {})->
         else
             if not modelProto.allowListAll
                 return next(503)
-            #TODO: refactor this with above
-            #TODO: rate-limiting
             res.format({
                 json: ->
                     db.getAll(bucket, {}, (err, objects, meta)->
@@ -195,26 +193,13 @@ module.exports = (moduleOptions = {})->
                         res.json(objects)
                     )
                 html: ->
-                    #TODO: support needsData for collections
-                    collection = new Backbone.Collection([], {
-                        model: modelCtor
-                        url: req.originalUrl
-                    })
-
+                    allKeys = []
                     db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
                         if err then return next(err)
-
-                        res.render(listView, {
-                            itemView: itemView
-                            collection: collection
-                        })
+                        renderList(req, res, next, allKeys)
                     ).on('keys', (keys=[])->
-                        #TODO: support needsData
                         for key in keys
-                            model = new modelCtor()
-                            model.id = key
-                        collection.add(model)
-
+                            allKeys.push(key)
                     ).start()
             })
     )
