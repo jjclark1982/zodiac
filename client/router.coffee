@@ -153,16 +153,22 @@ class Router extends Backbone.Router
             oldView.remove()
 
     navigateToLink: (link, options={})->
+        # allow links to opt out
+        return false if $(link).data("skipRouter")
+        # only consider links to this server
+        return false if (link.origin? and link.origin isnt document.location.origin)
+        # don't route hashes for now
+        # TODO: investigate how well this works if pushState is not available
+        return false if link.hash
         options = _.defaults(options, {
             replace: false
             trigger: true
         })
-        if !link.origin? or link.origin is document.location.origin
-            for handler in Backbone.history.handlers
-                if handler.route.test(link.pathname.substr(1) + link.search)
-                    @invalidateCache()
-                    Backbone.history.navigate(link.pathname + link.search, {trigger: true})
-                    return true
+        for handler in Backbone.history.handlers
+            if handler.route.test(link.pathname.substr(1) + link.search)
+                @invalidateCache()
+                Backbone.history.navigate(link.pathname + link.search, options)
+                return true
         return false
 
     initialize: ->
