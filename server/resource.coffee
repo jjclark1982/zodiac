@@ -266,6 +266,8 @@ module.exports = (moduleOptions = {})->
             # create the object or overwrite it, i don't know
             #
             # posting to a cart is weird because we are adding to an item, not to a collection
+            # would like to check in console whether multiple links work
+            # yes, we just have to interpret the multiple option result on read
             res.render(targetProto.defaultView)
         )
         router.get("/:modelId/#{linkName}", (req, res, next)->
