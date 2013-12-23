@@ -162,6 +162,18 @@ dust.helpers.keyvalue = (chunk, context, bodies)->
 
     return chunk
 
+dust.helpers.fieldFor = (chunk, context, bodies, params={})->
+    switch params.type
+        when "string"
+            return chunk.write(
+                """<label class="field-#{params.name}">#{params.name}:
+                    <input type="text" name="#{params.name}" class="input-#{params.name}"
+                        value="#{params.model.get(params.name) or ''}">
+                     </label>""")
+        else
+            return chunk.write(
+                """<!--no editor supported for this type: #{params.type} -->"""
+                )
 
 dust.helpers.contextDump = (chunk, context, bodies, params={})->
     to = params.to or 'output'

@@ -1,7 +1,7 @@
 # # resource.coffee
 # ### [Cosmo's Middleware Factory](http://www.youtube.com/watch?v=lIPan-rEQJA)
 
-# *This file instantiates a [riak](http://basho.com/riak/) db and then builds a middleware stack for 
+# *This file instantiates a [riak](http://basho.com/riak/) db and then builds a middleware stack for
 # [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) operations that might be commonly performed on it.*
 # ***
 
@@ -34,7 +34,7 @@ module.exports = (moduleOptions = {})->
         meta = res.locals.meta or {}
 
         # support "not modified" responses
-        # note that 
+        # note that
         res.set({
             'ETag': meta.etag,
             'Last-Modified': meta.lastMod
@@ -106,7 +106,7 @@ module.exports = (moduleOptions = {})->
                             )
                     collection.add(model)
 
-                # note that this, and all other `res.render()` functions, employ 
+                # note that this, and all other `res.render()` functions, employ
                 # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
 
                 try
@@ -184,7 +184,8 @@ module.exports = (moduleOptions = {})->
                 renderList(req, res, next, keys)
             )
         else
-            return next(503)
+            if not modelProto.allowListAll
+                return next(503)
             #TODO: refactor this with above
             #TODO: rate-limiting
             res.format({
@@ -263,7 +264,7 @@ module.exports = (moduleOptions = {})->
         router.post("/:modelId/#{linkName}", (req, res, next)->
             console.log(req.body)
             # create the object or overwrite it, i don't know
-            # 
+            #
             # posting to a cart is weird because we are adding to an item, not to a collection
             res.render(targetProto.defaultView)
         )
@@ -277,6 +278,6 @@ module.exports = (moduleOptions = {})->
     return router.middleware
 
 # ***
-# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it overrides the current 
-# `res.render()` function, or step into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to 
+# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it overrides the current
+# `res.render()` function, or step into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to
 # process errors.*

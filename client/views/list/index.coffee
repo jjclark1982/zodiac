@@ -7,6 +7,10 @@ module.exports = class ListView extends BaseView
     className: "list-view"
     tagName: "ul"
 
+    events: {
+        "click .add-item": "addItem"
+    }
+
     initialize: (options)->
         @itemView ?= @options.itemView or 'generic'
         # data-ify all string options?
@@ -27,6 +31,11 @@ module.exports = class ListView extends BaseView
         if window?
             $(document).on("scroll", @handleScroll)
         return @
+
+    addItem: (event) ->
+        if event.target.parentElement isnt @el
+            return
+        @collection.add({})
 
     attributes: ->
         args = super(arguments...)

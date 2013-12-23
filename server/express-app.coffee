@@ -67,6 +67,7 @@ app.use(express.static(path.resolve(__dirname, '../build')))
 models = [
     require("models/user")
     require("models/activity")
+    require("models/partner")
 ]
 for model in models when model.prototype.urlRoot
     app.use(model.prototype.urlRoot, resource({model: model}))

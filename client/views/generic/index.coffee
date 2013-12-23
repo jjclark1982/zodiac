@@ -14,6 +14,10 @@ module.exports = class GenericView extends BaseView
     initialize: (options)->
         @listenTo(@model, "request", @syncStarted)
         @listenTo(@model, "sync", @syncFinished)
+        if @model.fields
+            @fields = @model.fields
+        else
+            @fields = ({name: k, type: "string"} for k in @model.keys)
 
     syncStarted: (model, xhr, options)->
         @$el.addClass("loading")
