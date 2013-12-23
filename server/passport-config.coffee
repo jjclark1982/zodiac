@@ -113,7 +113,7 @@ middleware.get('/logout', (req, res, next)->
 
 middleware.post('/users', (req, res, next)->
     req.body.id = req.body.username
-    db.get('users', req.body.username, (err, user, meta)->
+    db.get('users', req.body.username, (err, user, meta={})->
         if meta.statusCode isnt 404
             e = new Error("username #{req.body.username} is already taken")
             e.statusCode = 409
