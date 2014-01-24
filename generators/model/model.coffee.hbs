@@ -10,6 +10,9 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     defaultView: "generic"
     defaultListView: "list"
 
+    # Is this data small enough to reasonably list all items with no query?
+    allowListAll: false
+
     # Define fields with established types to support general-purpose displays and editors
     #fields: [
     #    {
