@@ -88,7 +88,7 @@ module.exports = (moduleOptions = {})->
 
                 for key, i in keys then do (key,i)->
                     model = new modelCtor()
-                    model.attributes[idAttribute] = key
+                    model.id = key
                     if i < 5
                         model.needsData = true
                         model.fetch = (options)->
@@ -174,29 +174,23 @@ module.exports = (moduleOptions = {})->
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/', (req, res, next)->
         if Object.keys(req.query).length > 0
+            # run a query
             db.query(bucket, req.query, (err, keys, meta)->
                 if err then return next(err)
                 renderList(req, res, next, keys)
             )
         else
+            # no query specified. list all if allowed
             if not modelProto.allowListAll
                 return next(503)
-            res.format({
-                json: ->
-                    db.getAll(bucket, {}, (err, objects, meta)->
-                        if err then return next(err)
-                        res.json(objects)
-                    )
-                html: ->
-                    allKeys = []
-                    db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
-                        if err then return next(err)
-                        renderList(req, res, next, allKeys)
-                    ).on('keys', (keys=[])->
-                        for key in keys
-                            allKeys.push(key)
-                    ).start()
-            })
+            allKeys = []
+            db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
+                if err then return next(err)
+                renderList(req, res, next, allKeys)
+            ).on('keys', (keys=[])->
+                for key in keys
+                    allKeys.push(key)
+            ).start()
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
