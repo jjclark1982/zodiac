@@ -9,13 +9,8 @@ express = require('express')
 async = require('async')
 db = require("./db")
 
-# Load the [`lodash` node module](http://lodash.com/) globally so that the models that get loaded by the function below
-# have access to it. Lodash ~= Underscore, with better performance.
-global._ = require('lodash')
-
-# Load the [`backbone` node module](http://backbonejs.org/) globally so that the models that get loaded by the function
-# below have access to it
-global.Backbone = require('backbone')
+# define the server-side global Backbone that syncs to Riak
+require("./riak-backbone")
 
 # #### Middleware factory
 

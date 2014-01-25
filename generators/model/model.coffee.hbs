@@ -26,5 +26,13 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     #    }
     #]
 
+    # Return a hash of {key: value} with string or number values
+    # to create Riak secondary indexes
+    #index: ->
+    #    index = {
+    #        active: if @get("active") then "1" else "0"
+    #    }
+    #    return index
+
     validate: (attributes, options)->
         return null
