@@ -88,7 +88,7 @@ module.exports = (moduleOptions = {})->
 
                 for key, i in keys then do (key,i)->
                     model = new modelCtor()
-                    model.id = key
+                    model.attributes[idAttribute] = key
                     if i < 5
                         model.needsData = true
                         model.fetch = (options)->
