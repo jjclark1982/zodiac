@@ -68,6 +68,7 @@ models = [
     require("models/user")
     require("models/activity")
     require("models/partner")
+    require("models/task")
 ]
 for model in models when model.prototype.urlRoot
     app.use(model.prototype.urlRoot, resource({model: model}))
