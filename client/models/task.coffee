@@ -16,12 +16,16 @@ module.exports = class Task extends BaseModel
     # Define fields with established types to support general-purpose displays and editors
     fields: [
        {
+           name: "name",
+           type: "readonly"
+       },
+       {
            name: "type",
-           type: "string"
+           type: "readonly"
        },
        {
            name: "status",
-           type: "string"
+           type: "readonly"
        }
     ]
 
