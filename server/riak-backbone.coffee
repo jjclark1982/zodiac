@@ -28,16 +28,15 @@ Backbone.sync = (method, model={}, options={})->
 
                 idAttribute = model.idAttribute or 'id'
                 object[idAttribute] = meta.key
-                model.attributes = model.parse(object)
                 model.vclock = meta.vclock
-                options.success?(model, meta, options)
+                options.success?(object)
             )
             model.trigger('request', model, {}, options);
 
         when "delete"
             db.remove(bucket, model.id, options, (err, object, meta)->
                 if err then return options.error?(model, meta, options, err)
-                options.success?(model, meta, options)
+                options.success?(object)
             )
 
         when "read"
@@ -45,7 +44,7 @@ Backbone.sync = (method, model={}, options={})->
                 if err then return options.error?(model, meta, options, err)
 
                 model.vclock = meta.vclock
-                options.success?(model, meta, options)
+                options.success?(object)
             )
         else
             throw new Error("cannot #{method} a model")
