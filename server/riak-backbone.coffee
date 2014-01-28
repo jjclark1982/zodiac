@@ -8,7 +8,7 @@ global._ = require('lodash')
 # below have access to it
 global.Backbone = require('backbone')
 
-Backbone.sync = (method, model, options={})->
+Backbone.sync = (method, model={}, options={})->
     unless model.bucket
         throw new Error("cannot #{method} a model that has no bucket defined")
     bucket = model.bucket
@@ -26,7 +26,8 @@ Backbone.sync = (method, model, options={})->
             db.save(bucket, model.id, model.toJSON(), options, (err, object, meta)->
                 if err then return options.error?(model, meta, options, err)
 
-                object.idAttribute = meta.key
+                idAttribute = model.idAttribute or 'id'
+                object[idAttribute] = meta.key
                 model.attributes = model.parse(object)
                 model.vclock = meta.vclock
                 options.success?(model, meta, options)
@@ -50,3 +51,5 @@ Backbone.sync = (method, model, options={})->
             throw new Error("cannot #{method} a model")
 
     return model
+
+module.exports = Backbone
