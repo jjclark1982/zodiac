@@ -28,6 +28,9 @@ module.exports = class NavigationView extends BaseView
     # add a new item at the given index, by default at the end
     # if adding to the middle, discard items after the added item
     addItem: (view, index=@items.length)->
+        if index > @items.length
+            throw new Error("Tried to add navigation item at invalid index")
+
         # remove no-longer reachable future views from @items and from the dom
         @items.splice(index, @items.length, view)
         @$el.children().slice(@items.length-1).remove()
@@ -51,8 +54,11 @@ module.exports = class NavigationView extends BaseView
     goToIndex: (index)->
         @currentIndex = index
         @$el.children().removeClass("current").eq(index).addClass("current")
-        document.body.scrollTop = 0
-        window.router?.lightbox?.el.scrollTop = 0
+        # TODO: detect parent scroller more intelligently
+        if window.router?.lightbox?
+            window.router.lightbox.el.scrollTop = 0
+        else
+            document.body.scrollTop = 0
 
     goBack: ->
         newIndex = Math.max(0, @currentIndex-1)
@@ -75,3 +81,8 @@ module.exports = class NavigationView extends BaseView
         else
             # make sure it is hidden
             $target.css({"position": "absolute"})
+
+
+# TODO: detach non-current items from the dom after their transitions finish
+# (so they don't impact performance)
+# and re-add them before the next transition

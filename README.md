@@ -37,21 +37,21 @@ Most server modules should export a singleton. Most client modules should export
 ```
 ### Directory Organization
 
-[.env](.env) - specify development environment variables  
-[Cakefile](Cakefile) - run tasks in the specified environment with `cake`  
-[Procfile](Procfile) - define production tasks  
-[scripts/](scripts/) - tasks that don't fit in the Cakefile  
-[generators/](generators/) - scaffolds for use with `scaffolt`  
+[.env](.env) - specify development environment variables
+[Cakefile](Cakefile) - run tasks in the specified environment with `cake`
+[Procfile](Procfile) - define production tasks
+[scripts/](scripts/) - tasks that don't fit in the Cakefile
+[generators/](generators/) - scaffolds for use with `scaffolt`
 
-[package.json](package.json) - specify server libraries for installation with `npm`  
-[node_modules/](node_modules/) - installed server libraries  
-[server/](server/index.html) - original backend source code  
+[package.json](package.json) - specify server libraries for installation with `npm`
+[node_modules/](node_modules/) - installed server libraries
+[server/](server/index.html) - original backend source code
 
-[config.coffee](config.coffee) - `brunch` configuration  
-[bower.json](bower.json) - specify client libraries for installation with `bower`  
-[bower_components/](bower_components/) - installed client libraries  
-[client/](client/) - original frontend source code  
-[build/](build/) - compiled frontend  
+[config.coffee](config.coffee) - `brunch` configuration
+[bower.json](bower.json) - specify client libraries for installation with `bower`
+[bower_components/](bower_components/) - installed client libraries
+[client/](client/) - original frontend source code
+[build/](build/) - compiled frontend
 
 ## Documentation
 

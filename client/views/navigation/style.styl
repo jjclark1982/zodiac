@@ -35,6 +35,7 @@
         position: relative;
         left: 0;
         top: 0;
+        overflow-x: auto;
     }
     > .navigation-item.current ~ .navigation-item {
         position: absolute;
@@ -43,5 +44,26 @@
     }
     > .navigation-item:first-child:last-child {
         left: 0;
+    }
+}
+
+.zooming-navigation-view {
+    position: relative;
+
+    > .navigation-item {
+        position: absolute;
+        opacity: 0;
+        transform: scale(4, 4);
+    }
+    > .navigation-item.current {
+        position: relative;
+        opacity: 1;
+        transform: initial;
+    }
+    > .navigation-item.current ~ .navigation-item {
+        position: absolute;
+        top: 0;
+        opacity: 0;
+        transform: scale(0.125, 0.125);
     }
 }

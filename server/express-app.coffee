@@ -65,10 +65,7 @@ app.use(express.static(path.resolve(__dirname, '../build')))
 # [resource.coffee](resource.html) file and maps to the endpoints described in the
 # [middleware factory](resource.html#middleware-factory) that it exports.
 models = [
-    require("models/user")
-    require("models/activity")
-    require("models/partner")
-    require("models/task")
+
 ]
 for model in models when model.prototype.urlRoot
     app.use(model.prototype.urlRoot, resource({model: model}))
@@ -83,18 +80,6 @@ app.use(errorHandler)
 
 # ###### Global routings
 
-# MAP '/' to the 'landing' view
-app.get('/', (req, res, next)->
-    res.render('landing', {title: "Search Activities"})
-)
-# MAP '/slow' to the 'slow' view -- for streaming testing
-app.get('/slow', (req, res, next)->
-    res.render('slow')
-)
-# MAP '/error/:status' to the [`errorHandler`](error-handler.html) associated with :status for testing
-app.get('/error/:status', (req, res, next)->
-    next(parseInt(req.params.status))
-)
 # MAP '/info' to information about the setup for testing
 app.get('/info', (req, res, next)->
     info = {
@@ -106,10 +91,15 @@ app.get('/info', (req, res, next)->
     res.render('page', {model:require("util").inspect(info)})
 )
 
+
+# app.get('/', (req, res, next)->
+
+# )
+
 # Exports the application
 module.exports = app
 
 # ***
-# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it is designed to render tempates, 
+# ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it is designed to render tempates,
 # step into [RESOURCE.COFFEE](resource.html) to see how the riak database and middleware factory are set up, or step
 # into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to process errors.

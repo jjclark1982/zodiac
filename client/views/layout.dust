@@ -13,7 +13,6 @@
 </head>
 <body>
 
-    {>expedia-header user=session.passport.user /}
     {! {>footer /} !}
 
     <ul id="main-navigator" class="navigation-view">
