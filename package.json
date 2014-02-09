@@ -1,5 +1,5 @@
 {
-  "name": "stacktest",
+  "name": "zodiac",
   "repository": "git@github.com:DestinationSoftware/stacktest.git",
   "version": "0.0.1",
   "scripts": {
@@ -33,10 +33,6 @@
     "async": "~0.2.9",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
-    "twilio": "~1.4.0",
-    "lob": "~1.0.1",
-    "pdfkit": "~0.2.6",
-    "wkhtmltopdf": "~0.1.4",
     "request": "~2.30.0"
   },
   "devDependencies": {

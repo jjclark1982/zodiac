@@ -1,11 +1,44 @@
-# stacktest
+# Zodiac
 
 Developmental [Express](http://expressjs.com/) server with [Brunch](http://brunch.io) frontend and [Riak](http://basho.com/riak/) backend
 
-## Usage
+## Install
+
+### Debian
+
+**Step 1.** Update apt-get
+
+    apt-get update
+
+**Step 2.** Make sure that `curl`, `make`, `gcc`/`g++`, and `git` are installed
+
+    apt-get install curl
+    apt-get install make
+    apt-get install build-essential
+    apt-get install git
+
+**Step 3.** Install node.js and npm
+
+    echo "deb http://ftp.us.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
+    apt-get install nodejs-legacy
+    curl https://npmjs.org/install.sh | sh
+
+**Step 4.** Grab the framework
+
+    git clone https://github.com/DestinationSoftware/stacktest.git
+    cd stacktest
+
+**Step 5.** Install dependencies with npm and bower (***DO NOT RUN AS SUDO***)
 
     npm install
+
+**Step 6.** Set up `.env` file and append `node_modules/.bin` to path
+
     echo NODE_ENV=development > .env
+    export PATH=$PATH:node_modules/.bin
+
+**Step 7.** Launch
+
     cake develop
 
 ## Code Style Guide
