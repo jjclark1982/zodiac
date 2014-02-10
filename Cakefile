@@ -42,20 +42,23 @@ task 'console', 'Open an interactive prompt', ->
         catch e
             null
 
-# Provide commands for any scripts in the `scripts` directory
-for basename in fs.readdirSync("./scripts") then do (basename)->
-    filename = "./scripts/#{basename}"
-    contents = fs.readFileSync(filename, 'utf8')
-    title = basename.replace(/\..*?$/, '')
-    description = ''
-    for line, i in contents.split(/\r|\n|\r\n/)
-        if line.match(/^#!/) then continue
-        if line.match(/-\*- mode/) then continue
-        if line.match(/^\s*(#|\/\/|$)/)
-            description += line.replace(/^\s*(#|\/\/)\s*/, ' ').trim()
-            continue
-        break
-    task(title, description, shellScript(filename))
+task 'start', 'Run the server', shellScript """
+    node server
+"""
+
+task 'develop', 'Run server with auto-reloading', shellScript """
+    (sleep 1; open 'http://localhost:#{config.server.port}/') &
+    brunch watch --server
+"""
+
+task 'test', 'Run server-side tests', shellScript """
+    mocha --compilers coffee:coffee-script --globals _,Backbone test/test_server.coffee
+    # open 'http://localhost:#{config.server.port}/test'
+"""
+
+task 'build', 'Compile the client', shellScript """
+    brunch build
+"""
 
 task 'docs', 'Compile internal documentation', ->
     groc = require("groc")
@@ -82,22 +85,17 @@ task 'docs:upload', 'Compile internal documentation and upload to GitHub-Pages',
     groc --github README.md server/* client/{*,*/*,*/*/*} scripts/*
 """
 
-task 'build', 'Compile the client', shellScript """
-    brunch build
-"""
-
-task 'test', 'Run server-side tests', shellScript """
-    mocha --compilers coffee:coffee-script --globals _,Backbone test/test_server.coffee
-    # open 'http://localhost:#{config.server.port}/test'
-"""
-
-task 'start', 'Run the server', shellScript """
-    server/task-handlers/process-tasks.coffee &
-    node server
-"""
-
-task 'develop', 'Run server with auto-reloading', shellScript """
-    (sleep 1; open 'http://localhost:#{config.server.port}/') &
-    server/task-handlers/process-tasks.coffee &
-    brunch watch --server
-"""
+# Provide commands for any scripts in the `scripts` directory
+for basename in fs.readdirSync("./scripts") then do (basename)->
+    filename = "./scripts/#{basename}"
+    contents = fs.readFileSync(filename, 'utf8')
+    title = basename.replace(/\..*?$/, '')
+    description = ''
+    for line, i in contents.split(/\r|\n|\r\n/)
+        if line.match(/^#!/) then continue
+        if line.match(/-\*- mode/) then continue
+        if line.match(/^\s*(#|\/\/|$)/)
+            description += line.replace(/^\s*(#|\/\/)\s*/, ' ').trim()
+            continue
+        break
+    task(title, description, shellScript(filename))
