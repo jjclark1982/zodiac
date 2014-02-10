@@ -9,7 +9,7 @@
 
 // This module bootstraps support for [CoffeeScript](http://coffeescript.org/)
 // so that the server can be started with `node server` even if `coffee` is not in the PATH.
-require('coffee-script');
+require('coffee-script/register');
 
 // either load into memory [`SPDY.COFFEE`](spdy-server.html) or [`HTTP.COFFEE`](http-server.html), depending on whether
 // there is a USE_SPDY flag in the `environment`. If present, this means: use the 

@@ -112,47 +112,6 @@ dust.onLoad = (name, callback)->
 
 dust.helpers or= {}
 
-# usage: {@bind key="name" tagName="span"}initial value{/bind}
-dust.helpers.bind = (chunk, context, bodies, params)->
-    view = context.stack.head
-    model = view.model
-    key = params.key
-    tagName = params.tagName or 'span'
-
-    if tagName.match(/^input$/i)
-        chunk.write("<#{tagName} data-bind=\"#{key}\" value=\"")
-        if bodies.block
-            bodies.block(chunk, context)
-        else
-            chunk.write(model.get(key))
-        chunk.write("\" />")
-
-        if window?
-            setVal = (event)->
-                value = $(event.target).val()
-                model.set(key, value)
-            view.$el?.on("input [data-bind=\"#{key}\"]", _.throttle(setVal, 30))
-            view.listenTo(model, "change:#{key}", (model, value, options)->
-                view.$("#{tagName}[data-bind='#{key}']").each((i, el)->
-                    # only match elements of this view, not subviews
-                    if $(el).parents('[data-cid]').eq(0).data('cid') is view.cid
-                        $(el).val(value)
-                )
-            )
-    else
-        chunk.write("<#{tagName} data-bind=\"#{key}\">")
-        if bodies.block
-            bodies.block(chunk, context)
-        else
-            chunk.write(model.get(key))
-        chunk.write("</#{tagName}>")
-
-        view.listenTo(model, "change:#{key}", (model, value, options)->
-            view.$("[data-bind='#{key}']").text(value)
-        )
-
-    return chunk
-
 dust.helpers.keyvalue = (chunk, context, bodies)->
     items = context.current()
 

@@ -8,15 +8,6 @@ if [ ! -e "./node_modules/" ]; then
     exec npm install
 fi
 
-# compile docs
-[ -x "$(which docco)" ] && docco server/* client/{*,*/*}.coffee
-
-# install sass on production
-if [ ! -x "$(which sass)" -a "$(uname)" != "Darwin" ]; then
-    export GEM_HOME="${HOME}/.ruby_gems"
-    gem install --bindir "bin" --no-rdoc --no-ri sass
-fi
-
 # install bower components
 bower install
 

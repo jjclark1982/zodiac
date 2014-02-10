@@ -65,7 +65,8 @@ app.use(express.static(path.resolve(__dirname, '../build')))
 # [resource.coffee](resource.html) file and maps to the endpoints described in the
 # [middleware factory](resource.html#middleware-factory) that it exports.
 models = [
-
+    require("models/user"),
+    require("models/task")
 ]
 for model in models when model.prototype.urlRoot
     app.use(model.prototype.urlRoot, resource({model: model}))

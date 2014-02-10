@@ -1,4 +1,4 @@
-BaseModel = require("./base")
+BaseModel = require("base/model")
 
 module.exports = class User extends BaseModel
     requirePath: module.id
@@ -24,12 +24,12 @@ module.exports = class User extends BaseModel
         }
     ]
 
-    links: {
-        cart: {
-            type: 'hasOne'
-            target: 'cart'
-        }
-    }
+    # links: {
+    #     cart: {
+    #         type: 'hasOne'
+    #         target: 'cart'
+    #     }
+    # }
 
     allowListAll: true
 

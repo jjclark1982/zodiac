@@ -11,15 +11,22 @@
     <!--[if IE 7]><link rel="stylesheet" href="stylesheets/font-awesome-ie7.min.css"><![endif]-->
     <title>{#title}{.}{:else}{settings.appName}{/title}</title>
 </head>
+{!
+    Don't put anything above this point that might slow down page loading.
+    Asynchronous tracking links are ok.
+    Synchronous scripts, images, and fonts should go at the end of the page.
+!}
 <body>
 
-    {! {>footer /} !}
+    {! {>header /} !}
 
     <ul id="main-navigator" class="navigation-view">
         <li class="navigation-item current">
             {>"{mainView}" /}
         </li>
     </ul>
+
+    {! {>footer /} !}
 
     <script src="/javascripts/vendor.js"></script>
     <script src="/javascripts/app.js"></script>

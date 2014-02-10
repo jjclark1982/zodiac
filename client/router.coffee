@@ -4,23 +4,15 @@ LightboxView = require("views/lightbox")
 class Router extends Backbone.Router
     routes: {
         "": "landing"
-        "users/me/cart": "cart"
     }
 
     landing: ->
         view = @getPoppedView()
         unless view
-            ActivitySearchView = require("views/activity-search")
-            view = new ActivitySearchView()
-            view.render()
+            view = new Backbone.View()
+            view.$el.html("<b>[Default landing view. Set up a route in client/router.coffee]</b>")
         @setMainView(view)
 
-    cart: ->
-        CartView = require("views/cart")
-        view = new CartView()
-        view.render()
-        @setMainView(view)
-   
     showModelView: (options={})->
         view = @getPoppedView()
         unless view
@@ -228,7 +220,8 @@ class Router extends Backbone.Router
 module.exports = new Router()
 
 modelsToRoute = [
-    'activity'
+    'user',
+    'task'
 ]
 
 for modelName in modelsToRoute then do (modelName)->
@@ -256,16 +249,3 @@ for modelName in modelsToRoute then do (modelName)->
             modelCtor: Model
         })
     )
-
-
-###
-
-would like to have a main-routed-content and a modal-routed-content
-each associated with a router
-both consulting the same routing table
-and the first one to intercept a click/submit would react to it
-
-
-with the modal-routed-content div always present, it could easily transition between shown and hidden
-
-###

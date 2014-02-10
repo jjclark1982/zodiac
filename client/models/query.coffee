@@ -1,4 +1,4 @@
-BaseModel = require("models/base")
+BaseModel = require("base/model")
 
 module.exports = class Query extends BaseModel
     requirePath: module.id

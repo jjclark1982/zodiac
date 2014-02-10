@@ -1,4 +1,4 @@
-BaseView = require("views/base")
+BaseView = require("base/view")
 
 module.exports = class GenericView extends BaseView
     requirePath: module.id

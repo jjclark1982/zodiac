@@ -1,3 +1,4 @@
+require 'coffee-script/register'
 fs = require 'fs'
 path = require 'path'
 child_process = require 'child_process'
@@ -91,12 +92,12 @@ task 'test', 'Run server-side tests', shellScript """
 """
 
 task 'start', 'Run the server', shellScript """
-    workers/process-tasks.coffee &
+    server/task-handlers/process-tasks.coffee &
     node server
 """
 
 task 'develop', 'Run server with auto-reloading', shellScript """
     (sleep 1; open 'http://localhost:#{config.server.port}/') &
-    workers/process-tasks.coffee &
+    server/task-handlers/process-tasks.coffee &
     brunch watch --server
 """

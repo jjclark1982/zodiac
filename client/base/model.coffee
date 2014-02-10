@@ -15,4 +15,3 @@ module.exports = class BaseModel extends Backbone.Model
             return @get(titleAtt)
         else
             return @id
-
