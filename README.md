@@ -53,16 +53,6 @@ Most server modules should export a singleton. Most client modules should export
 - `hydrate` - triggered on a view once when it has attached to a DOM element after being transmitted and instantiated separately
 - `filter` - triggered on a collection when a its `filterCond` has been updated
 
-### Load order / file support
-```
-[                  /server/index.js                           ]
-[ spdy-server.coffee or http-server.coffee |  cluster.coffee  ]
-[            express-app.coffee            |__________________]
-[resource.coffee | error-handler.coffee | dust-renderer.coffee]
-[_______________________________________| dust-helpers.coffee ]
-[                                       | layout.dust         ]
-[                                       | {model-based views} ]
-```
 ### Directory Organization
 
 [.env](.env) - specify development environment variables
@@ -106,13 +96,11 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [jQuery](http://api.jquery.com/) - DOM manipulation and AJAX
 - [Lodash](http://lodash.com/docs) - Functional programming utilities based on [Underscore](http://underscorejs.org/)
 - [Backbone](http://backbonejs.org/) - Data transport modeling and event binding
-- [Dust](http://akdubya.github.io/dustjs/) - Asynchronous templates
-- [Rivets](http://rivetsjs.com/) - Reactive data binding, used for declaratively specifying behavior of view elements
 - [Font Awesome](http://fortawesome.github.com/Font-Awesome/) - Icon font
-- [Bourbon Neat](http://neat.bourbon.io/) - Semantic grid framework
 
 ### Language Reference
 
 - [CoffeeScript](http://coffeescript.org/)
-- [Sass](http://sass-lang.com/docs/yardoc/file.SASS_REFERENCE.html)
+- [Stylus](http://learnboost.github.io/stylus/)
+- [Dust](http://akdubya.github.io/dustjs/) - Asynchronous templates
 - [HTTP/1.1](http://www.w3.org/Protocols/rfc2616/rfc2616.html) - [Header Fields](http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html), [Status Codes](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
