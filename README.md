@@ -4,40 +4,35 @@ Developmental [Express](http://expressjs.com/) server with [Brunch](http://brunc
 
 ## Install
 
-### Debian
+Presently, this framework expects a Riak instance as its data store.
+Instructions for installing Riak are available [here](http://docs.basho.com/riak/latest/quickstart/).
 
-**Step 1.** Update apt-get
+### Step 1. Install [node.js](http://nodejs.org/)
 
-    apt-get update
+For convenience, we've consolidated by-OS [instructions](NODE_INSTALL.md) for how to get the node.js platform installed on your machine.
 
-**Step 2.** Make sure that `curl`, `make`, `gcc`/`g++`, and `git` are installed
+If you've previously installed node.js, skip to **Step 2** below, though also ensure that you have the `git` package installed as well.
 
-    apt-get install curl
-    apt-get install make
-    apt-get install build-essential
-    apt-get install git
+### Step 2. Grab the framework
 
-**Step 3.** Install node.js and npm
-
-    echo "deb http://ftp.us.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
-    apt-get install nodejs-legacy
-    curl https://npmjs.org/install.sh | sh
-
-**Step 4.** Grab the framework
-
-    git clone https://github.com/DestinationSoftware/stacktest.git
+    git clone https://github.com/DestinationSoftware/zodiac.git
     cd stacktest
 
-**Step 5.** Install dependencies with npm and bower (***DO NOT RUN AS SUDO***)
+### Step 3. Install dependencies with npm and bower
+
+(***DO NOT RUN AS SUDO***)
 
     npm install
 
-**Step 6.** Set up `.env` file and append `node_modules/.bin` to path
+### Step 4. Set up `.env` file and append `node_modules/.bin` to path
+
+**Be sure to replace `[your server]` below with the link to your own riak instance.**
 
     echo NODE_ENV=development > .env
+    echo RIAK_SERVERS= [your server] > .env
     export PATH=$PATH:node_modules/.bin
 
-**Step 7.** Launch
+### Step 5. Launch
 
     cake develop
 
