@@ -46,6 +46,10 @@ task 'start', 'Run the server', shellScript """
     node server
 """
 
+task 'work', 'Start a worker', shellScript """
+    server/task-worker.coffee
+"""
+
 task 'develop', 'Run server with auto-reloading', shellScript """
     (sleep 1; open 'http://localhost:#{config.server.port}/') &
     brunch watch --server
