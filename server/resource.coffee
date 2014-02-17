@@ -150,9 +150,14 @@ module.exports = (moduleOptions = {})->
             object[idAttribute] = meta.key
 
             if options.create
-                res.redirect(modelProto.urlRoot + '/' + meta.key)
-            else
-                renderItem(req, res, next, object)
+                # redirect to a resource that was created without a full URL
+                if req.method is "POST"
+                    res.redirect(303, modelProto.urlRoot + '/' + meta.key)
+                    return
+                else
+                    res.status(201)
+
+            renderItem(req, res, next, object)
         )
 
 
@@ -162,9 +167,14 @@ module.exports = (moduleOptions = {})->
     # * Provides a function to look up an object on the riak server by modelID(?)
     router.param('modelId', (req, res, next, modelId)->
         db.get(bucket, modelId, {}, (err, object, meta)->
-            if err then return next(err)
-            object[idAttribute] = modelId
-            res.locals.object = object
+            if err
+                if err.statusCode isnt 404 then return next(err)
+                # 404 from db means no object exists yet. Mark it as null to allow creation by PUT.
+                res.locals.object = null
+            else
+                object[idAttribute] = modelId
+                res.locals.object = object
+
             res.locals.meta = meta
             next()
         )
@@ -196,13 +206,15 @@ module.exports = (moduleOptions = {})->
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
     #TODO: handle multiple options in case of editing conflict
     router.get('/:modelId.:format?', (req, res, next)->
+        unless res.locals.object
+            return next(404)
+
         renderItem(req, res, next, res.locals.object)
     )
 
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
         saveItem(req, res, next, {create: true})
-        #TODO: investigate whether we need to set "location" header
     )
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
