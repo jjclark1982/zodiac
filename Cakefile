@@ -36,7 +36,7 @@ task 'console', 'Open an interactive prompt', ->
         )
     repl = require('coffee-script/lib/coffee-script/repl')
     context = repl.start({prompt: "#{packageDef.name}> "}).context
-    for file in fs.readdirSync("./server")
+    for file in fs.readdirSync("./server") when file[0] isnt '.'
         try
             context[moduleName(file)] = require("./server/#{file}")
         catch e
