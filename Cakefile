@@ -42,6 +42,14 @@ task 'console', 'Open an interactive prompt', ->
         catch e
             null
 
+    require.cache["base/model"] = require("./client/base/model")
+    for file in fs.readdirSync("./client/models") when file[0] isnt '.'
+        try
+            ModelCtor = require("./client/models/#{file}")
+            context[ModelCtor.name] = ModelCtor
+        catch e
+            console.log "Couldnt load #{file}", e
+
 task 'start', 'Run the server', shellScript """
     node server
 """
