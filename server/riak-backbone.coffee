@@ -1,17 +1,20 @@
 db = require("./db")
-
-# Load the [`lodash` node module](http://lodash.com/) globally so that the models that get loaded by the function below
-# have access to it. Lodash ~= Underscore, with better performance.
 global._ = require('lodash')
-
-# Load the [`backbone` node module](http://backbonejs.org/) globally so that the models that get loaded by the function
-# below have access to it
 global.Backbone = require('backbone')
 
 Backbone.sync = (method, model={}, options={})->
     unless model.bucket
         throw new Error("cannot #{method} a model that has no bucket defined")
+
     bucket = model.bucket
+    idAttribute = model.idAttribute or 'id'
+
+    callback = (err, object={}, meta={})->
+        if err then return options.error?(err)
+
+        object[idAttribute] = meta.key
+        model.vclock = meta.vclock
+        options.success?(object)
 
     switch method
         when "create", "update"
@@ -23,32 +26,17 @@ Backbone.sync = (method, model={}, options={})->
             if model.index
                 options.index ?= _.result(model, 'index')
 
-            db.save(bucket, model.id, model.toJSON(), options, (err, object, meta)->
-                if err then return options.error?(model, meta, options, err)
-
-                idAttribute = model.idAttribute or 'id'
-                object[idAttribute] = meta.key
-                model.vclock = meta.vclock
-                options.success?(object)
-            )
-            model.trigger('request', model, {}, options);
+            db.save(bucket, model.id, model.toJSON(), options, callback)
 
         when "delete"
-            db.remove(bucket, model.id, options, (err, object, meta)->
-                if err then return options.error?(model, meta, options, err)
-                options.success?(object)
-            )
+            db.remove(bucket, model.id, options, callback)
 
         when "read"
-            db.get(bucket, model.id, options, (err, object, meta)->
-                if err then return options.error?(model, meta, options, err)
-
-                model.vclock = meta.vclock
-                options.success?(object)
-            )
+            db.get(bucket, model.id, options, callback)
         else
             throw new Error("cannot #{method} a model")
 
+    model.trigger('request', model, {}, options);
     return model
 
 module.exports = Backbone
