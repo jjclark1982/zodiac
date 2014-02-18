@@ -71,4 +71,4 @@ Backbone.sync = (method, model={}, options={})->
 
     return promise
 
-module.exports = Backbone
+module.exports = Backbone.sync
