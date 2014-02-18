@@ -24,6 +24,9 @@
       },
       "main": "backbone.js"
     },
+    "font-awesome": {
+      "main": "css/font-awesome.css"
+    },
     "modernizr": {
       "main": "modernizr.js"
     },
