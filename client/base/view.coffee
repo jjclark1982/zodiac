@@ -5,6 +5,8 @@ unless window?
     Backbone.View.prototype._ensureElement = (->)
     Backbone.View.prototype.delegateEvents = (->)
 
+Query = require("models/query")
+
 normalizePath = (requirePath='')->
     return requirePath.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
 
@@ -21,7 +23,7 @@ module.exports = class BaseView extends Backbone.View
         atts = {}
         atts['data-view'] = normalizePath(@requirePath).replace(/^views\//,'')
         if @model?.requirePath
-            atts['data-model'] = normalizePath(@model.requirePath)?.replace(/^models\//,'')
+            atts['data-model'] = normalizePath(@model.requirePath).replace(/^models\//,'')
         if @collection?.requirePath
             atts['data-collection'] = normalizePath(@collection.requirePath)
         if @collection?.model
@@ -31,9 +33,10 @@ module.exports = class BaseView extends Backbone.View
         try
             atts['data-model-url'] = _.result(@model, 'url')
         try
-            atts['data-collection-url'] = _.result(@collection, 'url')
-            if @collection?.query
-                atts['data-collection-query'] = @collection.query.replace(/^\?/,'')
+            curl = _.result(@collection, 'url')
+            query = new Query(@collection?.query, {parse: true}).toString()
+            if query then curl += "?" + query
+            atts['data-collection-url'] = curl
 
         #the cid is useful on the client, but don't include it over the wire
         if window?

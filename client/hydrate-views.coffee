@@ -9,41 +9,42 @@
 # This will instantiate the named view, model, and collection.
 
 collectionsByUrl = {}
-fetchCollection = (url, query, ctors)->
-    if url
-        collection = collectionsByUrl[url]
-        if !collection
-            ctors.collection ?= Backbone.Collection
-            collection = new ctors.collection([], {
-                url: url
-                model: ctors.model or Backbone.Model
-            })
-            collection.query = query
-            collectionsByUrl[url] = collection
-
-            collection.fetch({data: collection.query})
+collectionsByUrlRoot = {}
+fetchCollection = (url, ctors)->
+    return unless url
+    collection = collectionsByUrl[url]
+    unless collection
+        ctors.collection ?= Backbone.Collection
+        collection = new ctors.collection([], {
+            url: url
+            model: ctors.model or Backbone.Model
+        })
+        collectionsByUrl[url] = collection
+        urlRoot = ctors.model?.prototype.urlRoot or url.replace(/\?.*/, '')
+        collectionsByUrlRoot[urlRoot] = collection
+        collection.fetch()
 
     return collection
 
 modelsByUrl = {}
 fetchModel = (url, modelCtor)->
+    return unless url
     # TODO: support models with no urlRoot
-    if url
-        model = modelsByUrl[url]
-        if !model
-            modelCtor ?= Backbone.Model
-            model = new modelCtor({}, {url: url})
-            model.id = url.replace(modelCtor.prototype.urlRoot + '/', '')
-            modelsByUrl[url] = model
+    model = modelsByUrl[url]
+    unless model
+        modelCtor ?= Backbone.Model
+        model = new modelCtor({}, {url: url})
+        model.id = url.replace(modelCtor.prototype.urlRoot + '/', '')
+        modelsByUrl[url] = model
 
-            collection = collectionsByUrl[model.urlRoot]
-            if collection
-                # assume the collection is already fetching the model and will merge
-                # don't fire an 'add' event because the collection view is
-                # presumably already populated
-                collection.add(model, {silent: true})
-            else
-                model.fetch()
+        collection = collectionsByUrlRoot[model.urlRoot]
+        if collection
+            # assume the collection is already fetching the model and will merge
+            # don't fire an 'add' event because the collection view is
+            # presumably already populated
+            collection.add(model, {silent: true})
+        else
+            model.fetch()
     return model
 
 hydrateView = (el, parentView)->
@@ -68,8 +69,7 @@ hydrateView = (el, parentView)->
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
     if data.collectionUrl
-        options.collection = fetchCollection(data.collectionUrl,
-            data.collectionQuery, constructors)
+        options.collection = fetchCollection(data.collectionUrl constructors)
 
     if data.modelUrl
         options.model = fetchModel(data.modelUrl, constructors.model)
@@ -98,6 +98,9 @@ hydrateSubviews = (parentEl, parentView)->
 
 $(document).ready(->
     hydrateSubviews(document)
+    collectionsByUrl = {}
+    collectionsByUrlRoot = {}
+    modelsByUrl = {}
 )
 
 module.exports = hydrateView

@@ -1,5 +1,11 @@
 BaseModel = require("base/model")
 
+encode = (str)->
+    return encodeURIComponent(str).replace(/%20/g, '+')
+
+decode = (str)->
+    return decodeURIComponent(str.replace(/\+/g, "%20"))
+
 module.exports = class Query extends BaseModel
     requirePath: module.id
 
@@ -7,16 +13,25 @@ module.exports = class Query extends BaseModel
         attrs = response
         if _.isString(response)
             attrs = {}
-            for keyval in response.replace(/^\?/,'').split(/&/)
+            for keyval in response.replace(/^.*\?/,'').split(/&/)
                 parts = keyval.split("=")
                 if parts.length >= 2
-                    key = decodeURIComponent(parts[0]).replace(/\+/g, "%20")
-                    val = decodeURIComponent(parts[1]).replace(/\+/g, "%20")
-                    attrs[key] = val
+                    key = decode(parts[0])
+                    val = decode(parts[1])
+
+                    if attrs[key]
+                        unless _.isArray(attrs[key])
+                            attrs[key] = [attrs[key]]
+                        attrs[key].push(val)
+                    else
+                        attrs[key] = val
         return attrs
 
-    serialize: ->
-        str = (for key, val of @attributes
-            encodeURIComponent(key) + '=' + encodeURIComponent(val)
-        ).join('&')
-        return str
+    toString: ->
+        pairs = []
+        for key, vals of @attributes
+            unless _.isArray(vals)
+                vals = [vals]
+            for val in vals
+                pairs.push(encode(key) + '=' + encode(val))
+        return pairs.join('&')
