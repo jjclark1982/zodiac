@@ -55,9 +55,8 @@ app.use(passportConfig)
 
 # * Load favicons
 app.use(express.favicon())
-# * Load static URLs defined in the /build directory
+# * Load static files that exist in the /build directory
 app.use(express.static(path.resolve(__dirname, '../build')))
-
 
 # * For all models in a defined `[list]` that have a defined `urlroot` in their prototype, mount that model at that
 # `urlroot`. This loop runs on `require` and generates a mount for all `urlroots` in `model`s in the provided list.

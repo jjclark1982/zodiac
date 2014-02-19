@@ -11,7 +11,10 @@ module.exports = class BaseModel extends Backbone.Model
 
     title: ->
         titleAtt = _.result(@, 'titleAttribute')
+        name = @get("name")
         if titleAtt
             return @get(titleAtt)
+        else if name
+            return name
         else
             return @id

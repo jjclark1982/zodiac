@@ -10,9 +10,15 @@ async = require('async')
 db = require("./db")
 
 # define the server-side global Backbone that syncs to Riak
-require("./riak-backbone")
+require("./backbone-sync-riak")
 
 # #### Middleware factory
+# this is an express backbone resource handler
+# it mounts a given modelProto at its declared urlRoot
+# and stands between the frontend and the backend, enforcing validation
+# it should express most actions in terms of
+# model.fetch(), model.save(), and res.render()
+# and let the backbone-db mapper implement the sync() calls
 
 # Exports a function that maps a backbone model to express middleware that handles standard REST operations
 module.exports = (moduleOptions = {})->
@@ -26,42 +32,40 @@ module.exports = (moduleOptions = {})->
     idAttribute = modelProto.idAttribute or 'id'
 
     renderItem = (req, res, next, item)->
+        model = res.locals.model
         meta = res.locals.meta or {}
 
         # support "not modified" responses
-        # note that
         res.set({
-            'ETag': meta.etag,
-            'Last-Modified': meta.lastMod
+            'Last-Modified': model.lastMod
             'Vary': 'Accept,Accept-Encoding'
-            'Location': modelProto.urlRoot + '/' + meta.key
+            'Link': "<#{model.urlRoot}>; rel=\"up\""
+            'Location': model.url()
         })
         for name, value of meta._headers when name.match(/^x-riak/i)
             res.set(name, value)
-        #TODO: translate "Link" header
-        #TODO: consider redirecting if originalUrl doesn't match Location
+
+        res.format({
+            json: ->
+                res.set({'ETag': model.etag})
+            html: ->
+                res.set({'ETag': model.etag+'h'})
+        })
+
+        if req.fresh
+            return res.send(304)
 
         item._vclock = meta.vclock
 
         res.format({
             json: ->
-                #TODO: make cache-control actually work
-                # if req.fresh then return res.end(304)
+                item = model.toJSON()
+                item._vclock = model.vclock
                 res.json(item)
             html: ->
-                res.set({'ETag': meta.etag + "h"})
-                # if req.fresh then return res.end('', 304)
-
-                # TODO: see if title can be set in a more coherent way
-                try
-                    ItemView = require('views/'+itemView)
-                    view = new ItemView({model: new modelCtor(item)})
-                    title = _.result(view, 'title') or ''
-                catch e
-                    null
                 res.render(itemView, {
-                    model: new modelCtor(item)
-                    title: title
+                    model: model
+                    title: (_.result(model, 'title') or '')
                 })
         })
 
@@ -166,18 +170,21 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a function to look up an object on the riak server by modelID(?)
     router.param('modelId', (req, res, next, modelId)->
-        db.get(bucket, modelId, {}, (err, object, meta)->
-            if err
-                if err.statusCode isnt 404 then return next(err)
-                # 404 from db means no object exists yet. Mark it as null to allow creation by PUT.
-                res.locals.object = null
-            else
-                object[idAttribute] = modelId
-                res.locals.object = object
-
-            res.locals.meta = meta
-            next()
-        )
+        model = new modelCtor()
+        model.id = modelId
+        model.fetch({
+            success: (model, response, options)->
+                res.locals.model = model
+                res.locals.meta = options.meta # TODO: find a better solution
+                next()
+            error: (model, err, options)->
+                if err.statusCode is 404
+                    # This model doesn't exist yet. Let method handlers decide what to do.
+                    res.locals.model = null
+                    next()
+                else
+                    next(err)
+        })
     )
 
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
@@ -185,12 +192,19 @@ module.exports = (moduleOptions = {})->
     router.get('/', (req, res, next)->
         if Object.keys(req.query).length > 0
             # run a query
+            console.log("original url:",req.originalUrl)
+            res.locals.collection = new Backbone.Collection([], {
+                model: modelProto
+                url: modelProto.urlRoot
+                query: req.query
+            })
             db.query(bucket, req.query, (err, keys, meta)->
                 if err then return next(err)
                 renderList(req, res, next, keys)
             )
         else
             # no query specified. list all if allowed
+            # TODO: use {all: '1'} fallback query instead of streaming
             if not modelProto.allowListAll
                 return next(503)
             allKeys = []
@@ -206,10 +220,10 @@ module.exports = (moduleOptions = {})->
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
     #TODO: handle multiple options in case of editing conflict
     router.get('/:modelId.:format?', (req, res, next)->
-        unless res.locals.object
+        unless res.locals.model
             return next(404)
 
-        renderItem(req, res, next, res.locals.object)
+        renderItem(req, res, next, res.locals.model)
     )
 
     # * Provides a route to instantiate an object in the riak DB.
@@ -229,13 +243,17 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB
     router.delete('/:modelId', (req, res, next)->
-        db.remove(bucket, req.params.modelId, (err, object, meta)->
-            if (err) then return next(err)
+        unless res.locals.model
+            return next(404)
 
-            res.location(modelProto.urlRoot)
-            res.status(204)
-            res.end()
-        )
+        res.model.destroy({
+            error: (model, err, options)->
+                next(err)
+            success: (model, response, options)->
+                res.location(modelProto.urlRoot)
+                res.status(204)
+                res.end()
+        })
     )
 
     router.get("/:modelId/versions", (req, res, next)->

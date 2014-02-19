@@ -1,4 +1,4 @@
-BaseView = require("views/base")
+BaseView = require("base/view")
 
 module.exports = class NavigationView extends BaseView
     # A view that provides its requirePath can be re-instantiated after serialization
