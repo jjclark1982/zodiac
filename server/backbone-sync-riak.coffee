@@ -5,18 +5,15 @@ Promise = require('bluebird')
 
 Backbone.sync = (method, model={}, options={})->
     promise = new Promise((resolve, reject)->
+        idAttribute = model.idAttribute or model.model?.prototype.idAttribute or 'id'
         bucket = model.bucket or model.model?.prototype.bucket
         unless bucket
             throw new Error("cannot #{method} a model that has no bucket defined")
-
-        bucket = model.bucket
-        idAttribute = model.idAttribute or 'id'
 
         callback = (err, object={}, meta={})->
             if err then return reject(err)
 
             object[idAttribute] = meta.key
-
             model.vclock = meta.vclock
             model.lastMod = meta.lastMod
             model.etag = meta.etag
@@ -44,7 +41,19 @@ Backbone.sync = (method, model={}, options={})->
 
             when "read"
                 if model instanceof Backbone.Collection
-                    throw new Error("fetching an entire collection is not yet supported")
+                    collection = model
+                    query = collection.query or {all: '1'} # or parse collection.url??
+                    db.query(bucket, query, options, (err, keys=[], meta)->
+                        if err then return reject(err)
+                        items = []
+                        for key in keys
+                            item = {}
+                            item[idAttribute] = key
+                            items.push(item)
+                        # TODO: fetch model data as well???
+                        resolve(items)
+                    )
+                    return
 
                 db.get(bucket, model.id, options, callback)
 
