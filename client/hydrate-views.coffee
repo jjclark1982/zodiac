@@ -17,7 +17,7 @@ fetchCollection = (url, ctors)->
         ctors.collection ?= Backbone.Collection
         collection = new ctors.collection([], {
             url: url
-            model: ctors.model or Backbone.Model
+            model: ctors.collectionModel or Backbone.Model
         })
         collectionsByUrl[url] = collection
         urlRoot = ctors.model?.prototype.urlRoot or url.replace(/\?.*/, '')
@@ -51,6 +51,8 @@ hydrateView = (el, parentView)->
     data = $(el).data()
     return if data['viewAttached']
     options = {el: el}
+    for key, val of data when !(key in ['view', 'model', 'collection', 'collectionModel'])
+        options[key] = val
 
     # load the named model, view, and collection classes
     constructors = {}
@@ -73,9 +75,6 @@ hydrateView = (el, parentView)->
 
     if data.modelUrl
         options.model = fetchModel(data.modelUrl, constructors.model)
-
-    if data.itemView
-        options.itemView = data.itemView
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)

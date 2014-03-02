@@ -12,7 +12,11 @@ module.exports = class ListView extends BaseView
     }
 
     initialize: (options)->
-        @itemView ?= @options.itemView or 'generic'
+        @itemView ?= options.itemView or 'generic'
+        if options.itemViewOptions
+            @itemViewOptions = options.itemViewOptions
+            if _.isString(@itemViewOptions)
+                @itemViewOptions = JSON.parse(@itemViewOptions)
         # data-ify all string options?
         @itemViewCtor = require("views/"+@itemView)
         @collection ?= new Backbone.Collection()
@@ -122,7 +126,7 @@ module.exports = class ListView extends BaseView
             options = _.defaults({}, {
                 model: model
                 tagName: "li"
-            }, @options.itemViewOptions)  #TODO: update this for backbone 1.1
+            }, @itemViewOptions)
             itemView = new @itemViewCtor(options)
             itemView.render()
             @subviews[itemView.cid] = itemView
