@@ -16,9 +16,9 @@ fetchCollection = (url, ctors)->
     unless collection
         ctors.collection ?= Backbone.Collection
         collection = new ctors.collection([], {
-            url: url
             model: ctors.collectionModel or Backbone.Model
         })
+        collection.url = url
         collectionsByUrl[url] = collection
         urlRoot = ctors.model?.prototype.urlRoot or url.replace(/\?.*/, '')
         collectionsByUrlRoot[urlRoot] = collection
@@ -33,7 +33,8 @@ fetchModel = (url, modelCtor)->
     model = modelsByUrl[url]
     unless model
         modelCtor ?= Backbone.Model
-        model = new modelCtor({}, {url: url})
+        model = new modelCtor()
+        model.url = url
         model.id = url.replace(modelCtor.prototype.urlRoot + '/', '')
         modelsByUrl[url] = model
 

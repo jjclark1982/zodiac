@@ -51,6 +51,7 @@ Backbone.sync = (method, model={}, options={})->
                             item[idAttribute] = key
                             items.push(item)
                         # TODO: fetch model data as well???
+                        # collection url -> list of model ids -> model data
                         resolve(items)
                     )
                     return

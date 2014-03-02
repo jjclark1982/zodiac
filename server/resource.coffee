@@ -86,23 +86,15 @@ module.exports = (moduleOptions = {})->
             html: ->
                 collection = new Backbone.Collection([], {
                     model: modelCtor
-                    url: req.originalUrl.replace(/\?.*$/, '')
                 })
+                collection.url = req.originalUrl.replace(/\?.*$/, '')
                 collection.query = req.originalUrl.replace(/^[^\?]*/,'')
 
                 for key, i in keys then do (key,i)->
                     model = new modelCtor()
-                    model.id = key
+                    model.set(idAttribute, key)
                     if i < 5
                         model.needsData = true
-                        model.fetch = (options)->
-                            process.nextTick(=>
-                                db.get(bucket, @id, {}, (err, object, meta)=>
-                                    if err then return options.error?(err)
-                                    @set(object)
-                                    options.success?()
-                                )
-                            )
                     collection.add(model)
 
                 # note that this, and all other `res.render()` functions, employ
@@ -192,12 +184,14 @@ module.exports = (moduleOptions = {})->
     router.get('/', (req, res, next)->
         if Object.keys(req.query).length > 0
             # run a query
-            console.log("original url:",req.originalUrl)
+            console.log("original url:", req.originalUrl)
             res.locals.collection = new Backbone.Collection([], {
                 model: modelProto
-                url: modelProto.urlRoot
-                query: req.query
             })
+            res.locals.collection.url = modelProto.urlRoot
+            res.locals.collection.query = req.query
+            # TODO TODO: trace this query^ and see if it's still needed
+
             db.query(bucket, req.query, (err, keys, meta)->
                 if err then return next(err)
                 renderList(req, res, next, keys)

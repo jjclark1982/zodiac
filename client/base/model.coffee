@@ -18,3 +18,7 @@ module.exports = class BaseModel extends Backbone.Model
             return name
         else
             return @id
+
+    index: -> {
+        all: "1"
+    }

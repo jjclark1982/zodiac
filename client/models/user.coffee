@@ -10,7 +10,7 @@ module.exports = class User extends BaseModel
     fields: [
         {
            name: "username",
-           type: "readonly"
+           type: "id"
         },
         {
            name: "password",
