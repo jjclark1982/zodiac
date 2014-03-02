@@ -1,0 +1,29 @@
+<thead>
+    <tr>
+        <th></th>
+        {#columns}
+            <th>{name}</th>
+        {/columns}
+    </tr>
+</thead>
+<tbody>
+    {#collection.models}
+        <tr>
+            <td>
+                <button type="button">Save</button
+                ><button type="button">Delete</button>
+            </td>
+            {#columns}
+                <td>{@fieldFor name=name type=type model="parent" showlabel="0"/}</td>
+            {/columns}
+        </tr>
+    {/collection.models}
+    <tr>
+        <td>
+            <button type="button">Create</button>
+        </td>
+        {#columns}
+            <td></td>
+        {/columns}
+    </tr>
+</tbody>

@@ -28,7 +28,7 @@ module.exports = class BaseView extends Backbone.View
             atts['data-collection'] = normalizePath(@collection.requirePath)
         if @collection?.model
             cmp = normalizePath(@collection.model.prototype.requirePath).replace(/^models\//,'')
-            atts['data-collection-model'] = cmp
+            if cmp then atts['data-collection-model'] = cmp
 
         try
             atts['data-model-url'] = _.result(@model, 'url')
@@ -52,7 +52,7 @@ module.exports = class BaseView extends Backbone.View
             attrs['class'] = _.result(@, 'className')
 
         str = (for key, value of attrs when value?
-            ''+key+'="' + value.toString().replace(/"/g, '\\"') + '"'
+            ''+key+'="' + value.toString().replace(/"/g, '&quot;') + '"'
         ).join(" ")
         return str
 

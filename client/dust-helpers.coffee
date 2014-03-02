@@ -122,41 +122,34 @@ dust.helpers.keyvalue = (chunk, context, bodies)->
     return chunk
 
 dust.helpers.fieldFor = (chunk, context, bodies, params={})->
+    switch params.model
+        when "parent" then model = context.stack.tail.head
+        else model = params.model
+
     switch params.type
         when "string"
-            return chunk.write(
-                """<label class="field-#{params.name}">#{params.name}:
-                    <input type="text" name="#{params.name}" class="input-#{params.name}"
-                        value="#{params.model.get(params.name) or ''}">
-                     </label>""")
+            input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+                        value="#{model.get(params.name) or ''}">"""
         when "password"
-            return chunk.write(
-                """<label class="field-#{params.name}">#{params.name}:
-                    <input type="password" name="#{params.name}" class="input-#{params.name}"
-                        value="#{params.model.get(params.name) or ''}">
-                     </label>""")
+            input = """<input type="password" name="#{params.name}" class="input-#{params.name}"
+                        value="#{model.get(params.name) or ''}">"""
         when "readonly"
-            if params.model.get(params.name)?
-                return chunk.write(
-                    """<label class="field-#{params.name}">#{params.name}:
-                            #{params.model.get(params.name)}
-                        </label>""")
+            if model.get(params.name)?
+                input = model.get(params.name)
             else
-                return chunk.write(
-                    """<label class="field-#{params.name}">#{params.name}:
-                    <input type="text" name="#{params.name}" class="input-#{params.name}"
-                        value="#{params.model.get(params.name) or ''}">
-                     </label>""")
+                input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+                        value="#{model.get(params.name) or ''}">"""
         when "boolean"
-            return chunk.write(
-                """<label class="field-#{params.name}">#{params.name}:
-                    <input type="checkbox" name="#{params.name}" class="input-#{params.name}"
-                        value="1" #{if params.model.get(params.name) then 'checked' else ''}>
-                     </label>""")
+            input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}"
+                        value="1" #{if model.get(params.name) then 'checked' else ''}>"""
         else
-            return chunk.write(
-                """<!--no editor supported for this type: #{params.type} -->"""
-                )
+            input = "<!--no editor supported for this type: #{params.type} -->"
+
+    unless params.showlabel is "0"
+        str = """<label class="field-#{params.name}">#{params.name}: """ + input + """</label>"""
+    else
+        str = input
+    return chunk.write(str)
 
 dust.helpers.contextDump = (chunk, context, bodies, params={})->
     to = params.to or 'output'

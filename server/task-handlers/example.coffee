@@ -2,7 +2,7 @@ twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
 twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
 twilio =  require('twilio')(twilioAccountSid, twilioAuthToken)
 
-module.exports = (task, callback)->
+module.exports = handleTask = (task, callback)->
     partner = task.partner
 
     twilio.messages.create({
@@ -17,4 +17,11 @@ module.exports = (task, callback)->
             task.status = "finished"
             task.response = "TWILIO: " + text
             callback()
+    )
+
+# TODO: standardize unit-testing structure for task handlers
+testHandler = ()->
+    exampleTask = {}
+    handleTask(exampleTask, (err)->
+        console.log("done")
     )
