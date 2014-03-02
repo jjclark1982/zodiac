@@ -69,7 +69,7 @@ hydrateView = (el, parentView)->
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
     if data.collectionUrl
-        options.collection = fetchCollection(data.collectionUrl constructors)
+        options.collection = fetchCollection(data.collectionUrl, constructors)
 
     if data.modelUrl
         options.model = fetchModel(data.modelUrl, constructors.model)

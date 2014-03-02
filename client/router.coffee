@@ -164,7 +164,37 @@ class Router extends Backbone.Router
         return false
 
     initialize: ->
+        instance = this
         $(document).ready(=>
+            # create routes for all models that have a `urlRoot`
+            modelNames = (name for name in window.require.list() when name.match(/^models\//))
+            for modelName in modelNames then do (modelName)->
+                Model = require(modelName)
+                urlRoot = Model.prototype.urlRoot?.replace(/^\//, '')
+                return unless urlRoot
+
+                route = urlRoot + '(/)(?*query)'
+                routeName = Model.name + "Collection"
+                instance.route(route, routeName, (query)->
+                    document.title = Model.prototype.collectionTitle or ''
+                    query or= document.location.search.replace(/^\?/,'')
+                    instance.showCollectionView({
+                        viewCtor: require("views/" + Model.prototype.defaultListView)
+                        collectionCtor: Backbone.Collection
+                        collectionOptions: { url: document.location.pathname, model: Model }
+                        collectionQuery: query
+                    })
+                )
+
+                route = urlRoot + '/:id'
+                routeName = Model.name #TODO: consider how this interacts with minification
+                instance.route(route, routeName, (id)->
+                    instance.showModelView({
+                        viewCtor: require("views/" + Model.prototype.defaultView)
+                        modelCtor: Model
+                    })
+                )
+
             # create the main navigator. the modal navigator will be created on demand
             @mainNavigator = new NavigationView({
                 id: "main-navigator"
@@ -180,14 +210,14 @@ class Router extends Backbone.Router
             @saveState()
 
             # intercept links that can be handled by this router
-            $(document).delegate("a", "click", (event)->
+            $(document).delegate("a", "click", (event)=>
                 return if event.metaKey # let users open links in new tab
                 if @debug
                     event.preventDefault(event)
                     return false
 
                 link = event.currentTarget
-                if module.exports.navigateToLink(link)
+                if @navigateToLink(link)
                     event.preventDefault(event)
             )
 
@@ -196,7 +226,8 @@ class Router extends Backbone.Router
                 $(this).data("lastClicked", event.target)
             )
             $(document).delegate("form", "submit", (event)->
-                $form = $(this)
+                form = this
+                $form = $(form)
                 method = $form.attr("method")
                 if method and !method.match(/^get$/i)
                     return
@@ -209,43 +240,13 @@ class Router extends Backbone.Router
                 $form.removeData("lastClicked")
 
                 link = document.createElement("a")
-                link.href = this.action + "?" + query
-                if module.exports.navigateToLink(link)
+                link.href = form.action + "?" + query
+                if instance.navigateToLink(link)
                     event.preventDefault(event)
             )
-            # @on("all", ->console.log(@constructor.name,arguments, history.state))
         )
+
+        # @on("all", ->console.log(@constructor.name,arguments, history.state))
         return this
 
-module.exports = new Router()
-
-modelsToRoute = [
-    'user',
-    'task'
-]
-
-for modelName in modelsToRoute then do (modelName)->
-    Model = require("models/#{modelName}")
-    urlRoot = Model.prototype.urlRoot.replace(/^\//, '')
-
-    route = urlRoot + '(/)(?*query)'
-    routeName = Model.name + "Collection"
-    module.exports.route(route, routeName, (query)->
-        document.title = Model.prototype.collectionTitle or ''
-        query or= document.location.search.replace(/^\?/,'')
-        @showCollectionView({
-            viewCtor: require("views/" + Model.prototype.defaultListView)
-            collectionCtor: Backbone.Collection
-            collectionOptions: { url: document.location.pathname, model: Model }
-            collectionQuery: query
-        })
-    )
-
-    route = urlRoot + '/:id'
-    routeName = Model.name #TODO: consider how this interacts with minification
-    module.exports.route(route, routeName, (id)->
-        @showModelView({
-            viewCtor: require("views/" + Model.prototype.defaultView)
-            modelCtor: Model
-        })
-    )
+module.exports = Router
