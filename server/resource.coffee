@@ -84,18 +84,16 @@ module.exports = (moduleOptions = {})->
                     res.json(results)
                 )
             html: ->
-                collection = new Backbone.Collection([], {
+                scaffold = []
+                for key in keys
+                    obj = {}
+                    obj[idAttribute] = key
+                    scaffold.push(obj)
+                collection = new Backbone.Collection(scaffold, {
                     model: modelCtor
                 })
                 collection.url = req.originalUrl.replace(/\?.*$/, '')
                 collection.query = req.originalUrl.replace(/^[^\?]*/,'')
-
-                for key, i in keys then do (key,i)->
-                    model = new modelCtor()
-                    model.set(idAttribute, key)
-                    if i < 5
-                        model.needsData = true
-                    collection.add(model)
 
                 # note that this, and all other `res.render()` functions, employ
                 # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
