@@ -9,9 +9,13 @@
     th {
         line-height: 2em;
         padding: 0 0.5em;
-        cursor: pointer;
-        cursor: hand;
+    }
+    th.sortable {
         user-select: none;
+        cursor: n-resize;
+    }
+    th.sortable.sort-key {
+        cursor: s-resize;
     }
     th.sort-key:after {
         display: inline;
@@ -20,10 +24,5 @@
     th.sort-key-reverse:after {
         display: inline;
         content: " ▼";
-    }
-    td {
-        > input {
-            border: 0;
-        }
     }
 }

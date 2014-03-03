@@ -134,7 +134,12 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
             input = """<input type="password" name="#{params.name}" class="input-#{params.name}"
                         value="#{model.get(params.name) or ''}">"""
         when "id"
-            input = """<a href="#{model.url()}">#{model.get(params.name)}</a>"""
+            if model.get(params.name)?
+                url = _.result(model, 'url')
+                input = """<a href="#{url}">#{model.get(params.name)}</a>"""
+            else
+                input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+                        value="#{model.get(params.name) or ''}">"""
         when "readonly"
             if model.get(params.name)?
                 input = model.get(params.name)

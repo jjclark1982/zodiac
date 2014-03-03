@@ -1,0 +1,14 @@
+{#columns}
+    <td data-column-name="{name|attr}">
+        {@fieldFor name=name type=type model=model showlabel="0"/}
+    </td>
+{/columns}
+<td>
+    <button type="button" class="save-item" disabled>Save</button>
+    <button type="button" class="fetch-item" disabled>Revert</button>
+    <span class="delete-buttons">
+        <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
+        <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
+        <button type="button" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
+    </span>
+</td>

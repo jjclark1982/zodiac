@@ -1,4 +1,5 @@
 BaseView = require("base/view")
+TableRowView = require("./row")
 require("toggles")
 
 module.exports = class TableView extends BaseView
@@ -18,13 +19,14 @@ module.exports = class TableView extends BaseView
         if _.isString(@columns)
             @columns = JSON.parse(@columns)
         @columns = _.clone(@columns)
-        @listenTo(@collection, "add", @render)
-        @listenTo(@collection, "remove", @render)
-        @listenTo(@collection, "sort", @orderRows)
-        @listenTo(@collection, "reset", @render)
-        @listenTo(@collection, "request", @syncStarted)
-        @listenTo(@collection, "sync", @syncFinished)
-        @listenTo(@collection, "error", @syncError)
+        if window?
+            @listenTo(@collection, "add", @orderRows)
+            @listenTo(@collection, "remove", @orderRows)
+            @listenTo(@collection, "reset", @orderRows)
+            @listenTo(@collection, "request", @syncStarted)
+            @listenTo(@collection, "error", @syncError)
+            @listenTo(@collection, "sync", @syncFinished)
+            @listenToOnce(@collection, "sync", @firstSyncFinished)
 
     attributes: ->
         atts = super(arguments...)
@@ -37,27 +39,36 @@ module.exports = class TableView extends BaseView
             @syncFinished(collection, xhr, options)
         )
 
-    syncFinished: (collection, xhr, options = {})->
-        @$el.removeClass("loading")
-        @render()
-
     syncError: (collection, xhr, options = {})->
         @$el.addClass("error").attr("data-error", "#{xhr.status} #{xhr.statusText}")
 
+    syncFinished: (collection, xhr, options = {})->
+        @$el.removeClass("loading")
+
+    firstSyncFinished: (collection, xhr, options = {})->
+        for cid, subview of @subviews
+            subview.render()
+            subview.$el.attr("data-model-cid", subview.model.cid)
+        @listenTo(@collection, "sort", @orderRows)
 
     events: {
-        "click th": "setSort"
-        "keyup input": "changeInput"
+        "click th.sortable": "setSort"
+        "keyup input": "typeInput"
+        "change input": "changeInput"
         "click .save-item": "saveItem"
         "click .fetch-item": "fetchItem"
         "click .destroy-item": "destroyItem"
+        "click .create-item": "createItem"
     }
+
+    createItem: (event)->
+        @collection.add({}, {at: 0})
 
     clickedModel: (event)->
         $input = $(event.currentTarget)
         $row = $input.parents("tr").first()
-        modelCid = $row.data("model-cid")
-        model = @collection.get(modelCid)
+        rowView = @subviews[$row.data("cid")]
+        model = rowView.model
         return model
 
     saveItem: (event)->
@@ -68,7 +79,13 @@ module.exports = class TableView extends BaseView
 
     fetchItem: (event)->
         model = @clickedModel(event)
-        model.fetch()
+        model.attributes = {}
+        model.fetch().then(->
+            $row = $(event.currentTarget).parents("tr").first()
+            $inputs = $row.find("input")
+            for input in $inputs
+                $(input).val(model.get(input.name))
+        )
         $(event.currentTarget).attr("disabled", true)
         # TODO: loading indicator
 
@@ -77,15 +94,20 @@ module.exports = class TableView extends BaseView
         model.destroy()
         # TODO: loading indicator, re-add if destroy fails
 
-    changeInput: (event)->
+    typeInput: (event)->
         $input = $(event.currentTarget)
         $row = $input.parents("tr").first()
-        model = @collection.get($row.data("model-cid"))
+        rowView = @subviews[$row.data("cid")]
+        model = rowView.model
+        name = $input.attr("name")
+        value = $input.val()
         model.set($input.attr("name"), $input.val())
 
         if model.changedAttributes()
             $row.find(".save-item").removeAttr("disabled")
             $row.find(".fetch-item").removeAttr("disabled")
+
+    changeInput: (event)->
         if @collection.comparator
             @collection.sort()
 
@@ -127,7 +149,14 @@ module.exports = class TableView extends BaseView
         for model in @collection.models
             row = rowsByCid[model.cid]
             delete rowsByCid[model.cid]
-            $tbody.append(row)
+            if row
+                $tbody.append(row)
+            else
+                rowView = new TableRowView({model: model, columns: @columns})
+                @subviews[rowView.cid] = rowView
+                rowView.render()
+                rowView.$el.attr("data-model-cid", model.cid)
+                $tbody.append(rowView.el)
 
         for noCid, row of rowsByCid
             $tbody.append(row)

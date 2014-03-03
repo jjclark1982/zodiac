@@ -1,35 +1,15 @@
 <thead>
     <tr>
         {#columns}
-            <th data-column-name="{name|attr}">{name}</th>
+            <th class="sortable" data-column-name="{name|attr}">{name}</th>
         {/columns}
+        <th>
+            <button type="button" class="create-item">Create</button>
+        </th>
     </tr>
 </thead>
 <tbody>
     {#collection.models}
-        <tr data-model-id="{id|attr}" data-model-cid="{cid|attr}">
-            {#columns}
-                <td data-column-name="{name|attr}">
-                    {@fieldFor name=name type=type model="parent" showlabel="0"/}
-                </td>
-            {/columns}
-            <td>
-                <button type="button" class="save-item" disabled>Save</button>
-                <button type="button" class="fetch-item" disabled>Revert</button>
-                <span class="delete-buttons">
-                    <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
-                    <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
-                    <button type="button" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
-                </span>
-            </td>
-        </tr>
+        {>"table/row" model=. columns=columns /}
     {/collection.models}
-    <tr>
-        {#columns}
-            <td></td>
-        {/columns}
-        <td>
-            <button type="button" class="create-item">Create</button>
-        </td>
-    </tr>
 </tbody>
