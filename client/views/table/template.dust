@@ -1,7 +1,7 @@
 <thead>
     <tr>
         {#columns}
-            <th data-sort-key="{name|attr}">{name}</th>
+            <th data-column-name="{name|attr}">{name}</th>
         {/columns}
     </tr>
 </thead>
@@ -9,12 +9,18 @@
     {#collection.models}
         <tr data-model-id="{id|attr}" data-model-cid="{cid|attr}">
             {#columns}
-                <td>{@fieldFor name=name type=type model="parent" showlabel="0"/}</td>
+                <td data-column-name="{name|attr}">
+                    {@fieldFor name=name type=type model="parent" showlabel="0"/}
+                </td>
             {/columns}
             <td>
                 <button type="button" class="save-item" disabled>Save</button>
                 <button type="button" class="fetch-item" disabled>Revert</button>
-                <button type="button" class="delete-item">Delete</button>
+                <span class="delete-buttons">
+                    <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
+                    <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
+                    <button type="button" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
+                </span>
             </td>
         </tr>
     {/collection.models}

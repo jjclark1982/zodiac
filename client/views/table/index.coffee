@@ -1,4 +1,5 @@
 BaseView = require("base/view")
+require("toggles")
 
 module.exports = class TableView extends BaseView
     # A view that provides its requirePath can be re-instantiated after serialization
@@ -46,17 +47,42 @@ module.exports = class TableView extends BaseView
 
     events: {
         "click th": "setSort"
-        "change input": "changeInput"
+        "keyup input": "changeInput"
+        "click .save-item": "saveItem"
+        "click .fetch-item": "fetchItem"
+        "click .destroy-item": "destroyItem"
     }
 
-    changeInput: (event)->
+    clickedModel: (event)->
         $input = $(event.currentTarget)
         $row = $input.parents("tr").first()
         modelCid = $row.data("model-cid")
         model = @collection.get(modelCid)
-        name = $input.attr("name")
-        value = $input.val()
-        model.set(name, value)
+        return model
+
+    saveItem: (event)->
+        model = @clickedModel(event)
+        model.save()
+        $(event.currentTarget).attr("disabled", true)
+        # TODO: loading indicator
+
+    fetchItem: (event)->
+        model = @clickedModel(event)
+        model.fetch()
+        $(event.currentTarget).attr("disabled", true)
+        # TODO: loading indicator
+
+    destroyItem: (event)->
+        model = @clickedModel(event)
+        model.destroy()
+        # TODO: loading indicator, re-add if destroy fails
+
+    changeInput: (event)->
+        $input = $(event.currentTarget)
+        $row = $input.parents("tr").first()
+        model = @collection.get($row.data("model-cid"))
+        model.set($input.attr("name"), $input.val())
+
         if model.changedAttributes()
             $row.find(".save-item").removeAttr("disabled")
             $row.find(".fetch-item").removeAttr("disabled")
@@ -65,7 +91,7 @@ module.exports = class TableView extends BaseView
 
     setSort: (event)->
         $th = $(event.currentTarget)
-        sortKey = $th.data("sortKey")
+        sortKey = $th.data("column-name")
         reverse = false
         if ($th.hasClass("sort-key"))
             reverse = true
