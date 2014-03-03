@@ -79,7 +79,8 @@ module.exports = class TableView extends BaseView
 
     fetchItem: (event)->
         model = @clickedModel(event)
-        model.attributes = {}
+        for key in model.keys() when key isnt (model.idAttribute or 'id')
+            model.unset(key, {silent: true})
         model.fetch().then(->
             $row = $(event.currentTarget).parents("tr").first()
             $inputs = $row.find("input")
