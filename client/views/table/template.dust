@@ -1,29 +1,29 @@
 <thead>
     <tr>
-        <th></th>
         {#columns}
-            <th>{name}</th>
+            <th data-sort-key="{name|attr}">{name}</th>
         {/columns}
     </tr>
 </thead>
 <tbody>
     {#collection.models}
-        <tr>
-            <td>
-                <button type="button">Save</button
-                ><button type="button">Delete</button>
-            </td>
+        <tr data-model-id="{id|attr}" data-model-cid="{cid|attr}">
             {#columns}
                 <td>{@fieldFor name=name type=type model="parent" showlabel="0"/}</td>
             {/columns}
+            <td>
+                <button type="button" class="save-item" disabled>Save</button>
+                <button type="button" class="fetch-item" disabled>Revert</button>
+                <button type="button" class="delete-item">Delete</button>
+            </td>
         </tr>
     {/collection.models}
     <tr>
-        <td>
-            <button type="button">Create</button>
-        </td>
         {#columns}
             <td></td>
         {/columns}
+        <td>
+            <button type="button" class="create-item">Create</button>
+        </td>
     </tr>
 </tbody>

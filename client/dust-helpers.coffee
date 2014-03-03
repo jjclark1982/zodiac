@@ -178,6 +178,9 @@ dust.filters or= {}
 dust.filters.className = (value) ->
     return value.replace(/\W+/g, '-')
 
+dust.filters.attr = (value)->
+    return value.replace(/"/g, '&quot;')
+
 dust.filters.date = (value)->
     return $?.format.date( new Date( value ), 'MMMM yyyy' )
 

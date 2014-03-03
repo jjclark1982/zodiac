@@ -1,3 +1,5 @@
+@import 'nib'
+
 .table-view {
     margin: 1em;
     th, td {
@@ -5,7 +7,18 @@
         text-align: center;
     }
     th {
-        padding: 0.5em;
+        line-height: 2em;
+        padding: 0 0.5em;
+        cursor: pointer;
+        user-select: none;
+    }
+    th.sort-key:after {
+        display: inline;
+        content: " ▲";
+    }
+    th.sort-key-reverse:after {
+        display: inline;
+        content: " ▼";
     }
     td {
         > input {
