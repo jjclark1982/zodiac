@@ -55,5 +55,5 @@ module.exports = class TableRowView extends BaseView
             @$(".fetch-item").removeAttr("disabled")
 
     changeInput: (event)->
-        if @collection.comparator
-            @collection.sort()
+        if @model.collection?.comparator
+            @model.collection.sort()

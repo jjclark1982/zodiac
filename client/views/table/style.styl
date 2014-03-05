@@ -4,11 +4,11 @@
     margin: 1em;
     th, td {
         border: 1px solid #333;
+        padding: 0 0.5em;
         text-align: center;
     }
     th {
         line-height: 2em;
-        padding: 0 0.5em;
     }
     th.sortable {
         user-select: none;
@@ -24,5 +24,11 @@
     th.sort-key-reverse:after {
         display: inline;
         content: " ▼";
+    }
+
+    td > input {
+        border: 0px;
+        margin: 0 -0.4em;
+        padding: 0 0.25em;
     }
 }
