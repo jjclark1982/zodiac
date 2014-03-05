@@ -3,6 +3,11 @@
         {@fieldFor name=name type=type model=model showlabel="0"/}
     </td>
 {/columns}
+<td data-column-name="_links">
+    {@keyvalue:model.linkedModels}
+        <a href="{value.url|u}">{key}</a>
+    {/keyvalue}
+</td>
 <td>
     <button type="button" class="save-item" disabled>Save</button>
     <button type="button" class="fetch-item" disabled>Revert</button>

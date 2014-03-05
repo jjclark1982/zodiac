@@ -26,7 +26,8 @@ class Router extends Backbone.Router
             if model
                 @isModal = true
                 @modalStartDepth = window.history.state?.depth or @recentViews.length
-            model ?= new options.modelCtor({}, {url: options.url})
+            model ?= new options.modelCtor()
+            model.url = options.url
             view = new options.viewCtor({model: model})
             view.render()
             model.fetch() if model.isNew()

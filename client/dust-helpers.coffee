@@ -114,6 +114,8 @@ dust.helpers or= {}
 
 dust.helpers.keyvalue = (chunk, context, bodies)->
     items = context.current()
+    if typeof items is 'function'
+        items = items()
 
     for key, val of items
         ctx = {"key" : key, "value" : val}

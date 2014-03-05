@@ -5,11 +5,18 @@
             <i class="show-when-error icon-remove"></i>
             <i class="show-when-success icon-ok"></i>
         </legend>
-            {#fields}
-               {@fieldFor name=name type=type model=model/}
-                <br>
-            {/fields}
-    <button type="submit" name="_method" value="PUT">Save</button>
-    <button type="submit" name="_method" value="DELETE">Delete</button>
+        <div class="links">
+            {@keyvalue:model.linkedModels}
+                <a href="{value.url|u}">{key}</a><br>
+            {/keyvalue}
+        </div>
+
+        {#fields}
+           {@fieldFor name=name type=type model=model/}
+            <br>
+        {/fields}
+
+        <button type="submit" name="_method" value="PUT">Save</button>
+        <button type="submit" name="_method" value="DELETE">Delete</button>
     </fieldset>
 </form>
