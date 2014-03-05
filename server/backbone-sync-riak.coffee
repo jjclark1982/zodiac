@@ -31,8 +31,13 @@ Backbone.sync = (method, model={}, options={})->
 
                 options.returnbody ?= true
                 options.vclock ?= model.vclock
+                
                 if model.index
                     options.index ?= _.result(model, 'index')
+
+                links = model.linkKeys?()
+                if links
+                    options.links = links
 
                 db.save(bucket, model.id, model.toJSON(), options, callback)
 

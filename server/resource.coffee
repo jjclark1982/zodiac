@@ -113,10 +113,10 @@ module.exports = (moduleOptions = {})->
         delete req.body._vclock
 
         model = new modelCtor(res.locals.object)
-        if options.merge
+        if options.patch
              # set only the transmitted attributes
             model.set(req.body)
-            delete options.merge
+            delete options.patch
         else
             # set all attributes
             model.attributes = req.body
@@ -230,7 +230,7 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
     router.patch('/:modelId', (req, res, next)->
-        saveItem(req, res, next, {merge: true})
+        saveItem(req, res, next, {patch: true})
     )
 
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB
@@ -249,29 +249,75 @@ module.exports = (moduleOptions = {})->
     )
 
     router.get("/:modelId/versions", (req, res, next)->
-        #TBD
+        # TBD
+        # in order to access versions of a model:
+        # we have to set the bucket policy to something other than LWW
+        # pick the most relevant sibling in most cases
+        # and send all siblings in this case
         next()
     )
 
-    for linkName, linkDef of modelProto.links or {}
-        target = require("models/"+linkDef.target)
-        targetProto = target.prototype
+    # links are similar to indexes
+    # they get stored by id in the data object itself
+    # and the data gets transformed into metadata on save
+    # then we can load the link by its id 
+    # or we can use link-walking to skip the `modelId` handler for faster reads
+
+    for linkName, linkDef of modelProto.links or {} then do (linkName, linkDef)->
+        TargetCtor = require("models/"+linkDef.target)
+        targetProto = TargetCtor.prototype
+
+        router.get("/:modelId/#{linkName}", (req, res, next)->
+            parent = res.locals.model
+            childId = parent.get("_links")?[linkName]
+            if !childId then return next(404)
+
+            child = new TargetCtor()
+            child.id = childId
+            child.fetch().then(->
+                res.json(child)
+                # TODO: render html if requested
+            , next)
+        )
 
         router.post("/:modelId/#{linkName}", (req, res, next)->
-            console.log(req.body)
-            # create the object or overwrite it, i don't know
-            #
-            # posting to a cart is weird because we are adding to an item, not to a collection
-            # would like to check in console whether multiple links work
-            # yes, we just have to interpret the multiple option result on read
-            res.render(targetProto.defaultView)
+            if linkDef.type isnt 'hasOne'
+                # TODO: handle multiple children when link-walking returns 300
+                return next(501)
+
+            child = new TargetCtor(req.body)
+            child.save().then(->
+                parent = res.locals.model
+                links = _.clone(parent.get("_links")) or {}
+                links[linkName] = child.id
+                # TODO: check whether we are overwriting anything
+                # and then delete, merge, create siblings, or return 409
+                parent.save({_links: links}).then(->
+                    res.json(child)
+                    # TODO: render html if requested
+                , (err)->
+                    # updating the parent failed during validation or write
+                    # destroy the orphaned child and report the error condition
+                    child.destroy()
+                    next(err)
+                )
+            , next)
+            return
         )
-        router.get("/:modelId/#{linkName}", (req, res, next)->
-            # res.json(linkDef)
-            # show the linked item(s) with their natural views
-            res.render(targetProto.defaultView)
+
+        router.delete("/:modelId/#{linkName}", (req, res, next)->
+            parent = res.locals.model
+            childId = parent.get("_links")?[linkName]
+            if !childId then return next(404)
         )
-        # in any case, we need to preserve links much the same way we are preserving indexes
+
+        router.put("/:modelId/#{linkName}", (req, res, next)->
+            next(501)
+        )
+
+        router.patch("/:modelId/#{linkName}", (req, res, next)->
+            next(501)
+        )
 
     return router.middleware
 
