@@ -24,7 +24,15 @@ else {
 
 // Provide a `startServer` function for compatibility with [Brunch](http://brunch.io/).
 function startServer(port, path, callback) {
-    server.listen(port || process.env.PORT, callback);
+    var newCallback = function(){
+        // Once the server is running, don't terminate on every error
+        process.on("uncaughtException", function(err){
+            console.error(err.stack);
+        });
+        callback.apply(this, arguments)
+    };
+    
+    server.listen(port || process.env.PORT, newCallback);
 }
 
 // When launched directly via `node server`, start the server.
