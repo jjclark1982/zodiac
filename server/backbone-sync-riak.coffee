@@ -3,6 +3,18 @@ global._ = require('lodash')
 global.Backbone = require('backbone')
 Promise = require('bluebird')
 
+# Convert any ids stored in this model's "_links" attribute
+# into the format for storing with riak-js
+formatLinks = (model)->
+    linkKeys = []
+    for linkName, target of model.linkedModels() or {}
+        linkKeys.push({
+            tag: linkName
+            bucket: target.bucket
+            key: target.id
+        })
+    return linkKeys
+
 Backbone.sync = (method, model={}, options={})->
     promise = new Promise((resolve, reject)->
         idAttribute = model.idAttribute or model.model?.prototype.idAttribute or 'id'
@@ -35,8 +47,8 @@ Backbone.sync = (method, model={}, options={})->
                 if model.index
                     options.index ?= _.result(model, 'index')
 
-                links = model.linkKeys?()
-                if links
+                links = formatLinks(model)
+                if links?.length > 0
                     options.links = links
 
                 db.save(bucket, model.id, model.toJSON(), options, callback)
