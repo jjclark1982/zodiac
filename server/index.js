@@ -29,7 +29,9 @@ function startServer(port, path, callback) {
         process.on("uncaughtException", function(err){
             console.error(err.stack);
         });
-        callback.apply(this, arguments)
+        if (callback) {
+            callback.apply(this, arguments)
+        }
     };
     
     server.listen(port || process.env.PORT, newCallback);
