@@ -25,15 +25,17 @@ Backbone.sync = (method, model={}, options={})->
         callback = (err, object={}, meta={})->
             if err then return reject(err)
 
+            # make sure the id gets filled in if it was provided by riak
             object[idAttribute] = meta.key
+
+            # attach essential metadata to the model
             model.vclock = meta.vclock
             model.lastMod = meta.lastMod
             model.etag = meta.etag
-            options.headers ?= {}
-            for key, val of meta._headers when key.match(/^x-riak/i)
-                options.headers[key] = val
-            options.meta = meta # TODO: extract just the needed info?
-            
+
+            # attach additional metadata to the model
+            model.metadataFromRiak = meta
+
             resolve(object)
 
         switch method
