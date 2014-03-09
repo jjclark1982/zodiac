@@ -1,4 +1,5 @@
 BaseView = require("base/view")
+require("toggles")
 
 module.exports = class GenericView extends BaseView
     requirePath: module.id

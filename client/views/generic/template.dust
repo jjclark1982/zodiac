@@ -1,10 +1,12 @@
 <form method="POST" action="{model.url}">
     <fieldset>
-        <legend><a href="{model.url}">{model.url}</a>
+        <legend>
+            <a href="{model.url}">{model.url}</a>
             <i class="show-when-loading icon-spinner icon-spin"></i>
             <i class="show-when-error icon-remove"></i>
             <i class="show-when-success icon-ok"></i>
         </legend>
+
         <div class="links">
             {@keyvalue:model.linkedModels}
                 <a href="{value.url|u}">{key}</a><br>
@@ -16,7 +18,13 @@
             <br>
         {/fields}
 
-        <button type="submit" name="_method" value="PUT">Save</button>
-        <button type="submit" name="_method" value="DELETE">Delete</button>
+        <div class="actions">
+            <button type="submit" name="_method" value="PUT">Save</button>
+            <span class="delete-buttons">
+                <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
+                <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
+                <button type="submit" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
+            </span>
+        </div>
     </fieldset>
 </form>

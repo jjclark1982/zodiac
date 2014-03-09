@@ -32,7 +32,7 @@ module.exports = class TableRowView extends BaseView
 
     fetchItem: (event)->
         $(event.currentTarget).attr("disabled", true)
-        for key in @model.keys() when key isnt (@model.idAttribute or 'id')
+        for key in @model.keys() when key isnt @model.idAttribute
             @model.unset(key, {silent: true})
         @model.fetch().then(=>
             for input in @$("input")
