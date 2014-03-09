@@ -1,26 +1,33 @@
 #!/usr/bin/env coffee
 
-_ = require("lodash")
-async = require("async")
-
+highland = require("highland")
 db = require("../server/db")
 
 bucket = process.argv[2]
 
-allKeys = []
-db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
-    if err then return console.error("Error getting keys:", err)
-
-    async.mapSeries(allKeys, (key, callback)->
-        console.log("Deleting #{bucket}/#{key}")
-        db.remove(bucket, key, callback)
-    , (err)->
-        if err
-            console.log("Error:", err)
-        else
-            console.log("Deleted #{allKeys.length} items")
+deleteObject = highland.wrapCallback((key, callback)->
+    console.log("Deleting #{bucket}/#{key}")
+    db.remove(bucket, key, (err, obj, meta)->
+        callback(err, meta)
     )
-).on('keys', (keys=[])->
-    for key in keys
-        allKeys.push(key)
-).start()
+)
+
+ignore404 = (err, push)->
+    if err.statusCode isnt 404
+        push(err)
+    else
+        push(null, err)
+
+query = db.keys(bucket, {keys: 'stream'})
+keyListStream = highland('keys', query)
+query.on('end', ->keyListStream.end())
+keyStream = keyListStream.flatten()
+
+resultStream = keyStream.map(deleteObject).flatten().errors(ignore404)
+resultStream.group('statusCode').each((resultsByCode)->
+    if Object.keys(resultsByCode).length is 0
+        console.log("No items to delete")
+    for statusCode, items of resultsByCode
+        console.log("#{items.length} items finished with status code #{statusCode}")
+)
+query.start()

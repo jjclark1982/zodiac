@@ -23,7 +23,7 @@
     "passport-local": "~0.1.6",
     "request": "~2.30.0",
     "bluebird": "~1.0.5",
-    "highland": "~1.9.0",
+    "highland": "~1.17.0",
     "async": "~0.2.9"
   },
   "devDependencies": {
