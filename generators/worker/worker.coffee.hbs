@@ -1,0 +1,10 @@
+module.exports = handleTask = (task, callback)->
+    # write the worker here
+    callback("not implemented")
+
+if module is require.main
+    # write the unit test here
+    exampleTask = {}
+    handleTask(exampleTask, (err)->
+        console.log("done")
+    )

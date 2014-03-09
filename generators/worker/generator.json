@@ -1,0 +1,8 @@
+{
+  "files": [
+    {
+      "from": "worker.coffee.hbs",
+      "to": "server/task-handlers/{{name}}.coffee"
+    }
+  ]
+}
