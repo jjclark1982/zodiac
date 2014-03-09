@@ -64,6 +64,7 @@ sendModel = (req, res, next, model)->
     if req.fresh
         return res.send(304)
 
+    # if the entity is not cached, send it in the requested format
     res.format({
         json: ->
             item = model.toJSON()
@@ -76,35 +77,26 @@ sendModel = (req, res, next, model)->
             })
         })
 
-sendList = (req, res, next, keys)->
+sendList = (req, res, next, collection)->
+    idAttribute = collection.model.prototype.idAttribute
+    listView = collection.model.prototype.defaultListView
+
     res.format({
         json: ->
-            async.map(keys, (key, callback)->
-                #TODO: pass through req.headers for things like cache-control
-                db.get(bucket, key, {}, (err, object, meta)->
-                    object[idAttribute] = key
-                    object._vclock = meta.vclock
-                    callback(err, object)
-                )
-            , (err, results)->
+            async.map(collection.models, (model, callback)->
+                model.fetch().then(->
+                    model.attributes._vclock = model.vclock
+                    callback(null, model)
+                , callback)
+            , (err, models)->
                 if err then return next(err)
-                res.json(results)
+                res.json(collection)
+                #TODO: pass through req.headers for things like cache-control
+                #TODO: support streaming by iterating through fetch promises
             )
         html: ->
-            scaffold = []
-            for key in keys
-                obj = {}
-                obj[idAttribute] = key
-                scaffold.push(obj)
-            collection = new Backbone.Collection(scaffold, {
-                model: modelCtor
-            })
-            collection.url = req.originalUrl.replace(/\?.*$/, '')
-            collection.query = req.originalUrl.replace(/^[^\?]*/,'')
-
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
-
             try
                 title = _.result(require('views/'+listView).prototype, 'title') or ''
             catch e
@@ -130,8 +122,6 @@ module.exports = (moduleOptions = {})->
     modelName = modelCtor.name
     modelProto = modelCtor.prototype
     bucket = moduleOptions.bucket ? modelProto.bucket
-    itemView = moduleOptions.itemView ? modelProto.defaultView
-    listView = moduleOptions.listView ? modelProto.defaultListView
     idAttribute = modelProto.idAttribute or 'id'
 
     # Sets up a new express router with the following substack:
@@ -158,32 +148,14 @@ module.exports = (moduleOptions = {})->
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/', (req, res, next)->
+        collection = new Backbone.Collection([], {model: modelCtor})
+        collection.url = modelProto.urlRoot
         if Object.keys(req.query).length > 0
-            # run a query
-            res.locals.collection = new Backbone.Collection([], {
-                model: modelProto
-            })
-            res.locals.collection.url = modelProto.urlRoot
-            res.locals.collection.query = req.query
-            # TODO TODO: trace this query^ and see if it's still needed
+            collection.query = req.query
 
-            db.query(bucket, req.query, (err, keys, meta)->
-                if err then return next(err)
-                renderList(req, res, next, keys)
-            )
-        else
-            # no query specified. list all if allowed
-            # TODO: use {all: '1'} fallback query instead of streaming
-            if not modelProto.allowListAll
-                return next(503)
-            allKeys = []
-            db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
-                if err then return next(err)
-                renderList(req, res, next, allKeys)
-            ).on('keys', (keys=[])->
-                for key in keys
-                    allKeys.push(key)
-            ).start()
+        collection.fetch().then(->
+            sendList(req, res, next, collection)
+        , next)
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.

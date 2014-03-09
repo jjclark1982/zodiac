@@ -59,23 +59,37 @@ Backbone.sync = (method, model={}, options={})->
                 db.remove(bucket, model.id, options, callback)
 
             when "read"
-                if model instanceof Backbone.Collection
-                    collection = model
-                    query = collection.query or {all: '1'} # or parse collection.url??
-                    db.query(bucket, query, options, (err, keys=[], meta)->
-                        if err then return reject(err)
-                        items = []
-                        for key in keys
-                            item = {}
-                            item[idAttribute] = key
-                            items.push(item)
-                        # TODO: fetch model data as well???
-                        # collection url -> list of model ids -> model data
-                        resolve(items)
-                    )
-                    return
+                if model instanceof Backbone.Model
+                    db.get(bucket, model.id, options, callback)
 
-                db.get(bucket, model.id, options, callback)
+                else if model instanceof Backbone.Collection
+                    collection = model
+                    # assume the default query if none is provided, but do not redirect to it
+                    query = collection.query or {all: '1'}
+
+                    if options.streamAllKeys
+                        items = []
+                        db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
+                            if err then return reject(err)
+                            resolve(items)
+                        ).on('keys', (keys=[])->
+                            for key in keys
+                                item = {}
+                                item[idAttribute] = key
+                                items.push(item)
+                        ).start()
+                    else
+                        db.query(bucket, query, options, (err, keys=[], meta)->
+                            if err then return reject(err)
+                            items = []
+                            for key in keys
+                                item = {}
+                                item[idAttribute] = key
+                                items.push(item)
+                            resolve(items)
+                        )
+                    # TODO: support fetching model data in a collection through some option
+                    return
 
             else
                 throw new Error("cannot #{method} a model")
