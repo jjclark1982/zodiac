@@ -1,28 +1,23 @@
-FROM centos:6.4
+FROM ubuntu
 MAINTAINER Jesse Clark, Aaron Azlant
 
-# Install dependencies and nodejs
-RUN rpm -Uvh http://download.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-RUN yum install -y npm
+# Install docker basics
+RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+RUN apt-get update
+RUN apt-get upgrade -y
 
-# Install git
-RUN yum install -y git-core
+# Install supervisor
+RUN apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+
+# Add supervisor config file
+ADD ./setup/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Bundle app source
 ADD . /src
 
-# Install app source
-RUN cd /src; npm install
-RUN cd /src; npm install bluebird # not sure why this needs this line
+# create supervisord user
+RUN /usr/sbin/useradd --create-home --home-dir /usr/local/zodiac --shell /bin/bash zodiac
 
-# Set up environment
-
-RUN echo -e "NODE_ENV=development\nPORT=5000\nRIAK_SERVERS={SERVER}" > /src/.env
-RUN export PATH=$PATH:node_modules/.bin
-RUN src/node_modules/.bin/bower install --allow-root
-
-# Expose the correct port
-EXPOSE  5000
-
-# Fire it up
-RUN cd /src; node_modules/.bin/cake develop
+# Expose required ports and start supervisord when container launches
+CMD ["/usr/bin/supervisord"]
