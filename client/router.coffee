@@ -3,14 +3,15 @@ LightboxView = require("views/lightbox")
 
 class Router extends Backbone.Router
     routes: {
-        "": "landing"
+        "": "home"
     }
 
-    landing: ->
+    home: ->
         view = @getPoppedView()
         unless view
-            view = new Backbone.View()
-            view.$el.html("<b>[Default landing view. Set up a route in client/router.coffee]</b>")
+            HomeView = require("views/home")
+            view = new HomeView()
+            view.render()
         @setMainView(view)
 
     showModelView: (options={})->
@@ -168,9 +169,7 @@ class Router extends Backbone.Router
         instance = this
         $(document).ready(=>
             # create routes for all models that have a `urlRoot`
-            modelNames = (name for name in window.require.list() when name.match(/^models\//))
-            for modelName in modelNames then do (modelName)->
-                Model = require(modelName)
+            for modelName, Model of require("models") then do (modelName, Model)->
                 urlRoot = Model.prototype.urlRoot?.replace(/^\//, '')
                 return unless urlRoot
 
