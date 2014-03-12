@@ -1,23 +1,24 @@
 FROM ubuntu
 MAINTAINER Jesse Clark, Aaron Azlant
 
-# Install docker basics
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
+# Install dependencies and nodejs
 RUN apt-get update
-RUN apt-get upgrade -y
+RUN apt-get install -y python-software-properties python g++ make
+RUN add-apt-repository ppa:chris-lea/node.js
+RUN apt-get update
+RUN apt-get install -y nodejs
 
-# Install supervisor
-RUN apt-get install -y supervisor
-RUN mkdir -p /var/log/supervisor
-
-# Add supervisor config file
-ADD ./setup/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Install git
+RUN apt-get install -y git
 
 # Bundle app source
 ADD . /src
 
-# create supervisord user
-RUN /usr/sbin/useradd --create-home --home-dir /usr/local/zodiac --shell /bin/bash zodiac
+#Create a nonroot user, and switch to it
+RUN /usr/sbin/useradd --create-home --home-dir /usr/local/nonroot --shell /bin/bash nonroot
+RUN /bin/chown -R nonroot: /src
 
-# Expose required ports and start supervisord when container launches
-CMD ["/usr/bin/supervisord"]
+RUN /bin/su nonroot
+
+# Install app source
+RUN cd /src; npm install
