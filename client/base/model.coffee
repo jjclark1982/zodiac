@@ -39,3 +39,23 @@ module.exports = class BaseModel extends Backbone.Model
             @_linkedModels[linkName] = new TargetCtor(atts)
 
         return @_linkedModels
+
+    getLink: (linkName)->
+        return @linkedModels()[linkName]
+
+    setLink: (linkName, target)->
+        linkDef = @links[linkName]
+        if !linkDef
+            throw new Error("unknown link type: "+linkName)
+        links = _.clone(@attributes._links) or {}
+        oldTargetId = links[linkName]
+        links[linkName] = target.id
+        @set("_links", links)
+        return oldTargetId
+
+    removeLink: (linkName)->
+        links = _.clone(@attributes._links) or {}
+        oldTargetId = links[linkName]
+        delete links[linkName]
+        @set("_links", links)
+        return oldTargetId

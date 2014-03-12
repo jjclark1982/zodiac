@@ -7,7 +7,6 @@
 
 express = require('express')
 async = require('async')
-db = require("./db")
 
 # define the server-side global Backbone that syncs to Riak
 require("./backbone-sync-riak")
@@ -16,10 +15,6 @@ saveModel = (req, res, next, model, options={})->
     vclock = req.body?._vclock or req.model?.vclock
     delete req.body._vclock
 
-    # support setting the id of a new object by data or endpoint
-    modelId = req.params.modelId or model.id
-    model[model.idAttribute] = modelId
-
     # run the backbone validator
     unless model.isValid()
         res.status(403)
@@ -27,7 +22,7 @@ saveModel = (req, res, next, model, options={})->
 
     # save it if it passed validation
     model.save().then(->
-        if !req.model
+        if options.create
             res.status(201) # created
 
             # when creating by POST, redirect from the urlRoot to the new model's url
@@ -93,6 +88,7 @@ sendList = (req, res, next, collection)->
                 res.json(collection)
                 #TODO: pass through req.headers for things like cache-control
                 #TODO: support streaming by iterating through fetch promises
+                # then we would no longer depend on async
             )
         html: ->
             # note that this, and all other `res.render()` functions, employ
@@ -169,11 +165,20 @@ module.exports = (moduleOptions = {})->
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
         model = new modelCtor(req.body)
-        saveModel(req, res, next, model, {create: true})
+        model.fetch().then(->
+            # don't allow overwriting an existing id by POST
+            next(409)
+        , (err)->
+            if err.statusCode is 404
+                saveModel(req, res, next, model, {create: true})
+            else
+                next(err)
+        )
     )
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
     router.put('/:modelId', (req, res, next)->
+        options = {}
         if req.model
             model = req.model
             model.attributes = req.body
@@ -181,8 +186,9 @@ module.exports = (moduleOptions = {})->
         else
             # allow creation by PUT
             model = new modelCtor(req.body)
+            options.create = true
 
-        saveModel(req, res, next, model)
+        saveModel(req, res, next, model, options)
     )
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
@@ -213,65 +219,112 @@ module.exports = (moduleOptions = {})->
         next(501)
     )
 
+
     # links are similar to indexes
     # they get stored by id in the data object itself
     # and the data gets transformed into metadata on save
     # then we can load the link by its id 
     # or we can use link-walking to skip the `modelId` handler for faster reads
 
-    for linkName, linkDef of modelProto.links or {} then do (linkName, linkDef)->
-        TargetCtor = require("models/"+linkDef.target)
+    router.param('linkName', (req, res, next, linkName)->
+        linkDef = modelProto.links[linkName]
+        if !linkDef
+            return next(404)
+
+        if linkDef.type isnt 'hasOne'
+            # TODO: handle multiple children when link-walking returns 300
+            return next(501)
+
+        req.linkDef = linkDef
+        parent = req.model
+        child = parent.getLink(linkName)
+        if !child
+            req.linkTarget = null
+            return next()
+
+        child.fetch().then(->
+            req.linkTarget = child
+            next()
+
+        , (err)->
+            if err.statusCode is 404
+                # TODO: update the parent data to reflect the missing child?
+                req.linkTarget = null
+                next()
+            else
+                next(err)
+        )
+    )
+
+    router.get("/:modelId/:linkName", (req, res, next)->
+        sendModel(req, res, next, req.linkTarget)
+    )
+
+    router.patch("/:modelId/:linkName", (req, res, next)->
+        child = req.linkTarget
+        if !child
+            return next(404)
+
+        delete req.body[targetProto.idAttribute] # don't allow setting id for links
+        child.set(req.body)
+        saveModel(req, res, next, child)
+    )
+
+    router.put("/:modelId/:linkName", (req, res, next)->
+        child = req.linkTarget
+        if !child
+            # don't allow creation by PUT
+            return next(404)
+
+        req.body[targetProto.idAttribute] = child.id
+        child.attributes = req.body
+        child.set(child.attributes)
+        saveModel(req, res, next, child)
+    )
+
+    router.post("/:modelId/:linkName", (req, res, next)->
+        TargetCtor = require("models/"+req.linkDef.target)
         targetProto = TargetCtor.prototype
 
-        router.get("/:modelId/#{linkName}", (req, res, next)->
+        # don't allow setting id for links
+        delete req.body[targetProto.idAttribute]
+        child = new TargetCtor(req.body)
+        child.save().then(->
             parent = req.model
-            childId = parent.get("_links")?[linkName]
-            if !childId then return next(404)
-
-            child = new TargetCtor()
-            child.id = childId
-            child.fetch().then(->
+            oldChild = req.linkTarget
+            # TODO: determine if this has made an orphan of a 'belongsTo' link
+            parent.setLink(req.params.linkName, child)
+            unless parent.isValid()
+                res.status(403)
+                return next(new Error(parent.validationError))
+            parent.save().then(->
+                res.status(201)
+                res.location(child.url()) # no need to do a full redirect
                 sendModel(req, res, next, child)
-            , next)
-        )
+            , (err)->
+                # updating the parent failed during validation or write
+                # destroy the orphaned child and report the error condition
+                child.destroy()
+                next(err)
+            )
+        , next)
+        return
+    )
 
-        router.post("/:modelId/#{linkName}", (req, res, next)->
-            if linkDef.type isnt 'hasOne'
-                # TODO: handle multiple children when link-walking returns 300
-                return next(501)
+    router.delete("/:modelId/:linkName", (req, res, next)->
+        parent = req.model
+        oldChild = req.linkTarget
+        if !oldChild
+            return next(404)
 
-            child = new TargetCtor(req.body)
-            child.save().then(->
-                parent = req.model
-                links = _.clone(parent.get("_links")) or {}
-                links[linkName] = child.id
-                # TODO: check whether we are overwriting anything
-                # and then delete, merge, create siblings, or return 409
-                parent.save({_links: links}).then(->
-                    sendModel(req, res, next, child)
-                , (err)->
-                    # updating the parent failed during validation or write
-                    # destroy the orphaned child and report the error condition
-                    child.destroy()
-                    next(err)
-                )
-            , next)
-            return
-        )
-
-        router.delete("/:modelId/#{linkName}", (req, res, next)->
-            parent = req.model
-            childId = parent.get("_links")?[linkName]
-            if !childId then return next(404)
-        )
-
-        router.put("/:modelId/#{linkName}", (req, res, next)->
-            next(501)
-        )
-
-        router.patch("/:modelId/#{linkName}", (req, res, next)->
-            next(501)
-        )
+        parent.removeLink(req.params.linkName)
+        parent.save().then(->
+            res.location(parent.url())
+            res.status(204)
+            res.end()
+            # TODO: also destroy the orphaned child?
+        , next)
+    )
 
     return router.middleware
 
