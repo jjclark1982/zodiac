@@ -6,7 +6,6 @@ module.exports = class NavigationView extends BaseView
 
     # The CSS class for this view
     className: "navigation-view"
-    tagName: "ul"
 
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
@@ -21,7 +20,7 @@ module.exports = class NavigationView extends BaseView
         return this
 
     elForItem: (view)->
-        $newEl = $('<li class="navigation-item">')
+        $newEl = $('<div class="navigation-item">')
         $newEl.append(view.$el)
         return $newEl
 

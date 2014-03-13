@@ -20,11 +20,11 @@
 
     {! {>header /} !}
 
-    <ul id="main-navigator" class="navigation-view">
-        <li class="navigation-item current">
+    <div id="main-navigator" class="navigation-view">
+        <div class="navigation-item current">
             {>"{mainView}" /}
-        </li>
-    </ul>
+        </div>
+    </div>
 
     {! {>footer /} !}
 
