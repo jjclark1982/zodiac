@@ -165,15 +165,19 @@ module.exports = (moduleOptions = {})->
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
         model = new modelCtor(req.body)
-        model.fetch().then(->
-            # don't allow overwriting an existing id by POST
-            next(409)
-        , (err)->
-            if err.statusCode is 404
-                saveModel(req, res, next, model, {create: true})
-            else
-                next(err)
-        )
+        if model.isNew()
+            saveModel(req, res, next, model, {create: true})
+
+        else
+            # allow specifying initial id, unless it is already taken
+            model.fetch().then(->
+                next(409)
+            , (err)->
+                if err.statusCode is 404
+                    saveModel(req, res, next, model, {create: true})
+                else
+                    next(err)
+            )
     )
 
     # * Provides a route to fully update (PUT) an object by the appropriate `modelID` in the riak DB
@@ -289,6 +293,9 @@ module.exports = (moduleOptions = {})->
         # don't allow setting id for links
         delete req.body[targetProto.idAttribute]
         child = new TargetCtor(req.body)
+        unless child.isValid()
+            res.status(403)
+            return next(new Error(child.validationError))
         child.save().then(->
             parent = req.model
             oldChild = req.linkTarget
