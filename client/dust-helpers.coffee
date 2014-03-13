@@ -133,26 +133,26 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
 
     switch params.type
         when "string"
-            input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+            input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
         when "password"
-            input = """<input type="password" name="#{params.name}" class="input-#{params.name}"
+            input = """<input type="password" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
         when "id"
             if model.get(params.name)?
                 url = _.result(model, 'url')
                 input = """<a href="#{url}">#{model.get(params.name)}</a>"""
             else
-                input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+                input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
         when "readonly"
             if model.get(params.name)?
                 input = model.get(params.name)
             else
-                input = """<input type="text" name="#{params.name}" class="input-#{params.name}"
+                input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
         when "boolean"
-            input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}"
+            input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}" \
                         value="1" #{if model.get(params.name) then 'checked' else ''}>"""
         else
             input = "<!--no editor supported for this type: #{params.type} -->"
