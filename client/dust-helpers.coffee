@@ -97,12 +97,15 @@ dust.onLoad = (name, callback)->
                 return chunk.map((branch)->
                     tagName = view.tagName or 'div'
                     attrString = view.attrString()
-                    branch.write("<#{tagName} #{attrString}>")
+                    branch.write("<#{tagName} #{attrString}>\n")
 
-                    view.templateContext((context)->
+                    view.templateContext((err, context)->
+                        if err then return chunk.setError(err)
+
+                        # TODO: use the parent's globals instead of {}
                         context = dust.makeBase({}).push(context)
                         branch = view.template(branch, context)
-                        branch.write("</#{tagName}>\n")
+                        branch.write("\n</#{tagName}>\n")
                         branch.end()
                     )
                 )

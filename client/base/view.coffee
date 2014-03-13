@@ -60,23 +60,19 @@ module.exports = class BaseView extends Backbone.View
         # TODO: make it more clear that this simply returns @ at the correct time
         # rendering asynchronously means we can pass a model into a view before it has data
         if @model?.needsData
-            @model.fetch({
-                success: =>
-                    @model.needsData = false
-                    callback(@)
-                error: (model, response, options)=>
-                    callback(response?.responseJSON or response or "fetch error")
-            })
+            @model.fetch().then(=>
+                @model.needsData = false
+                callback(null, @)
+            , callback)
+
         else if @collection?.needsData
-            @collection.fetch({
-                success: =>
-                    @collection.needsData = false
-                    callback(@)
-                error: (collection, response, options)=>
-                    callback(response?.responseJSON or response or "fetch error")
-            })
+            @collection.fetch().then(=>
+                @collection.needsData = false
+                callback(null, @)
+            , callback)
+
         else
-            callback(@)
+            callback(null, @)
 
     # subclasses should override this function to provide content
     template: (context, callback)->
@@ -84,7 +80,7 @@ module.exports = class BaseView extends Backbone.View
         return ''
 
     getInnerHTML: (callback)->
-        @templateContext((context)=>
+        @templateContext((err, context)=>
             try
                 @template.render(context, callback)
             catch e
@@ -95,7 +91,7 @@ module.exports = class BaseView extends Backbone.View
     getOuterHTML: (callback)->
         tagName = @tagName or 'div'
         @getInnerHTML((err, inner)=>
-            outer = "<#{tagName} #{@attrString()}>#{inner}</#{tagName}>"
+            outer = "<#{tagName} #{@attrString()}>\n#{inner}\n</#{tagName}>"
             callback(err, outer)
         )
 
