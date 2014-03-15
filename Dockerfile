@@ -1,8 +1,12 @@
 FROM ubuntu
 MAINTAINER Jesse Clark, Aaron Azlant
 
-# Install dependencies and nodejs
+# Install docker basics
+RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 RUN apt-get update
+RUN apt-get upgrade -y
+
+# Install dependencies and nodejs
 RUN apt-get install -y python-software-properties python g++ make
 RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
@@ -11,14 +15,28 @@ RUN apt-get install -y nodejs
 # Install git
 RUN apt-get install -y git
 
+# Install supervisor
+RUN apt-get install -y supervisor
+RUN mkdir -p /var/log/supervisor
+
+# Add supervisor config file
+ADD ./etc/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Bundle app source
 ADD . /src
 
-#Create a nonroot user, and switch to it
-RUN /usr/sbin/useradd --create-home --home-dir /usr/local/nonroot --shell /bin/bash nonroot
-RUN /bin/chown -R nonroot: /src
+# create supervisord user
+RUN /usr/sbin/useradd --create-home --home-dir /usr/local/zodiac --shell /bin/bash zodiac
+RUN chown -R zodiac: /src
 
-RUN /bin/su nonroot
+# set install script to executable
+RUN /bin/chmod 777 /src/etc/install.sh
 
-# Install app source
-RUN cd /src; npm install
+#set up .env file
+RUN echo "NODE_ENV=development\nPORT=5000\nRIAK_SERVERS={SERVER}" > /src/.env
+
+#expose the correct port
+EXPOSE 5000
+
+# start supervisord when container launches
+CMD ["/usr/bin/supervisord"]
