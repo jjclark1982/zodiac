@@ -16,7 +16,7 @@ If you've previously installed node.js, skip to **Step 2** below, though also en
 ### Step 2. Grab the framework
 
     git clone https://github.com/DestinationSoftware/zodiac.git
-    cd stacktest
+    cd zodiac
 
 ### Step 3. Install dependencies with npm and bower
 

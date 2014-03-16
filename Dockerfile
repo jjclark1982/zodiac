@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:latest
 MAINTAINER Jesse Clark, Aaron Azlant
 
 # Install docker basics
@@ -12,31 +12,32 @@ RUN add-apt-repository ppa:chris-lea/node.js
 RUN apt-get update
 RUN apt-get install -y nodejs
 
-# Install git
-RUN apt-get install -y git
+# Install other tools
+RUN apt-get install -y git curl lsb-release openssh-server
 
 # Install supervisor
 RUN apt-get install -y supervisor
+RUN mkdir -p /var/run/sshd
 RUN mkdir -p /var/log/supervisor
 
-# Add supervisor config file
-ADD ./etc/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN locale-gen en_US en_US.UTF-8
 
 # Bundle app source
 ADD . /src
+ADD ./etc/env /src/.env
 
 # create supervisord user
 RUN /usr/sbin/useradd --create-home --home-dir /usr/local/zodiac --shell /bin/bash zodiac
 RUN chown -R zodiac: /src
 
+# Add supervisor config file
+ADD ./etc/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # set install script to executable
-RUN /bin/chmod 777 /src/etc/install.sh
+RUN /bin/chmod 0777 /src/etc/install.sh
 
-#set up .env file
-RUN echo "NODE_ENV=development\nPORT=5000\nRIAK_SERVERS={SERVER}" > /src/.env
-
-#expose the correct port
-EXPOSE 5000
+#expose the correct ports
+EXPOSE 5000 22
 
 # start supervisord when container launches
 CMD ["/usr/bin/supervisord"]
