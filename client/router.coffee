@@ -43,12 +43,13 @@ class Router extends Backbone.Router
                 collectionOptions: { url: document.location.pathname }
             })
 
-            view = new options.viewCtor({
-                collection: new options.collectionCtor([], options.collectionOptions)
-            })
-            view.collection.query = options.collectionQuery
+            collection = new options.collectionCtor([], options.collectionOptions)
+            collection.url = options.collectionOptions.url
+            collection.query = options.collectionQuery
+
+            view = new options.viewCtor({collection: collection})
             view.render()
-            view.collection.fetch({data: view.collection.query})
+            collection.fetch({data: collection.query})
         @setMainView(view)
 
     getMainView: ->
