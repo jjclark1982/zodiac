@@ -62,12 +62,13 @@ if process.env.NODE_ENV is 'development'
 
     reloadApp = ->
         expressApp = null
-        for moduleId of require.cache when moduleId.indexOf(__dirname) is 0
+        for moduleId of require.cache when moduleId.indexOf("node_modules") is -1
             delete require.cache[moduleId]
         console.log("Reloading Express App")
         expressApp = require("./express-app")
 
-    chokidar.watch(__dirname).on("all", _.debounce(reloadApp, 10))
+    watcher = chokidar.watch([__dirname, __dirname+"/../client"])
+    watcher.on("all", _.debounce(reloadApp, 100))
 
 
 # Export the server object

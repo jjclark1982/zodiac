@@ -9,9 +9,6 @@ module.exports = dust
 
 # Publish a Node.js require() handler for .dust files
 if (require.extensions)
-    if require.extensions['.dust']
-        throw new Error("dust require extension no longer needed")
-
     setDustAlias = (filename)->
         if process.env.NODE_PATH
             alias = filename.replace(process.cwd()+'/'+process.env.NODE_PATH+'/', '')
