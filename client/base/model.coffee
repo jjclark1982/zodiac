@@ -50,8 +50,11 @@ module.exports = class BaseModel extends Backbone.Model
     getLink: (linkName)->
         return @linkedModels()[linkName]
 
-    setLink: (linkName, target)->
-        @set(linkName, target.id)
+    setLink: (linkName, target, options)->
+        if _.isArray(target)
+            @set(linkName, (t.id for t in target), options)
+        else
+            @set(linkName, target.id, options)
 
-    removeLink: (linkName)->
-        @unset(linkName)
+    removeLink: (linkName, options)->
+        @unset(linkName, options)

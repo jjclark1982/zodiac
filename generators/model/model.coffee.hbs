@@ -33,4 +33,5 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     #    return index
 
     validate: (attributes, options)->
+        editor = options.editor
         return null

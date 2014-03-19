@@ -16,7 +16,7 @@ saveModel = (req, res, next, model, options={})->
     delete req.body._vclock
 
     # run the backbone validator
-    unless model.isValid()
+    unless model.isValid({editor: req.user})
         res.status(403)
         return next(new Error(model.validationError))
 
@@ -186,7 +186,7 @@ module.exports = (moduleOptions = {})->
         if req.model
             model = req.model
             model.attributes = req.body
-            model.set(model.attributes)
+            model.set(model.attributes, {editor: req.user})
         else
             # allow creation by PUT
             model = new modelCtor(req.body)
@@ -200,7 +200,7 @@ module.exports = (moduleOptions = {})->
         if !req.model then return next(404)
 
         model = req.model
-        model.set(req.body)
+        model.set(req.body, {editor: req.user})
         saveModel(req, res, next, model)
     )
 
@@ -270,7 +270,7 @@ module.exports = (moduleOptions = {})->
             return next(404)
 
         delete req.body[targetProto.idAttribute] # don't allow setting id for links
-        child.set(req.body)
+        child.set(req.body, {editor: req.user})
         saveModel(req, res, next, child)
     )
 
@@ -282,7 +282,8 @@ module.exports = (moduleOptions = {})->
 
         req.body[targetProto.idAttribute] = child.id
         child.attributes = req.body
-        child.set(child.attributes)
+        child.set(child.attributes, {editor: req.user})
+
         saveModel(req, res, next, child)
     )
 
@@ -293,15 +294,16 @@ module.exports = (moduleOptions = {})->
         # don't allow setting id for links
         delete req.body[targetProto.idAttribute]
         child = new TargetCtor(req.body)
-        unless child.isValid()
+
+        unless child.isValid({editor: req.user})
             res.status(403)
             return next(new Error(child.validationError))
         child.save().then(->
             parent = req.model
             oldChild = req.linkTarget
-            # TODO: determine if this has made an orphan of a 'belongsTo' link
-            parent.setLink(req.params.linkName, child)
-            unless parent.isValid()
+            # TODO: determine if this has made an orphan of a 'cascadeDelete' link
+            isValid = parent.setLink(req.params.linkName, child, {editor: req.user})
+            unless isValid
                 res.status(403)
                 return next(new Error(parent.validationError))
             parent.save().then(->
@@ -324,7 +326,10 @@ module.exports = (moduleOptions = {})->
         if !oldChild
             return next(404)
 
-        parent.removeLink(req.params.linkName)
+        isValid = parent.removeLink(req.params.linkName, {editor: req.user})
+        unless isValid
+            res.status(403)
+            return next(new Error(parent.validationError))
         parent.save().then(->
             res.location(parent.url())
             res.status(204)
