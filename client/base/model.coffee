@@ -23,15 +23,22 @@ module.exports = class BaseModel extends Backbone.Model
         all: "1"
     }
 
+    fieldDefs: ->
+        fieldDefs = {}
+        for fieldDef in @fields
+            fieldDefs[fieldDef.name] = fieldDef
+        return fieldDefs
+
     linkedModels: ->
         if @_linkedModels then return @_linkedModels
         @_linkedModels = {}
-        for linkName, linkDef of @links or {}
-            if linkDef.type isnt "hasOne"
-                throw new Error("links of type #{linkDef.type} are not yet supported")
+        for linkDef in @fields when linkDef.type is "link"
+            if linkDef.multiple
+                throw new Error("multiple links are not yet supported")
 
-            targetId = @get("_links")?[linkName]
-            if !targetId then continue
+            linkName = linkDef.name
+            targetId = @get(linkName)
+            continue unless targetId
 
             TargetCtor = require("models/"+linkDef.target)
             atts = {}
@@ -44,18 +51,7 @@ module.exports = class BaseModel extends Backbone.Model
         return @linkedModels()[linkName]
 
     setLink: (linkName, target)->
-        linkDef = @links[linkName]
-        if !linkDef
-            throw new Error("unknown link type: "+linkName)
-        links = _.clone(@attributes._links) or {}
-        oldTargetId = links[linkName]
-        links[linkName] = target.id
-        @set("_links", links)
-        return oldTargetId
+        @set(linkName, target.id)
 
     removeLink: (linkName)->
-        links = _.clone(@attributes._links) or {}
-        oldTargetId = links[linkName]
-        delete links[linkName]
-        @set("_links", links)
-        return oldTargetId
+        @unset(linkName)

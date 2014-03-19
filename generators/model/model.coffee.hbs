@@ -10,26 +10,24 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     defaultView: "generic"
     defaultListView: "table"
 
-    # Is this data small enough to reasonably list all items with no query?
-    allowListAll: false
-
-    # Define fields with established types to support general-purpose displays and editors
-    #fields: [
+    # # Define fields with established types to support general-purpose displays and editors
+    # fields: [
     #    {
     #        name: "name",
     #        type: "string"
     #    },
     #    {
-    #        name: "creator",
-    #        type: "pointer",
-    #        target: "_User"
+    #        name: "createdBy",
+    #        type: "link",
+    #        target: "user"
     #    }
-    #]
+    # ]
 
-    # Return a hash of {key: value} with string or number values
-    # to create Riak secondary indexes
-    #index: ->
+    # # Return a hash of {key: value} with string or number values
+    # # to create Riak secondary indexes
+    # index: ->
     #    index = {
+    #        all: 1,
     #        active: if @get("active") then "1" else "0"
     #    }
     #    return index

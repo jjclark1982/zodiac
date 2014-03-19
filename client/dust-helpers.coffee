@@ -154,6 +154,13 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
         when "boolean"
             input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}" \
                         value="1" #{if model.get(params.name) then 'checked' else ''}>"""
+        when "link"
+            target = model.getLink(params.name)
+            url = _.result(target, 'url')
+            if url
+                input = """<a href="#{url}">#{params.name}</a>"""
+            else
+                input = "<!--no target for #{params.name} link -->"
         else
             input = "<!--no editor supported for this type: #{params.type} -->"
 

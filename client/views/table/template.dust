@@ -4,9 +4,6 @@
             <th class="sortable" data-column-name="{name|attr}">{name}</th>
         {/columns}
         <th>
-            Links
-        </th>
-        <th>
             <button type="button" class="create-item">Create</button>
         </th>
     </tr>
