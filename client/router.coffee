@@ -98,7 +98,7 @@ class Router extends Backbone.Router
         if @hasPoppedState()
             @mainNavigator.goToIndex(window.history.state.depth)
         else
-            @mainNavigator.addItem(view)
+            @mainNavigator.addItem(view, @recentViews.length)
             @saveState()
 
     saveState: ->
