@@ -261,7 +261,10 @@ module.exports = (moduleOptions = {})->
     )
 
     router.get("/:modelId/:linkName", (req, res, next)->
-        sendModel(req, res, next, req.linkTarget)
+        if req.linkDef.multiple
+            sendList(req, res, next, req.linkTarget)
+        else
+            sendModel(req, res, next, req.linkTarget)
     )
 
     router.patch("/:modelId/:linkName", (req, res, next)->
@@ -279,6 +282,12 @@ module.exports = (moduleOptions = {})->
         if !child
             # don't allow creation by PUT
             return next(404)
+
+        if req.linkDef.multiple
+            # don't allow editing an entire collection
+            # note that the list of linked ids can be edited directly on the parent
+            res.set({"Allow": "GET, HEAD, POST"})
+            return next(405)
 
         req.body[targetProto.idAttribute] = child.id
         child.attributes = req.body
@@ -300,9 +309,17 @@ module.exports = (moduleOptions = {})->
             return next(new Error(child.validationError))
         child.save().then(->
             parent = req.model
-            oldChild = req.linkTarget
-            # TODO: determine if this has made an orphan of a 'cascadeDelete' link
-            isValid = parent.setLink(req.params.linkName, child, {editor: req.user})
+
+            if req.linkDef.multiple
+                # add to the list of links
+                children = parent.getLink(req.params.linkName) or []
+                children.push(child)
+                isValid = parent.setLink(req.params.linkName, children, {editor: req.user})
+            else
+                # replace any existing link
+                oldChild = req.linkTarget
+                # TODO: determine if this has made an orphan of a 'cascadeDelete' link
+                isValid = parent.setLink(req.params.linkName, child, {editor: req.user})
             unless isValid
                 res.status(403)
                 return next(new Error(parent.validationError))

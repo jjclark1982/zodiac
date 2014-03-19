@@ -33,17 +33,24 @@ module.exports = class BaseModel extends Backbone.Model
         if @_linkedModels then return @_linkedModels
         @_linkedModels = {}
         for linkDef in @fields when linkDef.type is "link"
-            if linkDef.multiple
-                throw new Error("multiple links are not yet supported")
-
             linkName = linkDef.name
             targetId = @get(linkName)
             continue unless targetId
 
             TargetCtor = require("models/"+linkDef.target)
-            atts = {}
-            atts[TargetCtor.prototype.idAttribute] = targetId
-            @_linkedModels[linkName] = new TargetCtor(atts)
+
+            if _.isArray(targetId)
+                items = []
+                for id in targetId
+                    atts = {}
+                    atts[TargetCtor.prototype.idAttribute] = id
+                    items.push(atts)
+                @_linkedModels[linkName] = new Backbone.Collection(items, {model: TargetCtor})
+
+            else
+                atts = {}
+                atts[TargetCtor.prototype.idAttribute] = targetId
+                @_linkedModels[linkName] = new TargetCtor(atts)
 
         return @_linkedModels
 

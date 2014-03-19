@@ -4,36 +4,32 @@ module.exports = class User extends BaseModel
     requirePath: module.id
     urlRoot: "/users"
     bucket: "users"
-
+    
     idAttribute: 'username'
-
+    
     fields: [
         {
-           name: "username",
-           type: "id"
+            name: "username",
+            type: "id"
         },
         {
-           name: "password",
-           type: "password"
+            name: "password",
+            type: "password"
         },
         {
-           name: "email",
-           type: "string"
+            name: "email",
+            type: "string"
         },
         {
-           name: "permissions",
-           type: "array"
+            name: "permissions",
+            type: ["string"]
         }
+        # {
+        #     name: "cart",
+        #     type: "link",
+        #     target: "cart"
+        # }
     ]
-
-    # links: {
-    #     cart: {
-    #         type: 'hasOne'
-    #         target: 'cart'
-    #     }
-    # }
-
-    allowListAll: true
     
     index: ->
         { all: '1' }
