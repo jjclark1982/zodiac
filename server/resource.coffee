@@ -38,11 +38,17 @@ saveModel = (req, res, next, model, options={})->
     )
 
 sendModel = (req, res, next, model)->
+    res.location(model.url())
+    links = {
+        up: model.urlRoot
+    }
+    for linkName, target of model.linkedModels() or {}
+        links[linkName] = target.url()
+    res.links(links)
+
     res.set({
         'Last-Modified': model.lastMod
         'Vary': 'Accept,Accept-Encoding'
-        'Link': "<#{model.urlRoot}>; rel=\"up\""
-        'Location': model.url()
     })
     for name, value of model.metadataFromRiak._headers when name.match(/^x-riak/i)
         res.set(name, value)
@@ -231,13 +237,10 @@ module.exports = (moduleOptions = {})->
     # or we can use link-walking to skip the `modelId` handler for faster reads
 
     router.param('linkName', (req, res, next, linkName)->
-        linkDef = modelProto.links[linkName]
-        if !linkDef
-            return next(404)
+        linkDef = modelProto.fieldDefs()[linkName]
 
-        if linkDef.type isnt 'hasOne'
-            # TODO: handle multiple children when link-walking returns 300
-            return next(501)
+        if linkDef?.type isnt 'link'
+            return next(404)
 
         req.linkDef = linkDef
         parent = req.model
@@ -270,9 +273,17 @@ module.exports = (moduleOptions = {})->
     router.patch("/:modelId/:linkName", (req, res, next)->
         child = req.linkTarget
         if !child
+            # don't allow creation by PATCH
             return next(404)
 
-        delete req.body[targetProto.idAttribute] # don't allow setting id for links
+        if req.linkDef.multiple
+            # don't allow editing an entire collection
+            res.set({"Allow": "GET, HEAD, POST"})
+            return next(405)
+
+        # don't allow setting id for links
+        delete req.body[targetProto.idAttribute]
+
         child.set(req.body, {editor: req.user})
         saveModel(req, res, next, child)
     )
@@ -285,7 +296,6 @@ module.exports = (moduleOptions = {})->
 
         if req.linkDef.multiple
             # don't allow editing an entire collection
-            # note that the list of linked ids can be edited directly on the parent
             res.set({"Allow": "GET, HEAD, POST"})
             return next(405)
 
@@ -302,8 +312,8 @@ module.exports = (moduleOptions = {})->
 
         # don't allow setting id for links
         delete req.body[targetProto.idAttribute]
-        child = new TargetCtor(req.body)
 
+        child = new TargetCtor(req.body)
         unless child.isValid({editor: req.user})
             res.status(403)
             return next(new Error(child.validationError))
