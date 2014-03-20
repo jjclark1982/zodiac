@@ -38,6 +38,10 @@ saveModel = (req, res, next, model, options={})->
     )
 
 sendModel = (req, res, next, model)->
+    format = req.params.format or req.accepts(['json', 'html'])
+    unless format in ['json', 'html']
+        return next(406)
+
     res.location(model.url())
     links = {
         up: model.urlRoot
@@ -49,16 +53,10 @@ sendModel = (req, res, next, model)->
     res.set({
         'Last-Modified': model.lastMod
         'Vary': 'Accept,Accept-Encoding'
+        'ETag': model.etag + '.' + format
     })
     for name, value of model.metadataFromRiak._headers when name.match(/^x-riak/i)
         res.set(name, value)
-
-    res.format({
-        json: ->
-            res.set({'ETag': model.etag})
-        html: ->
-            res.set({'ETag': model.etag+'h'})
-    })
 
     # now that last-modified, vary, and etag are set,
     # we can send a "not modified" response to clients a fresh cache
@@ -66,24 +64,31 @@ sendModel = (req, res, next, model)->
         return res.send(304)
 
     # if the entity is not cached, send it in the requested format
-    res.format({
-        json: ->
+    switch format
+        when 'json'
             item = model.toJSON()
             item._vclock = model.vclock
             res.json(item)
-        html: ->
+        when 'html'
             res.render(model.defaultView, {
                 model: model
                 title: (_.result(model, 'title') or '')
             })
-        })
 
 sendList = (req, res, next, collection)->
     idAttribute = collection.model.prototype.idAttribute
     listView = collection.model.prototype.defaultListView
 
-    res.format({
-        json: ->
+    res.set({
+        'Vary': 'Accept,Accept-Encoding'
+        'Location': collection.url
+    })
+
+    format = req.params.format or req.accepts(['json', 'html'])
+    unless format in ['json', 'html']
+        return next(406)
+    switch format
+        when 'json'
             async.map(collection.models, (model, callback)->
                 model.fetch().then(->
                     model.attributes._vclock = model.vclock
@@ -96,7 +101,7 @@ sendList = (req, res, next, collection)->
                 #TODO: support streaming by iterating through fetch promises
                 # then we would no longer depend on async
             )
-        html: ->
+        when 'html'
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
             try
@@ -107,7 +112,6 @@ sendList = (req, res, next, collection)->
                 collection: collection
                 title: title
             })
-    })
 
 # #### Middleware factory
 # this is an express backbone resource handler
@@ -149,7 +153,7 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
-    router.get('/', (req, res, next)->
+    router.get('/.:format?', (req, res, next)->
         collection = new Backbone.Collection([], {model: modelCtor})
         collection.url = modelProto.urlRoot
         if Object.keys(req.query).length > 0
