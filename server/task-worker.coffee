@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+require('coffee-script/register')
 
 db = require("./db")
 async = require("async")
@@ -31,7 +32,7 @@ processTask = (key, callback)->
                 return callback()
 
             try
-                handler = require("./" + task.type)
+                handler = require("./task-handlers/" + task.type)
             catch e
                 return callback("no handler for #{task.type}: " + e)
 
