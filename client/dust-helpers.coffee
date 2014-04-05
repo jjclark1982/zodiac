@@ -129,9 +129,12 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
         else model = params.model
 
     switch params.type
-        when "string"
+        when "text"
             input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
+        when "longtext"
+            input = """<textarea name="#{params.name}" class="input-#{params.name}" \
+                        >#{model.get(params.name) or ''}</textarea>"""
         when "password"
             input = """<input type="password" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""

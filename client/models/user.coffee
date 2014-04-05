@@ -18,11 +18,11 @@ module.exports = class User extends BaseModel
         },
         {
             name: "email",
-            type: "string"
+            type: "text"
         },
         {
             name: "permissions",
-            type: ["string"]
+            type: ["text"]
         }
         # {
         #     name: "cart",
