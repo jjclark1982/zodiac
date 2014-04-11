@@ -32,5 +32,7 @@
     <script src="/javascripts/app.js"></script>
     <script>require('initialize')</script>
 
+    <style> .streaming-indicator { display: none; } </style>
+
 </body>
 </html>

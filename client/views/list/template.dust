@@ -4,5 +4,3 @@
 {:else}
     no items found
 {/collection.models}
-
-<button type="button" class="add-item">Add item</button>
