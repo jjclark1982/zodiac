@@ -109,5 +109,10 @@ module.exports = class TableView extends BaseView
                 rowView.$el.attr("data-model-cid", model.cid)
                 $tbody.append(rowView.el)
 
+        # remove subviews of deleted models
         for noCid, row of rowsByCid
-            $tbody.append(row)
+            for vcid, subview of @subviews
+                if subview.model.cid is noCid
+                    subview.remove()
+                    delete @subviews[vcid]
+                    break
