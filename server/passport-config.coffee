@@ -60,6 +60,8 @@ middleware = express()
 
 middleware.use(passport.initialize())
 middleware.use(passport.session())
+
+# make the user available to views
 middleware.use((req, res, next)-> 
     res.locals.session = req.session
     res.locals.user = req.user
@@ -73,8 +75,46 @@ middleware.use((req, res, next)->
         )
     )
 )
-middleware.use(middleware.router)
 
+# hash any received passwords before continuing
+middleware.use((req, res, next)->
+    if req.url.match(/^\/users/) and req.body?.password?
+        passwordError = validatePassword(req.body.password)
+        if passwordError
+            res.status(403)
+            return next(new Error(passwordError))
+
+        hash(req.body.password, (err, salt, hash)->
+            req.body.password_hash = hash.toString('base64')
+            req.body.password_salt = salt
+            delete req.body.password
+            next()
+        )
+    else
+        next()
+)
+
+# disallow editing for non-logged-in users
+middleware.use((req, res, next)->
+    # allow read-only methods
+    if req.method in ["GET", "HEAD", "OPTIONS"]
+        return next()
+
+    # allow creating new accounts
+    else if req.url is '/users' and req.method is "POST"
+        return next()
+
+    # allow logged-in users to try other methods
+    else if req.session?.passport?.user
+        return next()
+        
+    else
+        return next(401)
+
+    # TODO: disallow editing based on csrf token
+)
+
+middleware.use(middleware.router)
 
 # remap `/users/me` to the logged-in user, if any
 middleware.use((req, res, next)->
@@ -84,15 +124,6 @@ middleware.use((req, res, next)->
         else
             return next(401)
     next()
-)
-
-# disallow editing for non logged in users
-middleware.use((req, res, next)->
-    #TODO: allow creating accounts without already having one, e.g. for anonymous session tracking
-    if req.method in ["GET", "HEAD", "OPTIONS"] or req.session?.passport?.user
-        return next()
-    else
-        return next(401)
 )
 
 middleware.post('/login', passport.authenticate('local',  {
@@ -110,31 +141,5 @@ middleware.get('/logout', (req, res, next)->
     req.logout()
     res.redirect(req.get("referer") or '/')
 )
-
-middleware.post('/users', (req, res, next)->
-    req.body.id = req.body.username
-    db.get('users', req.body.username, (err, user, meta={})->
-        if meta.statusCode isnt 404
-            e = new Error("username #{req.body.username} is already taken")
-            e.statusCode = 409
-            return next(e)
-
-        passwordError = validatePassword(req.body.password)
-        if passwordError
-            e = new Error(passwordError)
-            e.statusCode = 409
-            return next(e)
-
-        hash(req.body.password, (err, salt, hash)->
-            req.body.password_hash = hash.toString('base64')
-            req.body.password_salt = salt
-            delete req.body.password
-            next() # let the normal resource handler finish the POST
-            # TODO: automatically call req.login()
-        )
-    )
-)
-
-# TODO: disallow editing based on user session, csrf token, etc
 
 module.exports = middleware

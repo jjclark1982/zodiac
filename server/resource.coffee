@@ -181,7 +181,8 @@ module.exports = (moduleOptions = {})->
         else
             # allow specifying initial id, unless it is already taken
             model.fetch().then(->
-                next(409)
+                res.status(409)
+                next(new Error("#{idAttribute} '#{model.id}' is already taken"))
             , (err)->
                 if err.statusCode is 404
                     saveModel(req, res, next, model, {create: true})
@@ -195,8 +196,8 @@ module.exports = (moduleOptions = {})->
         options = {}
         if req.model
             model = req.model
-            model.attributes = req.body
-            model.set(model.attributes, {editor: req.user})
+            # model.attributes = req.body
+            model.set(req.body, {editor: req.user})
         else
             # allow creation by PUT
             model = new modelCtor(req.body)
@@ -219,7 +220,7 @@ module.exports = (moduleOptions = {})->
         if !req.model then return next(404)
 
         req.model.destroy().then(->
-            res.location(model.urlRoot)
+            res.location(req.model.urlRoot)
             res.status(204)
             res.end()
         , next)
