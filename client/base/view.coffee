@@ -19,6 +19,14 @@ module.exports = class BaseView extends Backbone.View
     # A view must keep track of its subviews to facilitate garbage-collection and re-rendering
     subviews: null
     
+    # Provide a title for the window when this view is navigated to.
+    # Subclasses may override this if they want specific logic or static strings
+    title: ->
+        mainObj = @collection or @model or {}
+        return _.result(mainObj, 'title') or ''
+
+    # Serialize all the information needed to instantiate this view.
+    # Subclasses that need additional options should extend this method.
     attributes: ->
         atts = {}
         atts['data-view'] = normalizePath(@requirePath).replace(/^views\//,'')
@@ -38,7 +46,7 @@ module.exports = class BaseView extends Backbone.View
             if query then curl += "?" + query
             atts['data-collection-url'] = curl
 
-        #the cid is useful on the client, but don't include it over the wire
+        # the cid is useful as a weak link in the browser, but don't include it over the wire
         if window?
             atts['data-cid'] = @cid
 
@@ -88,6 +96,7 @@ module.exports = class BaseView extends Backbone.View
         )
 
     # server-side function that does not require a DOM
+    # note that this is currently made rendundant by the streaming version in dust-helpers
     getOuterHTML: (callback)->
         tagName = @tagName or 'div'
         @getInnerHTML((err, inner)=>
@@ -149,3 +158,27 @@ module.exports = class BaseView extends Backbone.View
             subview.remove?()
         @subviews = null
         super(arguments...)
+
+    # Automatically set some classes and data attributes in response to common events
+    constructor: ->
+        super(arguments...)
+        if window? and @model
+            @listenTo(@model, 'request', (model, xhr, options)->
+                @$el.addClass('loading')
+            )
+            @listenTo(@model, 'sync', (model, response, options)->
+                @$el.removeClass('loading')
+            )
+            @listenTo(@model, 'error', (model, xhr, options)->
+                @$el.removeClass('loading')
+                @$el.addClass('error').attr("data-error", "#{xhr.status} #{xhr.statusText}")
+            )
+            @listenTo(@model, 'invalid', (model, error, options)->
+                @$el.removeClass('loading')
+                @$el.addClass('invalid').attr("data-validation-error", error)
+            )
+            # @listenTo(@model, 'destroy', (model, collection, options)->
+            #     @listenToOnce(model, 'sync', (model, response, options)->
+            #         @remove()
+            #     )
+            # )

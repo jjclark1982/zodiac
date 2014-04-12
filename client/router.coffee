@@ -55,7 +55,7 @@ class Router extends Backbone.Router
         return mainView
 
     setMainView: (view)->
-        document.title = _.result(view, 'title')
+        document.title = _.result(view, 'title') or ''
         if @isModal or (@hasPoppedState() and window.history.state.isModal)
             @modalView = view
 

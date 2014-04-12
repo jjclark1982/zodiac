@@ -8,21 +8,20 @@ module.exports = class BaseModel extends Backbone.Model
     defaultListView: 'table'
     urlRoot: null
     bucket: null
+    titleAttribute: 'name'
 
+    # subclasses may override this to construct a title from their data
     title: ->
         titleAtt = _.result(@, 'titleAttribute')
-        name = @get("name")
-        if titleAtt
-            return @get(titleAtt)
-        else if name
-            return name
-        else
-            return @id
+        return @get(titleAtt) or ''
 
+    # by default, add every model to the "all" index for its bucket
+    # subclasses should override this with their specific indexing rules
     index: -> {
         all: "1"
     }
 
+    # each model defines its fields as an array. this method supports looking up a field by name
     fieldDefs: ->
         fieldDefs = {}
         for fieldDef in @fields
