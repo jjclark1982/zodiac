@@ -24,9 +24,6 @@ class Router extends Backbone.Router
             })
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
-            if model
-                @isModal = true
-                @modalStartDepth = window.history.state?.depth or @recentViews.length
             model ?= new options.modelCtor()
             model.url = options.url
             view = new options.viewCtor({model: model})
@@ -158,10 +155,15 @@ class Router extends Backbone.Router
         options = _.defaults(options, {
             replace: false
             trigger: true
+            target: $(link).data("target")
         })
+        
         for handler in Backbone.history.handlers
             if handler.route.test(link.pathname.substr(1) + link.search)
                 @invalidateCache()
+                if options.target is "lightbox"
+                    @isModal = true
+                    @modalStartDepth ?= window.history.state?.depth or @recentViews.length
                 Backbone.history.navigate(link.pathname + link.search, options)
                 return true
         return false
