@@ -151,6 +151,9 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
             else
                 input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
                         value="#{model.get(params.name) or ''}">"""
+        when "number"
+            input = """<input type="number" name="#{params.name}" class="input-#{params.name}" \
+                        value="#{model.get(params.name) or ''}">"""
         when "boolean"
             input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}" \
                         value="1" #{if model.get(params.name) then 'checked' else ''}>"""
@@ -161,6 +164,8 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
                 input = """<a href="#{url}">#{params.name}</a>"""
             else
                 input = "<!--no target for #{params.name} link -->"
+        when "object"
+            input = JSON.stringify(model.get(params.name))
         else
             input = "<!--no editor supported for this type: #{params.type} -->"
 
