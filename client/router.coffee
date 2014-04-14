@@ -20,7 +20,7 @@ class Router extends Backbone.Router
             options = _.defaults(options, {
                 viewCtor: Backbone.View
                 modelCtor: Backbone.Model
-                url: document.location.pathname
+                url: document.location.pathname.replace(/-[^\/]*|\.[^\/]*$/g,'') # remove slug and format
             })
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)

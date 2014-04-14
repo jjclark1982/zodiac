@@ -1,4 +1,4 @@
-<h1>New Zodiac App</h1>
+<h1>{title}</h1>
 
 <p>
 You can edit this page at <tt>client/views/home/template.dust</tt>

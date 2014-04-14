@@ -8,12 +8,28 @@ module.exports = class BaseModel extends Backbone.Model
     defaultListView: 'table'
     urlRoot: null
     bucket: null
+    idAttribute: 'id'
     titleAttribute: 'name'
 
     # subclasses may override this to construct a title from their data
     title: ->
         titleAtt = _.result(@, 'titleAttribute')
         return @get(titleAtt) or ''
+
+    slug: ->
+        title = _.result(@, 'title')
+        # remove html entities and punctuation
+        slug = title.replace(/&.*?;|['"]/g, '')
+        # join words with dashes, remove dashes from both ends
+        slug = slug.replace(/[^\w]+/g, '-').replace(/^-|-$/g,'')
+        return slug
+
+    urlWithSlug: ->
+        url = _.result(@, 'url')
+        slug = _.result(@, 'slug')
+        if slug and (slug isnt @id)
+            url += '-'+slug
+        return url
 
     # by default, add every model to the "all" index for its bucket
     # subclasses should override this with their specific indexing rules
@@ -28,6 +44,7 @@ module.exports = class BaseModel extends Backbone.Model
             fieldDefs[fieldDef.name] = fieldDef
         return fieldDefs
 
+    # instantiate ready-to-fetch models for the links defined in a model's data
     linkedModels: ->
         if @_linkedModels then return @_linkedModels
         @_linkedModels = {}

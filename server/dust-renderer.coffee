@@ -59,18 +59,21 @@ responsePrototype.render = (view, options={}, callback)->
             if res.headersSent
                 message = 'Error'
                 if app.get('env') is 'development'
-                    message = err.toString()
+                    message = err.stack
                 res.end("[Template #{message}]")
             else
                 next(err)
 
-    context = makeContext(app.locals, res.locals, options, {})
-
     # unless we get a request to partially render content, render the [`layout`](../../client/views/layout.dust) view,
     # passing it the view associated with the current model as a `mainView` variable.
     if !req.xhr        
-        context.global.mainView = view
+        try
+            options.title ?= require("views/"+view).prototype.title
+        options.mainView = view
         view = 'layout'
+
+    context = makeContext(app.locals, res.locals, options, {})
+    # TODO: eliminate the vestigal {} at the end of context
 
     stream = dust.stream(view, context)
     stream.on('data', (data)->

@@ -140,7 +140,7 @@ dust.helpers.fieldFor = (chunk, context, bodies, params={})->
                         value="#{model.get(params.name) or ''}">"""
         when "id"
             if model.get(params.name)?
-                url = _.result(model, 'url')
+                url = _.result(model, 'urlWithSlug')
                 input = """<a href="#{url}" data-target="lightbox">#{model.get(params.name)}</a>"""
             else
                 input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \

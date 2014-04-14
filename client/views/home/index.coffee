@@ -7,6 +7,8 @@ module.exports = class HomeView extends BaseView
     # The CSS class for this view
     className: "home-view"
 
+    title: "New Zodiac App"
+
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 

@@ -1,3 +1,6 @@
+<td data-column-name="{model.idAttribute|attr}">
+    {@fieldFor name=model.idAttribute type="id" model=model showlabel="0"/}
+</td>
 {#columns}
     <td data-column-name="{name|attr}">
         {@fieldFor name=name type=type model=model showlabel="0"/}

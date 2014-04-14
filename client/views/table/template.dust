@@ -1,5 +1,6 @@
 <thead>
     <tr>
+        <th class="sortable" data-column-name="{collection.model.prototype.idAttribute|attr}">{collection.model.prototype.idAttribute}</th>
         {#columns}
             <th class="sortable" data-column-name="{name|attr}">{name}</th>
         {/columns}

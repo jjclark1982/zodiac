@@ -15,10 +15,14 @@ module.exports = class TableView extends BaseView
     template: require("./template")
 
     initialize: (options)->
-        @columns = options.columns or @collection?.model?.prototype.fields or []
+        modelProto = @collection?.model?.prototype
+        if modelProto
+            idAttr = modelProto.idAttribute
+            fields = modelProto.fields or []
+            defaultColumns = (f for f in fields when f.name isnt idAttr)
+        @columns = options.columns or defaultColumns or []
         if _.isString(@columns)
             @columns = JSON.parse(@columns)
-        @columns = _.clone(@columns)
         if window?
             @listenTo(@collection, "add", @orderRows)
             @listenTo(@collection, "remove", @orderRows)

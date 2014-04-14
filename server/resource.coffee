@@ -166,6 +166,11 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
     #TODO: handle multiple options in case of editing conflict
+    router.get('/:modelId-:slug.:format?', (req, res, next)->
+        if !req.model then return next(404)
+
+        sendModel(req, res, next, req.model)
+    )
     router.get('/:modelId.:format?', (req, res, next)->
         if !req.model then return next(404)
 

@@ -6,6 +6,7 @@ module.exports = class User extends BaseModel
     bucket: "users"
     
     idAttribute: 'username'
+    titleAttribute: 'username'
     
     fields: [
         {
@@ -22,7 +23,7 @@ module.exports = class User extends BaseModel
         },
         {
             name: "permissions",
-            type: ["text"]
+            type: "object"
         }
         # {
         #     name: "cart",
