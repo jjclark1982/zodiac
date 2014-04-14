@@ -19,12 +19,16 @@
         {/fields}
 
         <div class="actions">
-            <button type="submit" name="_method" value="PUT">Save</button>
-            <span class="delete-buttons">
-                <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
-                <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
-                <button type="submit" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
-            </span>
+            {#model.isNew}
+                <button type="submit" name="_method" value="POST">Create</button>
+            {:else}
+                <button type="submit" name="_method" value="PUT">Save</button>
+                <span class="delete-buttons">
+                    <button type="button" class="hide-when-open" data-toggle="delete-buttons">Delete</button>
+                    <button type="button" class="show-when-open" data-toggle="delete-buttons">Cancel Delete</button>
+                    <button type="submit" class="show-when-open destroy-item" name="_method" value="DELETE">Confirm Delete</button>
+                </span>
+            {/model.isNew}
         </div>
     </fieldset>
 </form>
