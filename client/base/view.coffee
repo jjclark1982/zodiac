@@ -171,11 +171,16 @@ module.exports = class BaseView extends Backbone.View
             )
             @listenTo(@model, 'error', (model, xhr, options)->
                 @$el.removeClass('loading')
-                @$el.addClass('error').attr("data-error", "#{xhr.status} #{xhr.statusText}")
+                errString = "#{xhr.status} #{xhr.statusText}"
+                try
+                    errString += ": " + JSON.parse(xhr.responseText).message
+                @$el.addClass('error').attr("data-error", errString)
+                @$(".show-when-error").attr("title", errString)
             )
             @listenTo(@model, 'invalid', (model, error, options)->
                 @$el.removeClass('loading')
                 @$el.addClass('invalid').attr("data-validation-error", error)
+                # TODO: standardize field-specific validation error structure
             )
             # @listenTo(@model, 'destroy', (model, collection, options)->
             #     @listenToOnce(model, 'sync', (model, response, options)->

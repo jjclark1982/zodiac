@@ -13,30 +13,10 @@ module.exports = class GenericView extends BaseView
     }
 
     initialize: (options)->
-        @listenTo(@model, "request", @syncStarted)
-        @listenTo(@model, "sync", @syncFinished)
-        @listenTo(@model, "error", @syncError)
         if @model.fields
             @fields = @model.fields
         else
             @fields = ({name: k, type: "string"} for k in @model.keys)
-
-    syncStarted: (model, xhr, options)->
-        @$el.addClass("loading")
-
-    syncFinished: (model, xhr, options)->
-        @$el.removeClass("loading")
-
-    syncError: (collection, xhr, options = {})->
-        @$el.removeClass("loading")
-        @$el.addClass("error").attr("data-error", "#{xhr.status} #{xhr.statusText}")
-        try
-            message = JSON.parse(xhr.responseText).message
-
-        catch e
-            message = ""
-
-        @$(".show-when-error").attr("title", "#{xhr.status} #{xhr.statusText}: #{message}")
 
     clickButton: (event)->
         @lastClicked = event.target
@@ -50,11 +30,9 @@ module.exports = class GenericView extends BaseView
         event.preventDefault()
         event.stopPropagation()
 
-
-
         switch $(@lastClicked).val()
             when 'PUT'
-                @model.save(@model.attributes, {"success": () =>
+                @model.save(@model.attributes, {success: () =>
                     @$el.addClass("success")
                     setTimeout( =>
                         @$el.removeClass("success")
