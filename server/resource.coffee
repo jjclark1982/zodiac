@@ -54,6 +54,7 @@ sendModel = (req, res, next, model)->
         'Last-Modified': model.lastMod
         'Vary': 'Accept,Accept-Encoding'
         'ETag': model.etag + '.' + format
+        'X-DB-Query-Time': new Date() - res.dbStartTime
     })
     for name, value of model.metadataFromRiak._headers when name.match(/^x-riak/i)
         res.set(name, value)
@@ -82,6 +83,7 @@ sendList = (req, res, next, collection)->
     res.set({
         'Vary': 'Accept,Accept-Encoding'
         'Location': collection.url
+        'X-DB-Query-Time': new Date() - res.dbStartTime
     })
 
     format = req.params.format or req.accepts(['json', 'html'])
@@ -96,6 +98,7 @@ sendList = (req, res, next, collection)->
                 , callback)
             , (err, models)->
                 if err then return next(err)
+                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
                 res.json(collection)
                 #TODO: pass through req.headers for things like cache-control
                 #TODO: support streaming by iterating through fetch promises
@@ -104,13 +107,8 @@ sendList = (req, res, next, collection)->
         when 'html'
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
-            try
-                title = _.result(require('views/'+listView).prototype, 'title') or ''
-            catch e
-                null
             res.render(listView, {
                 collection: collection
-                title: title
             })
 
 # #### Middleware factory
@@ -135,6 +133,7 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a function to look up an object on the riak server by modelID(?)
     router.param('modelId', (req, res, next, modelId)->
+        res.dbStartTime = new Date()
         model = new modelCtor()
         model.id = modelId
         model.fetch().then(->
@@ -154,6 +153,7 @@ module.exports = (moduleOptions = {})->
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/.:format?', (req, res, next)->
+        res.dbStartTime = new Date()
         collection = new Backbone.Collection([], {model: modelCtor})
         collection.url = modelProto.urlRoot
         if Object.keys(req.query).length > 0
