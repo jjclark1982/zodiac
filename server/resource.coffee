@@ -274,6 +274,8 @@ module.exports = (moduleOptions = {})->
     )
 
     router.get("/:modelId/:linkName", (req, res, next)->
+        if !req.linkTarget then return next(404)
+
         if req.linkDef.multiple
             sendList(req, res, next, req.linkTarget)
         else
