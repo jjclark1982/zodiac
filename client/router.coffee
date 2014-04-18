@@ -173,30 +173,47 @@ class Router extends Backbone.Router
         $(document).ready(=>
             # create routes for all models that have a `urlRoot`
             for modelName, Model of require("models") then do (modelName, Model)->
-                urlRoot = Model.prototype.urlRoot?.replace(/^\//, '')
+                modelProto = Model.prototype
+                urlRoot = modelProto.urlRoot?.replace(/^\//, '')
                 return unless urlRoot
 
+                # route lists and queries
                 route = urlRoot + '(/)(?*query)'
                 routeName = Model.name + "Collection"
                 instance.route(route, routeName, (query)->
-                    document.title = Model.prototype.collectionTitle or ''
+                    document.title = modelProto.collectionTitle or ''
                     query or= document.location.search.replace(/^\?/,'')
                     instance.showCollectionView({
-                        viewCtor: require("views/" + Model.prototype.defaultListView)
+                        viewCtor: require("views/" + modelProto.defaultListView)
                         collectionCtor: Backbone.Collection
                         collectionOptions: { url: document.location.pathname, model: Model }
                         collectionQuery: query
                     })
                 )
 
+                # route individual items
                 route = urlRoot + '/:id'
                 routeName = Model.name #TODO: consider how this interacts with minification
                 instance.route(route, routeName, (id)->
                     instance.showModelView({
-                        viewCtor: require("views/" + Model.prototype.defaultView)
+                        viewCtor: require("views/" + modelProto.defaultView)
                         modelCtor: Model
                     })
                 )
+
+                # route links
+                for f in (modelProto.fields or []) when f.type is 'link' then do (f)->
+                    linkDef = f
+                    Target = require("models/"+linkDef.target)
+                    route = urlRoot + "/:id/#{linkDef.name}"
+                    routeName = Model.name + " link to " + linkDef.name
+                    instance.route(route, routeName, (id)->
+                        instance.showModelView({
+                            viewCtor: require("views/"+Target.prototype.defaultView)
+                            modelCtor: Target
+                            })
+                    )
+
 
             # create the main navigator. the modal navigator will be created on demand
             @mainNavigator = new NavigationView({
