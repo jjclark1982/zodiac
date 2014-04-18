@@ -100,8 +100,8 @@ middleware.use((req, res, next)->
     if req.method in ["GET", "HEAD", "OPTIONS"]
         return next()
 
-    # allow creating new accounts
-    else if req.url is '/users' and req.method is "POST"
+    # allow logging in and creating accounts
+    else if req.url in ['/login', '/users'] and req.method is "POST"
         return next()
 
     # allow logged-in users to try other methods
