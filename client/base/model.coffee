@@ -51,7 +51,7 @@ module.exports = class BaseModel extends Backbone.Model
         for linkDef in @fields when linkDef.type is "link"
             linkName = linkDef.name
             targetId = @get(linkName)
-            continue unless targetId
+            continue unless targetId # deleted links are stored as null
 
             TargetCtor = require("models/"+linkDef.target)
 
@@ -80,4 +80,4 @@ module.exports = class BaseModel extends Backbone.Model
             @set(linkName, target.id, options)
 
     removeLink: (linkName, options)->
-        @unset(linkName, options)
+        @set(linkName, null, options)
