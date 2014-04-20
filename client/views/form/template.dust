@@ -1,7 +1,7 @@
 <form method="POST" action="{model.url}">
     <fieldset>
         <legend>
-            <a href="{model.url}">{model.url}</a>
+            <a href="{model.urlWithSlug}">{model.url}</a>
             <i class="show-when-loading icon-spinner icon-spin"></i>
             <i class="show-when-error icon-remove"></i>
             <i class="show-when-success icon-ok"></i>
@@ -14,8 +14,7 @@
         </div>
 
         {#fields}
-           {@fieldFor name=name type=type model=model/}
-            <br>
+            {>input model=model field=. showLabel="yes" /}
         {/fields}
 
         <div class="actions">

@@ -83,9 +83,8 @@ module.exports = class BaseView extends Backbone.View
             callback(null, @)
 
     # subclasses should override this function to provide content
-    template: (context, callback)->
-        callback(new Error("No template provided for #{@className}"))
-        return ''
+    template: (chunk, context)->
+        chunk.setError("No template provided for #{@className}")
 
     getInnerHTML: (callback)->
         @templateContext((err, context)=>

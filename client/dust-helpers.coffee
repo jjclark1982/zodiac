@@ -123,58 +123,6 @@ dust.helpers.keyvalue = (chunk, context, bodies)->
 
     return chunk
 
-dust.helpers.fieldFor = (chunk, context, bodies, params={})->
-    switch params.model
-        when "parent" then model = context.stack.tail.head
-        else model = params.model
-
-    switch params.type
-        when "text"
-            input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
-                        value="#{model.get(params.name) or ''}">"""
-        when "longtext"
-            input = """<textarea name="#{params.name}" class="input-#{params.name}" \
-                        >#{model.get(params.name) or ''}</textarea>"""
-        when "password"
-            input = """<input type="password" name="#{params.name}" class="input-#{params.name}" \
-                        value="#{model.get(params.name) or ''}">"""
-        when "id"
-            if model.get(params.name)?
-                url = _.result(model, 'urlWithSlug')
-                input = """<a href="#{url}" data-target="lightbox">#{model.get(params.name)}</a>"""
-            else
-                input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
-                        value="#{model.get(params.name) or ''}">"""
-        when "readonly"
-            if model.get(params.name)?
-                input = model.get(params.name)
-            else
-                input = """<input type="text" name="#{params.name}" class="input-#{params.name}" \
-                        value="#{model.get(params.name) or ''}">"""
-        when "number"
-            input = """<input type="number" name="#{params.name}" class="input-#{params.name}" \
-                        value="#{model.get(params.name) or ''}">"""
-        when "boolean"
-            input = """<input type="checkbox" name="#{params.name}" class="input-#{params.name}" \
-                        value="1" #{if model.get(params.name) then 'checked' else ''}>"""
-        when "link"
-            target = model.getLink(params.name)
-            url = _.result(target, 'url')
-            if url
-                input = """<a href="#{url}">#{params.name}</a>"""
-            else
-                input = "<!--no target for #{params.name} link -->"
-        when "object"
-            input = JSON.stringify(model.get(params.name))
-        else
-            input = "<!--no editor supported for this type: #{params.type} -->"
-
-    unless params.showlabel is "0"
-        str = """<label class="field-#{params.name}">#{params.name}: """ + input + """</label>"""
-    else
-        str = input
-    return chunk.write(str)
-
 dust.helpers.contextDump = (chunk, context, bodies, params={})->
     to = params.to or 'output'
     key = params.key or 'current'

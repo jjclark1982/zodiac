@@ -1,0 +1,7 @@
+<select name="{field.name|attr}" class="input-{field.name|className}">
+    <option value=""></option>
+    {#field.options}
+        <option value="{.|attr}" {@if value=value is=.}selected{/if}>{.}</option>
+    {/field.options}
+</select>
+{! todo: include @if helper !}

@@ -15,37 +15,26 @@ module.exports = class TableRowView extends BaseView
     initialize: (options)->
         @columns = options.columns or @model?.fields or []
         if window?
-            @listenTo(@model, 'sync', @render) #TODO: respond to all events so this won't be needed
-            @listenTo(@model, 'change', @fillInputs)
+            @listenTo(@model.collection, 'sync', @setClean)
+            @listenTo(@model, 'sync', @setClean)
+            @listenTo(@model, 'change', @setDirty)
 
     events: {
-        "keyup input": "typeInput"
-        "change input": "changeInput"
         "click .save-item": "saveItem"
         "click .fetch-item": "fetchItem"
         "click .destroy-item": "destroyItem"
     }
 
-    fillInputs: (model, options)->
-        for name, val of model.changedAttributes()
-            $input = @$("[name='#{name}']")
-            $input.val(val) unless $input.val() is val
+    setClean: ->
+        @$(".save-item").attr("disabled", true)
+        @$(".fetch-item").attr("disabled", true)
 
-    readInput: ($input)->
-        name = $input.attr("name")
-        fieldDef = @model.fieldDefs()[name]
-        switch fieldDef.type
-            when 'number'
-                value = parseFloat($input.val())
-            when 'boolean'
-                value = $input.is(":checked")
-            else
-                value = $input.val()
-        @model.set(name, value)
-
+    setDirty: ->
         if @model.changedAttributes()
             @$(".save-item").removeAttr("disabled")
             @$(".fetch-item").removeAttr("disabled")
+        if @model.collection?.comparator
+            @model.collection.sort()
     
     saveItem: (event)->
         $(event.currentTarget).attr("disabled", true)
@@ -55,18 +44,8 @@ module.exports = class TableRowView extends BaseView
     fetchItem: (event)->
         $(event.currentTarget).attr("disabled", true)
         for key in @model.keys() when key isnt @model.idAttribute
-            @model.unset(key, {silent: true})
+            @model.unset(key)
         @model.fetch()
 
     destroyItem: (event)->
         @model.destroy()
-
-    typeInput: (event)->
-        $input = $(event.currentTarget)
-        @readInput($input)
-
-    changeInput: (event)->
-        $input = $(event.currentTarget)
-        @readInput($input)
-        if @model.collection?.comparator
-            @model.collection.sort()

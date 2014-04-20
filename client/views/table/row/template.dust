@@ -3,7 +3,7 @@
 </td>
 {#columns}
     <td data-column-name="{name|attr}">
-        {@fieldFor name=name type=type model=model showlabel="0"/}
+        {>input model=model field=. /}
     </td>
 {/columns}
 <td>

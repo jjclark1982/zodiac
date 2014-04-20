@@ -1,0 +1,5 @@
+{#value}
+    <a href="{model.urlWithSlug}" data-target="lightbox" name="{field.name|attr}" class="input-{field.name|className}">{value}</a>
+{:else}
+    <input type="text" name="{field.name|attr}" class="input-{field.name|className}" />
+{/value}

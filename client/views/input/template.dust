@@ -1,0 +1,2 @@
+{#showLabel}<b class="label-text">{field.name}:</b>{/showLabel}
+{>"input/types/{type}" model=model field=field value=value /}

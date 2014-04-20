@@ -1,0 +1,1 @@
+<a href="{value.url|attr}" class="input-{field.name|className}" data-target="lightbox">{field.name}</a>

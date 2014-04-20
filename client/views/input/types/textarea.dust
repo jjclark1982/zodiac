@@ -1,0 +1,3 @@
+<textarea name="{field.name|attr}" class="input-{field.name|className}">
+{value}
+</textarea>
