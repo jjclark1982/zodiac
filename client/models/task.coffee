@@ -7,7 +7,7 @@ module.exports = class Task extends BaseModel
     bucket: "tasks"
 
     # The router consults a model's defaultView and defaultListView to present it
-    defaultView: "generic"
+    defaultView: "form"
     defaultListView: "table"
 
     # Is this data small enough to reasonably list all items with no query?

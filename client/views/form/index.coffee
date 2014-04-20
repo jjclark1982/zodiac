@@ -1,10 +1,10 @@
 BaseView = require("base/view")
 require("toggles")
 
-module.exports = class GenericView extends BaseView
+module.exports = class FormView extends BaseView
     requirePath: module.id
     template: require("./template")
-    className: "generic-view"
+    className: "form-view"
 
     events: {
         "click form": "clickButton"

@@ -4,7 +4,7 @@ unless window?
 
 module.exports = class BaseModel extends Backbone.Model
     requirePath: module.id
-    defaultView: 'generic'
+    defaultView: 'form'
     defaultListView: 'table'
     urlRoot: null
     bucket: null
