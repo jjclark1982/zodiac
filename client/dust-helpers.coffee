@@ -108,6 +108,10 @@ dust.onLoad = (name, callback)->
                 )
             catch e
                 return chunk.setError(e)
+    else
+        # this appears to be a dust template
+        # fill in the cache so it doesn't try to compile
+        dust.cache[name] = module
     callback()
 
 dust.helpers or= {}
