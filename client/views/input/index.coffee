@@ -21,9 +21,14 @@ module.exports = class InputView extends BaseView
         @showLabel = options.showLabel
 
         if options.name
-            @field = @model.fieldDefs()[options.name]
-        else
+            @field = @model.fieldDefs()[options.name] or {
+                name: options.name
+                type: options.type
+            }
+        else if options.field
             @field = options.field
+        else
+            throw new Error("Cannot initialize InputView without a valid field definition")
 
         # populate the initial HTML with the current value
         @value = options.value ? @model.get(@field.name)
@@ -37,7 +42,8 @@ module.exports = class InputView extends BaseView
 
     attributes: ->
         atts = super(arguments...)
-        atts["data-name"] = @field.name
+        if @field
+            atts["data-name"] = @field.name
         return atts
 
     events: {
@@ -46,16 +52,17 @@ module.exports = class InputView extends BaseView
     }
 
     modelChanged: (model, value, options)->
+        @value = value
         @$input ?= @$("[name='#{@field.name}']")
         switch @type
             when 'boolean'
-                @$input[0]?.checked = !!value
+                @$input[0]?.checked = !!@value
             when 'json'
                 try
-                    value = JSON.stringify(value)
-                    @$input.val(value) unless @$input.val() is value
+                    @value = JSON.stringify(@value)
+                    @$input.val(@value) unless @$input.val() is @value
             else
-                @$input.val(value) unless @$input.val() is value
+                @$input.val(@value) unless @$input.val() is @value
 
     domChanged: (event)->
         $input = $(event.target)

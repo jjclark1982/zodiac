@@ -1,0 +1,3 @@
+{>input model=model name=fieldName showLabel="yes" /}
+<button type="button" class="save-button">Save</button>
+<button type="button" class="cancel-button">Cancel</button>

@@ -1,5 +1,5 @@
 <td data-column-name="{model.idAttribute|attr}">
-    {@fieldFor name=model.idAttribute type="id" model=model showlabel="0"/}
+    {>input model=model name=model.idAttribute type="id" /}
 </td>
 {#columns}
     <td data-column-name="{name|attr}">
