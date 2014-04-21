@@ -1,8 +1,8 @@
 <thead>
     <tr>
-        <th class="sortable" data-column-name="{collection.model.prototype.idAttribute|attr}">{collection.model.prototype.idAttribute}</th>
+        <th class="sortable" data-column-name="{collection.model.prototype.idAttribute}">{collection.model.prototype.idAttribute}</th>
         {#columns}
-            <th class="sortable" data-column-name="{name|attr}">{name}</th>
+            <th class="sortable" data-column-name="{name}">{name}</th>
         {/columns}
         <th>
             <button type="button" class="create-item">Create</button>

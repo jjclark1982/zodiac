@@ -1,8 +1,8 @@
-<td data-column-name="{model.idAttribute|attr}">
+<td data-column-name="{model.idAttribute}">
     {>input model=model name=model.idAttribute type="id" /}
 </td>
 {#columns}
-    <td data-column-name="{name|attr}">
+    <td data-column-name="{name}">
         {>input model=model field=. /}
     </td>
 {/columns}

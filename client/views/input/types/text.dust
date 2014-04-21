@@ -1,1 +1,1 @@
-<input type="text" name="{field.name|attr}" class="input-{field.name|className}" value="{value|attr}" />
+<input type="text" name="{field.name}" class="input-{field.name|className}" value="{value}" />

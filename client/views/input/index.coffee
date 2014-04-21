@@ -64,7 +64,7 @@ module.exports = class InputView extends BaseView
             else
                 @$input.val(@value) unless @$input.val() is @value
 
-    domChanged: (event)->
+    domChanged: _.debounce((event)->
         $input = $(event.target)
         switch @type
             when 'number'
@@ -80,3 +80,4 @@ module.exports = class InputView extends BaseView
             else
                 value = $input.val()
         @model.set(@field.name, value)
+    , 30)
