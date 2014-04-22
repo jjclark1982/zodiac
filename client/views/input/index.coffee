@@ -55,6 +55,8 @@ module.exports = class InputView extends BaseView
         @value = value
         @$input ?= @$("[name='#{@field.name}']")
         switch @type
+            when 'link'
+                @value = @model.getLink(@field.name)
             when 'boolean'
                 @$input[0]?.checked = !!@value
             when 'json'

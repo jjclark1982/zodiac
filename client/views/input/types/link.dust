@@ -1,1 +1,5 @@
-<a href="{value.url}" class="input-{field.name|className}" data-target="lightbox">{field.name}</a>
+{#value}
+<a href="{model.url}/{field.name}" class="input-{field.name|className}" data-target="lightbox">{field.name}</a>
+{:else}
+<!-- TODO: provide a way to set a link, maybe by entering the ID -->
+{/value}

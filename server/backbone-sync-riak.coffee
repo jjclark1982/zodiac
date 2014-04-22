@@ -8,11 +8,12 @@ Promise = require('bluebird')
 formatLinks = (model)->
     linkKeys = []
     for linkName, target of model.linkedModels() or {}
-        linkKeys.push({
-            tag: linkName
-            bucket: target.bucket
-            key: target.id
-        })
+        if target
+            linkKeys.push({
+                tag: linkName
+                bucket: target.bucket
+                key: target.id
+            })
     return linkKeys
 
 Backbone.sync = (method, model={}, options={})->

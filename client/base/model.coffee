@@ -39,39 +39,50 @@ module.exports = class BaseModel extends Backbone.Model
 
     # each model defines its fields as an array. this method supports looking up a field by name
     fieldDefs: ->
+        if @_fieldDefs then return @_fieldDefs
+
         fieldDefs = {}
         for fieldDef in @fields
             fieldDefs[fieldDef.name] = fieldDef
+
+        # cache the lookup table in the prototype to support other models of the same class
+        @__proto__._fieldDefs = fieldDefs
         return fieldDefs
 
     # instantiate ready-to-fetch models for the links defined in a model's data
     linkedModels: ->
-        if @_linkedModels then return @_linkedModels
-        @_linkedModels = {}
+        @_linkedModels ?= {}
         for linkDef in @fields when linkDef.type is "link"
-            linkName = linkDef.name
-            targetId = @get(linkName)
-            continue unless targetId # deleted links are stored as null
-
-            TargetCtor = require("models/"+linkDef.target)
-
-            if _.isArray(targetId)
-                items = []
-                for id in targetId
-                    atts = {}
-                    atts[TargetCtor.prototype.idAttribute] = id
-                    items.push(atts)
-                @_linkedModels[linkName] = new Backbone.Collection(items, {model: TargetCtor})
-
-            else
-                atts = {}
-                atts[TargetCtor.prototype.idAttribute] = targetId
-                @_linkedModels[linkName] = new TargetCtor(atts)
+            @_linkedModels[linkDef.name] ?= @getLink(linkDef.name)
 
         return @_linkedModels
 
     getLink: (linkName)->
-        return @linkedModels()[linkName]
+        linkDef = @fieldDefs()[linkName]
+        return undefined unless linkDef
+
+        if @_linkedModels?[linkName] then return @_linkedModels[linkName]
+        @_linkedModels ?= {}
+
+        targetId = @get(linkName)
+        return null unless targetId
+
+        TargetCtor = require("models/"+linkDef.target)
+        if _.isArray(targetId)
+            items = []
+            for id in targetId
+                atts = {}
+                atts[TargetCtor.prototype.idAttribute] = id
+                items.push(atts)
+            target = new Backbone.Collection(items, {model: TargetCtor})
+
+        else
+            atts = {}
+            atts[TargetCtor.prototype.idAttribute] = targetId
+            target = new TargetCtor(atts)
+
+        @_linkedModels[linkName] = target
+        return target
 
     setLink: (linkName, target, options)->
         if _.isArray(target)
