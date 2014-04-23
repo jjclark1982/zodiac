@@ -4,11 +4,11 @@
     margin: 1em auto;
     th, td {
         border: 1px solid #333;
-        padding: 0 0.5em;
         text-align: center;
     }
     th {
         line-height: 2em;
+        padding: 0 0.5em;
     }
     th.sortable {
         user-select: none;
@@ -24,11 +24,13 @@
         content: " ▼";
     }
 
-    td > input {
+    td input {
         border: 0px;
-        margin: -0.4em;
         padding: 0.1em 0.25em;
-        height: 100%;
-        box-sizing: border-box;
+    }
+
+    td textarea {
+        border: 0px;
+        height: 1.1em;
     }
 }
