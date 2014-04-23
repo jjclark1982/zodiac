@@ -66,3 +66,30 @@ module.exports = class PopupEditorView extends BaseView
         $(window).off("mousemove", @drag)
         $(window).off("mouseup", @dragEnd)
         @dragStart = null
+
+# This helper function lets any view spawn an editor based on an event of its choice.
+# The event should be bound to some element that has a "data-editable-field" attribute.
+# Usage:
+# events: -> {
+#     "dblclick [data-editable-field]": require("views/popup-editor").showEditor
+# }
+PopupEditorView.showEditor = (event)->
+    view = this # set by Backbone event delegation
+    fieldName = $(event.currentTarget).data("editable-field")
+    return unless view.model and fieldName
+
+    # for nested editable fields such as an image background,
+    # only edit the topmost one
+    event.stopPropagation()
+
+    # undo the selection caused by the doubleclick
+    selection = window.getSelection?() or document.selection
+    selection?.empty?() or selection?.removeAllRanges?()
+
+    popup = new PopupEditorView({
+        model: view.model
+        fieldName: fieldName
+        location: {x: event.pageX, y: event.pageY}
+    })
+    $(document.body).append(popup.el)
+    popup.render()
