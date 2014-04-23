@@ -9,11 +9,12 @@
     height: 100%;
     z-index: 20000;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: hidden;
 
     transition: background-color 333ms ease;
     &.hidden {
         background-color: transparent;
+        overflow-y: hidden;
         > .lightbox-content {
             margin-top: 100%;
         }

@@ -20,10 +20,12 @@ module.exports = class LightboxView extends BaseView
     
     show: ->
         $(document).on('keyup', @pressEscape)
-        $(document.body).css({
-            "overflow": "hidden"
-            "padding-right": getScrollBarWidth() + "px"
-        })
+        if (window.innerWidth > document.documentElement.clientWidth)
+            # hide any background scrollbar
+            $(document.body).css({
+                "overflow": "hidden"
+                "padding-right": getScrollBarWidth() + "px"
+            })
         $(document.body).append(@$el)
         @render()
         setTimeout(=>
@@ -34,12 +36,13 @@ module.exports = class LightboxView extends BaseView
         @silent = options.silent
         $(document).off('keyup', @pressEscape)
         @$el.addClass("hidden")
+        @$el.css({"overflow-y": ""})
 
     events: {
         "click .navigation-item>*": "clickForeground"
         "click .close-link": "clickBackground"
         "click": "clickBackground"
-        "transitionend": "finishDismissing"
+        "transitionend": "transitionDone"
     }
 
     clickForeground: (event)->
@@ -57,14 +60,19 @@ module.exports = class LightboxView extends BaseView
         if event.keyCode is 27
             @dismiss()
 
-    finishDismissing: (event)->
-        if event.target is @el and @$el.hasClass("hidden")
+    transitionDone: (event)->
+        return unless event.target is @el
+        if @$el.hasClass("hidden")
+            # done dismissing
             $(document.body).css({
                 "overflow": ""
                 "padding-right": ""
             })
             @remove()
             @trigger("dismissed") unless @silent
+        else
+            # done appearing
+            @$el.css({"overflow-y": "auto"})
 
 getScrollBarWidth = ()->
     inner = document.createElement('p')
