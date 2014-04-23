@@ -104,6 +104,8 @@ module.exports = class BaseView extends Backbone.View
         )
 
     render: ->
+        unless window?
+            throw new Error("Tried to render #{@constructor.name} without a DOM")
         @trigger("render:before")
         @$el.addClass("rendering")
         @getInnerHTML((err, html)=>

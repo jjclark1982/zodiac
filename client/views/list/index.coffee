@@ -20,19 +20,19 @@ module.exports = class ListView extends BaseView
         # data-ify all string options?
         @itemViewCtor = require("views/"+@itemView)
         @collection ?= new Backbone.Collection()
-        @listenTo(@collection, "add", @insertItemView)
-        @listenTo(@collection, "remove", @removeItemView)
-        @listenTo(@collection, "sort", @populateItems)
-        @listenTo(@collection, "reset", @populateItems)
-        @listenTo(@collection, "request", @syncStarted)
-        @listenTo(@collection, "sync", @syncFinished)
-        @listenTo(@collection, "error", @syncError)
-        @listenTo(@collection, "filter", @filter)
-        # @listenToOnce(@collection, "sync", ->
-        #     @collection.trigger("filter")
-        # )
-        # @listenTo(@collection, "all", ->console.log(arguments))
         if window?
+            @listenTo(@collection, "add", @insertItemView)
+            @listenTo(@collection, "remove", @removeItemView)
+            @listenTo(@collection, "sort", @populateItems)
+            @listenTo(@collection, "reset", @populateItems)
+            @listenTo(@collection, "request", @syncStarted)
+            @listenTo(@collection, "sync", @syncFinished)
+            @listenTo(@collection, "error", @syncError)
+            @listenTo(@collection, "filter", @filter)
+            # @listenToOnce(@collection, "sync", ->
+            #     @collection.trigger("filter")
+            # )
+            # @listenTo(@collection, "all", ->console.log(arguments))
             $(document).on("scroll", @handleScroll)
         return @
 
