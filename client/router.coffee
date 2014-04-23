@@ -24,11 +24,9 @@ class Router extends Backbone.Router
             })
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
-            model ?= new options.modelCtor()
-            model.url = options.url
+            model ?= options.modelCtor.loadFromUrl(options.url)
             view = new options.viewCtor({model: model})
             view.render()
-            model.fetch() if model.isNew()
         @setMainView(view)
 
     showCollectionView: (options={})->
@@ -142,6 +140,8 @@ class Router extends Backbone.Router
         # @previousDepth = depth
         for oldView in @recentViews.splice(depth+1)
             delete window.views[oldView.cid]
+            # TODO: remove the view's model from its _modelsByUrl cache
+            # unless it is also in low-depth history
             oldView.remove()
 
     navigateToLink: (link, options={})->

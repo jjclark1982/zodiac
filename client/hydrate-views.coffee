@@ -8,50 +8,54 @@
 # ```  
 # This will instantiate the named view, model, and collection.
 
-collectionsByUrl = {}
-collectionsByUrlRoot = {}
+collectionsBeingFetched = {}
 fetchCollection = (url, ctors)->
     return unless url
-    collection = collectionsByUrl[url]
+    collection = collectionsBeingFetched[url]
     unless collection
-        ctors.collection ?= Backbone.Collection
-        collection = new ctors.collection([], {
+        CollectionCtor = ctors.collection or Backbone.Collection
+        collection = new CollectionCtor([], {
             model: ctors.collectionModel or Backbone.Model
         })
         collection.url = url
-        collectionsByUrl[url] = collection
-        urlRoot = ctors.model?.prototype.urlRoot or url.replace(/\?.*/, '')
-        collectionsByUrlRoot[urlRoot] = collection
+        collectionsBeingFetched[url] = collection
         collection.fetch()
 
     return collection
 
-modelsByUrl = {}
-fetchModel = (url, modelCtor)->
-    return unless url
-    # TODO: support models with no urlRoot
-    model = modelsByUrl[url]
-    unless model
-        modelCtor ?= Backbone.Model
-        model = new modelCtor()
-        model.url = url
-        model.id = url.replace(modelCtor.prototype.urlRoot + '/', '')
-        modelsByUrl[url] = model
+fetchModel = (el, ModelCtor)->
+    data = $(el).data()
+    modelType = data.model
+    modelUrl = data.modelUrl
 
-        collection = collectionsByUrlRoot[model.urlRoot]
+    $parent = $(el).parents("[data-collection-model='#{modelType}']")
+    collection = collectionsBeingFetched[$parent.data('collection-url')]
+    if collection
+        # when a model-view is inside a collection-view with the same model type,
+        # add the model to the collection, and assume the collection will fetch it and merge
         if collection
-            # assume the collection is already fetching the model and will merge
-            # don't fire an 'add' event because the collection view is
-            # presumably already populated
-            collection.add(model, {silent: true})
-        else
-            model.fetch()
+            model = collection?.detect((m)->_.result(m,'url') is modelUrl)
+            unless model
+                model = new ModelCtor()
+                model.url = modelUrl
+                model.id = modelUrl.replace(model.urlRoot + '/', '') # need an id for merge to work
+                # don't fire an 'add' event because the collection view is already populated
+                collection.add(model, {silent: true})
+    else
+        # for lone models, de-duplicate with the class cache
+        model = ModelCtor.loadFromUrl(modelUrl)
+
     return model
+
+# there is no solution for de-duplicating an item in and out of a collection on the same page
+# which is probably ok in most cases
 
 hydrateView = (el, parentView)->
     data = $(el).data()
     return if data['viewAttached']
+
     options = {el: el}
+    # send any data attributes not read by this function directly to the view initializer
     for key, val of data when !(key in ['view', 'model', 'collection', 'collectionModel'])
         options[key] = val
 
@@ -75,7 +79,7 @@ hydrateView = (el, parentView)->
         options.collection = fetchCollection(data.collectionUrl, constructors)
 
     if data.modelUrl
-        options.model = fetchModel(data.modelUrl, constructors.model)
+        options.model = fetchModel(el, constructors.model)
 
     # initialize the view, giving it a chance to register for 'change' events
     view = new constructors.view(options)
@@ -88,19 +92,21 @@ hydrateView = (el, parentView)->
     window.views ?= {}
     window.views[view.cid] = view
     viewName = constructors.view.name
-    viewName = viewName.charAt(0).toLowerCase() + viewName.slice(1)
+    viewName = viewName.charAt(0).toLowerCase() + viewName.substring(1)
     window.views[viewName] or= view
 
+# hydrate all subviews of a given element.
 hydrateSubviews = (parentEl, parentView)->
+    # when hydrating nested views, a parent will hydrate its children synchronously
+    # so the children will have data['viewAttached']=true when this loop reaches them.
+    # that way, a child is only ever hydrated in a context when `parentView` is acurate.
     $('[data-view]', parentEl).each((i, el)->
         hydrateView(el, parentView)
     )
 
 $(document).ready(->
     hydrateSubviews(document)
-    collectionsByUrl = {}
-    collectionsByUrlRoot = {}
-    modelsByUrl = {}
+    collectionsBeingFetched = {}
 )
 
 module.exports = hydrateView

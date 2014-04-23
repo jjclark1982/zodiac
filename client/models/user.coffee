@@ -50,7 +50,4 @@ module.exports = class User extends BaseModel
         return null
 
 if window?
-    currentUser = new User()
-    currentUser.url = '/users/me'
-    module.exports.current = currentUser
-    currentUser.fetch()
+    User.current = User.loadFromUrl("/users/me")

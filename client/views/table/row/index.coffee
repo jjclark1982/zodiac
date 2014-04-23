@@ -13,6 +13,8 @@ module.exports = class TableRowView extends BaseView
     template: require("./template")
 
     initialize: (options)->
+        unless @model?.collection
+            throw new Error("Cannot initialize TableRowView without a model in a collection")
         @columns = options.columns or @model?.fields or []
         if window?
             @listenTo(@model.collection, 'sync', @setClean)

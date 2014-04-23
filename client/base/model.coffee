@@ -92,3 +92,26 @@ module.exports = class BaseModel extends Backbone.Model
 
     removeLink: (linkName, options)->
         @set(linkName, null, options)
+
+# Each subclass can call loadFromUrl() to instantiate a model from its url.
+# If that model has already been fetched in this window, it will be de-duplicated.
+# The caller is responsible for clearing the cache to prevent memory leaks.
+# 
+# Usage:
+#     User = require("models/user")
+#     me = User.loadFromUrl("/users/me")
+BaseModel.loadFromUrl = (url, options={})->
+    Constructor = this
+    @_modelsByUrl ?= {}
+    model = @_modelsByUrl[url]
+    unless model
+        model = new Constructor()
+        model.url = url
+        @_modelsByUrl[url] = model
+        model.fetch(options).then(=>
+            # for aliased urls, cache the model under both
+            alias = @prototype.url.apply(model)
+            if alias isnt url
+                @_modelsByUrl[alias] = model
+        ) unless options.fetch is false
+    return model
