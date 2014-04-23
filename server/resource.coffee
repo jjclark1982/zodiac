@@ -105,6 +105,9 @@ sendList = (req, res, next, collection)->
                 # then we would no longer depend on async
             )
         when 'html'
+            # pre-populate only the first 5 items for streaming
+            for model, i in collection.models when i < 5
+                model.needsData = true
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
             res.render(listView, {
