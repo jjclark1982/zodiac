@@ -47,7 +47,7 @@ sendModel = (req, res, next, model)->
         up: model.urlRoot
     }
     for linkName, target of model.linkedModels() or {}
-        links[linkName] = target.url()
+        if target then links[linkName] = target.url()
     res.links(links)
 
     res.set({
@@ -249,10 +249,10 @@ module.exports = (moduleOptions = {})->
     # then we can load the link by its id 
     # or we can use link-walking to skip the `modelId` handler for faster reads
 
-    router.param('linkName', (req, res, next, linkName)->
+    router.param("linkName", (req, res, next, linkName)->
         linkDef = modelProto.fieldDefs()[linkName]
 
-        if linkDef?.type isnt 'link'
+        if linkDef?.type isnt "link"
             return next(404)
 
         req.linkDef = linkDef
@@ -297,7 +297,7 @@ module.exports = (moduleOptions = {})->
             return next(405)
 
         # don't allow setting id for links
-        delete req.body[targetProto.idAttribute]
+        delete req.body[child.idAttribute]
 
         child.set(req.body, {editor: req.user})
         saveModel(req, res, next, child)
@@ -314,7 +314,7 @@ module.exports = (moduleOptions = {})->
             res.set({"Allow": "GET, HEAD, POST"})
             return next(405)
 
-        req.body[targetProto.idAttribute] = child.id
+        req.body[child.idAttribute] = child.id
         child.attributes = req.body
         child.set(child.attributes, {editor: req.user})
 
