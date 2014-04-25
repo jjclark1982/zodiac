@@ -31,13 +31,19 @@ module.exports = (err, req, res, next)->
     res.statusCode = err.status
 
     if req.app.get('env') is 'production'
-        delete err.stack
+        err.stack = null
 
     #return the error in the correct format, with a custom HTML template if appropriate
     res.format({
         json: ->
             try
-                res.json({status: err.status, name: err.name, message: err.message})
+                errJSON = {
+                    status: err.status
+                    name: err.name
+                    message: err.message
+                }
+                if err.stack then errJSON.stack = err.stack
+                res.json(errJSON)
             catch e
                 res.end(err.message)
         html: ->
