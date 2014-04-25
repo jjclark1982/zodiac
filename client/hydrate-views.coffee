@@ -65,12 +65,12 @@ hydrateView = (el, parentView)->
         if data[type]
             try
                 folder = type.replace(/^collectionModel/, 'model')+'s'
-                constructors[type] = require("#{folder}/#{data[type]}")
+                constructors[type] = require("#{folder}/#{data[type]}") # eg require("views/input")
             catch e
                 try
                     constructors[type] = require(data[type])
                 catch e2
-                    console.error("Failed to hydrate", el, ":", e.message)
+                    console.log("Failed to hydrate", el, ":", e)
                     return
 
     # fetch the latest data from the given url.
@@ -82,7 +82,14 @@ hydrateView = (el, parentView)->
         options.model = fetchModel(el, constructors.model)
 
     # initialize the view, giving it a chance to register for 'change' events
-    view = new constructors.view(options)
+    try
+        view = new constructors.view(options)
+    catch initError
+        # don't let an error in one view initialization block the rest of the page loading
+        console.log("Error initializing #{data.view}-view:", initError)
+        $(el).addClass("error").attr("data-error", initError.message)
+        BaseView = require("base/view")
+        view = new BaseView(options)
 
     # recursively hydrate any subviews before reaching them in a higher loop
     parentView?.registerSubview?(view)
