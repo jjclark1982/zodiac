@@ -12,7 +12,7 @@ module.exports = class ListView extends BaseView
     }
 
     initialize: (options)->
-        @itemView ?= options.itemView or 'generic'
+        @itemView ?= options.itemView or 'form'
         if options.itemViewOptions
             @itemViewOptions = options.itemViewOptions
             if _.isString(@itemViewOptions)
