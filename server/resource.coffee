@@ -12,8 +12,8 @@ async = require('async')
 require("./backbone-sync-riak")
 
 saveModel = (req, res, next, model, options={})->
-    vclock = req.body?._vclock or req.model?.vclock
-    delete req.body._vclock
+    vclock = model.attributes._vclock or model?.vclock
+    delete model.attributes._vclock
 
     # run the backbone validator
     unless model.isValid({editor: req.user})
