@@ -65,28 +65,31 @@ module.exports = class BaseModel extends Backbone.Model
         @_linkedModels ?= {}
 
         targetId = @get(linkName)
-        return null unless targetId
-
         TargetCtor = require("models/"+linkDef.target)
-        if _.isArray(targetId)
+        if linkDef.multiple
             items = []
-            for id in targetId
+            for id in (targetId or [])
                 atts = {}
                 atts[TargetCtor.prototype.idAttribute] = id
                 items.push(atts)
             target = new Backbone.Collection(items, {model: TargetCtor})
+            target.url = _.result(@, 'url') + "/" + linkName
 
-        else
+        else if targetId
             atts = {}
             atts[TargetCtor.prototype.idAttribute] = targetId
             target = new TargetCtor(atts)
+
+        else return null
 
         @_linkedModels[linkName] = target
         return target
 
     setLink: (linkName, target, options)->
-        if _.isArray(target)
-            @set(linkName, (t.id for t in target), options)
+        linkDef = @fieldDefs()[linkName]
+        if linkDef.multiple
+            items = target.models or target or []
+            @set(linkName, (i.id for i in items), options)
         else
             @set(linkName, target.id, options)
 

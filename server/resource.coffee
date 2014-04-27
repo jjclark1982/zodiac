@@ -47,7 +47,8 @@ sendModel = (req, res, next, model)->
         up: model.urlRoot
     }
     for linkName, target of model.linkedModels() or {}
-        if target then links[linkName] = target.url()
+        if target
+            links[linkName] = _.result(target, 'url')
     res.links(links)
 
     res.set({
@@ -95,7 +96,13 @@ sendList = (req, res, next, collection)->
                 model.fetch().then(->
                     model.attributes._vclock = model.vclock
                     callback(null, model)
-                , callback)
+                , (fetchErr)->
+                    if fetchErr.statusCode is 404
+                        collection.remove(model, {silent: true})
+                        callback()
+                    else
+                        callback(fetchErr)
+                )
             , (err, models)->
                 if err then return next(err)
                 res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
@@ -262,18 +269,24 @@ module.exports = (moduleOptions = {})->
             req.linkTarget = null
             return next()
 
-        child.fetch().then(->
+        if linkDef.multiple
             req.linkTarget = child
-            next()
+            # at this point it's a skeleton collection
+            return next()
 
-        , (err)->
-            if err.statusCode is 404
-                # TODO: update the parent data to reflect the missing child?
-                req.linkTarget = null
+        else
+            child.fetch().then(->
+                req.linkTarget = child
                 next()
-            else
-                next(err)
-        )
+
+            , (err)->
+                if err.statusCode is 404
+                    # TODO: update the parent data to reflect the missing child?
+                    req.linkTarget = null
+                    next()
+                else
+                    next(err)
+            )
     )
 
     router.get("/:modelId/:linkName", (req, res, next)->
