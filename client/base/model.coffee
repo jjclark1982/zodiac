@@ -61,10 +61,10 @@ module.exports = class BaseModel extends Backbone.Model
         linkDef = @fieldDefs()[linkName]
         return undefined unless linkDef
 
-        if @_linkedModels?[linkName] then return @_linkedModels[linkName]
-        @_linkedModels ?= {}
-
         targetId = @get(linkName)
+        if targetId and @_linkedModels?[linkName]
+            return @_linkedModels[linkName]
+
         TargetCtor = require("models/"+linkDef.target)
         if linkDef.multiple
             items = []
@@ -82,6 +82,7 @@ module.exports = class BaseModel extends Backbone.Model
 
         else return null
 
+        @_linkedModels ?= {}
         @_linkedModels[linkName] = target
         return target
 
