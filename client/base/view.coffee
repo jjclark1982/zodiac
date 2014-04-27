@@ -71,7 +71,13 @@ module.exports = class BaseView extends Backbone.View
             @model.fetch().then(=>
                 @model.needsData = false
                 callback(null, @)
-            , callback)
+            , (err)->
+                if err.statusCode is 404
+                    # show an empty view if the model got this far with no data
+                    callback(null, @)
+                else
+                    callback(err)
+            )
 
         else if @collection?.needsData
             @collection.fetch().then(=>
