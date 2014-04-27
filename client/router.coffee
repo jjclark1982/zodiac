@@ -170,100 +170,99 @@ class Router extends Backbone.Router
 
     initialize: ->
         instance = this
-        $(document).ready(=>
-            # create routes for all models that have a `urlRoot`
-            for modelName, Model of require("models") then do (modelName, Model)->
-                modelProto = Model.prototype
-                urlRoot = modelProto.urlRoot?.replace(/^\//, '')
-                return unless urlRoot
 
-                # route lists and queries
-                route = urlRoot + '(/)(?*query)'
-                routeName = Model.name + "Collection"
-                instance.route(route, routeName, (query)->
-                    document.title = modelProto.collectionTitle or ''
-                    query or= document.location.search.replace(/^\?/,'')
-                    instance.showCollectionView({
-                        viewCtor: require("views/" + modelProto.defaultListView)
-                        collectionCtor: Backbone.Collection
-                        collectionOptions: { url: document.location.pathname, model: Model }
-                        collectionQuery: query
-                    })
-                )
+        # create routes for all models that have a `urlRoot`
+        for modelName, Model of require("models") then do (modelName, Model)->
+            modelProto = Model.prototype
+            urlRoot = modelProto.urlRoot?.replace(/^\//, '')
+            return unless urlRoot
 
-                # route individual items
-                route = urlRoot + '/:id'
-                routeName = Model.name #TODO: consider how this interacts with minification
+            # route lists and queries
+            route = urlRoot + '(/)(?*query)'
+            routeName = Model.name + "Collection"
+            instance.route(route, routeName, (query)->
+                document.title = modelProto.collectionTitle or ''
+                query or= document.location.search.replace(/^\?/,'')
+                instance.showCollectionView({
+                    viewCtor: require("views/" + modelProto.defaultListView)
+                    collectionCtor: Backbone.Collection
+                    collectionOptions: { url: document.location.pathname, model: Model }
+                    collectionQuery: query
+                })
+            )
+
+            # route individual items
+            route = urlRoot + '/:id'
+            routeName = Model.name #TODO: consider how this interacts with minification
+            instance.route(route, routeName, (id)->
+                instance.showModelView({
+                    viewCtor: require("views/" + modelProto.defaultView)
+                    modelCtor: Model
+                })
+            )
+
+            # route links
+            for f in (modelProto.fields or []) when f.type is 'link' then do (f)->
+                linkDef = f
+                Target = require("models/"+linkDef.target)
+                route = urlRoot + "/:id/#{linkDef.name}"
+                routeName = Model.name + " link to " + linkDef.name
                 instance.route(route, routeName, (id)->
                     instance.showModelView({
-                        viewCtor: require("views/" + modelProto.defaultView)
-                        modelCtor: Model
-                    })
+                        viewCtor: require("views/"+Target.prototype.defaultView)
+                        modelCtor: Target
+                        })
                 )
 
-                # route links
-                for f in (modelProto.fields or []) when f.type is 'link' then do (f)->
-                    linkDef = f
-                    Target = require("models/"+linkDef.target)
-                    route = urlRoot + "/:id/#{linkDef.name}"
-                    routeName = Model.name + " link to " + linkDef.name
-                    instance.route(route, routeName, (id)->
-                        instance.showModelView({
-                            viewCtor: require("views/"+Target.prototype.defaultView)
-                            modelCtor: Target
-                            })
-                    )
 
+        # create the main navigator. the modal navigator will be created on demand
+        @mainNavigator = new NavigationView({
+            id: "main-navigator"
+            el: $("#main-navigator")
+        })
+        if @mainNavigator.$el.parent().length is 0
+            $(document.body).append(@mainNavigator.$el)
 
-            # create the main navigator. the modal navigator will be created on demand
-            @mainNavigator = new NavigationView({
-                id: "main-navigator"
-                el: $("#main-navigator")
-            })
-            if @mainNavigator.$el.parent().length is 0
-                $(document.body).append(@mainNavigator.$el)
+        # set the initial state
+        window.views ?= {}
+        @initDate = new Date()
+        @mainView = @getMainView()
+        @saveState()
 
-            # set the initial state
-            window.views ?= {}
-            @initDate = new Date()
-            @mainView = @getMainView()
-            @saveState()
+        # intercept links that can be handled by this router
+        $(document).delegate("a", "click", (event)=>
+            return if event.metaKey # let users open links in new tab
+            if @debug
+                event.preventDefault(event)
+                return false
 
-            # intercept links that can be handled by this router
-            $(document).delegate("a", "click", (event)=>
-                return if event.metaKey # let users open links in new tab
-                if @debug
-                    event.preventDefault(event)
-                    return false
+            link = event.currentTarget
+            if @navigateToLink(link)
+                event.preventDefault(event)
+        )
 
-                link = event.currentTarget
-                if @navigateToLink(link)
-                    event.preventDefault(event)
-            )
+        # intercept forms that can be handled by this router
+        $(document).delegate("form", "click", (event)->
+            $(this).data("lastClicked", event.target)
+        )
+        $(document).delegate("form", "submit", (event)->
+            form = this
+            $form = $(form)
+            method = $form.attr("method")
+            if method and !method.match(/^get$/i)
+                return
+            query = $form.serialize()
+            lastClicked = $form.data("lastClicked")
+            if lastClicked?.name
+                if query.length > 0
+                    query += "&"
+                query += lastClicked.name + "=" + $(lastClicked).val()
+            $form.removeData("lastClicked")
 
-            # intercept forms that can be handled by this router
-            $(document).delegate("form", "click", (event)->
-                $(this).data("lastClicked", event.target)
-            )
-            $(document).delegate("form", "submit", (event)->
-                form = this
-                $form = $(form)
-                method = $form.attr("method")
-                if method and !method.match(/^get$/i)
-                    return
-                query = $form.serialize()
-                lastClicked = $form.data("lastClicked")
-                if lastClicked?.name
-                    if query.length > 0
-                        query += "&"
-                    query += lastClicked.name + "=" + $(lastClicked).val()
-                $form.removeData("lastClicked")
-
-                link = document.createElement("a")
-                link.href = form.action + "?" + query
-                if instance.navigateToLink(link)
-                    event.preventDefault(event)
-            )
+            link = document.createElement("a")
+            link.href = form.action + "?" + query
+            if instance.navigateToLink(link)
+                event.preventDefault(event)
         )
 
         # @on("all", ->console.log(@constructor.name,arguments, history.state))
