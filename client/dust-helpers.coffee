@@ -97,7 +97,7 @@ dust.onLoad = (name, callback)->
                     branch.write("<#{tagName} #{attrString}>\n")
 
                     view.templateContext((err, context)->
-                        if err then return chunk.setError(err)
+                        if err then return branch.setError(err)
 
                         # TODO: use the parent's globals instead of {}
                         context = dust.makeBase({}).push(context)
