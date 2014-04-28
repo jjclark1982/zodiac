@@ -72,14 +72,14 @@ sendModel = (req, res, next, model)->
             item._vclock = model.vclock
             res.json(item)
         when 'html'
-            res.render(model.defaultView, {
+            view = req.query?.view or req.view or model.defaultView
+            res.render(view, {
                 model: model
                 title: (_.result(model, 'title') or '')
             })
 
 sendList = (req, res, next, collection)->
     idAttribute = collection.model.prototype.idAttribute
-    listView = collection.model.prototype.defaultListView
 
     res.set({
         'Vary': 'Accept,Accept-Encoding'
@@ -117,7 +117,8 @@ sendList = (req, res, next, collection)->
                 model.needsData = true
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
-            res.render(listView, {
+            view = req.query?.view or req.view or collection.model.prototype.defaultListView
+            res.render(view, {
                 collection: collection
             })
 
