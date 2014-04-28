@@ -53,6 +53,11 @@ module.exports = class ListView extends BaseView
         )
 
     syncFinished: (collection, xhr, options = {})->
+        # remove "no items found" if we now have items
+        if collection.length > 0
+            $children = @$el.children("li")
+            $children.detach()
+            @$el.empty().append($children)
         @$el.removeClass("loading")
 
     syncError: (collection, xhr, options = {})->
