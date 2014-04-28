@@ -214,20 +214,21 @@ class Router extends Backbone.Router
                         })
                 )
 
+        $(document).ready(=>
+            # create the main navigator. the modal navigator will be created on demand
+            @mainNavigator = new NavigationView({
+                id: "main-navigator"
+                el: $("#main-navigator")
+            })
+            if @mainNavigator.$el.parent().length is 0
+                $(document.body).append(@mainNavigator.$el)
 
-        # create the main navigator. the modal navigator will be created on demand
-        @mainNavigator = new NavigationView({
-            id: "main-navigator"
-            el: $("#main-navigator")
-        })
-        if @mainNavigator.$el.parent().length is 0
-            $(document.body).append(@mainNavigator.$el)
-
-        # set the initial state
-        window.views ?= {}
-        @initDate = new Date()
-        @mainView = @getMainView()
-        @saveState()
+            # set the initial state
+            window.views ?= {}
+            @initDate = new Date()
+            @mainView = @getMainView()
+            @saveState()
+        )
 
         # intercept links that can be handled by this router
         $(document).delegate("a", "click", (event)=>
