@@ -75,6 +75,18 @@ module.exports = class PopupEditorView extends BaseView
 # }
 PopupEditorView.showEditor = (event)->
     view = this # set by Backbone event delegation
+    model = view.model
+    unless model
+        # try to load the model from DOM hints if it was not provided
+        $modelEl = $(event.target).parents("[data-model]")
+        modelType = $modelEl.data("model")
+        try
+            ModelCtor = require("models/"+modelType)
+        try
+            ModelCtor ?= require(modelType)
+        modelUrl = $modelEl.data("model-url")
+        model = ModelCtor.loadFromUrl(modelUrl)
+
     fieldName = $(event.currentTarget).data("editable-field")
     return unless view.model and fieldName
 
@@ -87,7 +99,7 @@ PopupEditorView.showEditor = (event)->
     selection?.empty?() or selection?.removeAllRanges?()
 
     popup = new PopupEditorView({
-        model: view.model
+        model: model
         fieldName: fieldName
         location: {x: event.pageX, y: event.pageY}
     })

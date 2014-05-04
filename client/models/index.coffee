@@ -1,3 +1,8 @@
+# Exports a hash of all defined models
+# Usage:
+# modelType = "user"
+# ModelCtor = require("models")[modelType]
+
 models = {}
 
 if window?
