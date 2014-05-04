@@ -171,19 +171,22 @@ module.exports = class BaseView extends Backbone.View
     constructor: ->
         super(arguments...)
         if window? and @model
-            @listenTo(@model, 'request', (model, xhr, options)->
-                @$el.addClass('loading')
+            @listenTo(@model, 'request', (object, xhr, options)->
+                if object is @model
+                    @$el.addClass('loading')
             )
-            @listenTo(@model, 'sync', (model, response, options)->
-                @$el.removeClass('loading')
+            @listenTo(@model, 'sync', (object, response, options)->
+                if object is @model
+                    @$el.removeClass('loading')
             )
-            @listenTo(@model, 'error', (model, xhr, options)->
-                @$el.removeClass('loading')
-                errString = "#{xhr.status} #{xhr.statusText}"
-                try
-                    errString += ": " + JSON.parse(xhr.responseText).message
-                @$el.addClass('error').attr("data-error", errString)
-                @$(".show-when-error").attr("title", errString)
+            @listenTo(@model, 'error', (object, xhr, options)->
+                if object is @model
+                    @$el.removeClass('loading')
+                    errString = "#{xhr.status} #{xhr.statusText}"
+                    try
+                        errString += ": " + JSON.parse(xhr.responseText).message
+                    @$el.addClass('error').attr("data-error", errString)
+                    @$(".show-when-error").attr("title", errString)
             )
             @listenTo(@model, 'invalid', (model, error, options)->
                 @$el.removeClass('loading')
@@ -195,3 +198,20 @@ module.exports = class BaseView extends Backbone.View
             #         @remove()
             #     )
             # )
+        if window? and @collection
+            @listenTo(@collection, 'request', (object, xhr, options)->
+                if object is @collection
+                    @$el.addClass('loading')
+            )
+            @listenTo(@collection, 'sync', (object, response, options)->
+                if object is @collection
+                    @$el.removeClass('loading')
+            )
+            @listenTo(@collection, 'error', (object, xhr, options)->
+                if object is @collection
+                    @$el.removeClass('loading')
+                    errString = "#{xhr.status} #{xhr.statusText}"
+                    try
+                        errString += ": " + JSON.parse(xhr.responseText).message
+                    @$el.addClass('error').attr("data-error", errString)
+            )
