@@ -185,7 +185,6 @@ module.exports = class ListView extends BaseView
         super(arguments...)
 
     handleScroll: (event)=>
-        console.log("scrolling")
         viewportReached = false
         outOfViewCount = 0
         for cid, view of @subviews
@@ -200,7 +199,7 @@ module.exports = class ListView extends BaseView
                 outOfViewCount = 0
                 viewportReached = true
                 if view.model
-                    view.model.needsData ?= (Object.keys(view.model.attributes).length is 0)
+                    view.model.needsData ?= (view.model.keys().length is 0)
                     if view.model.needsData
                         # console.log("fetching", _.result(view.model, "url"))
                         view.model.needsData = false
@@ -213,15 +212,16 @@ module.exports = class ListView extends BaseView
 isInView = ($el, padding=0)->
     top = $el.offset().top
     bottom = top + $el.height()
-    $viewport = $el.scrollParent()
-    viewTop = $viewport.scrollTop()
-    if $viewport[0] is document
-        # when the viewport is the entire document, use the window height
+    $viewport = $el.offsetParent()
+    if $viewport[0] is document.documentElement
+        # when the viewport is the entire window, use the window height
+        viewTop = $(window).scrollTop()
         viewBottom = viewTop + $(window).height()
     else
         # when the viewport is some scrollable div, make sure it is also visible
         if !isInView($viewport, padding)
             return false
+        viewTop = $viewport.scrollTop()
         viewBottom = viewTop + $viewport.height()
 
     if top < (viewBottom+padding) and bottom > (viewTop-padding)
