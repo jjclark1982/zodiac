@@ -66,7 +66,7 @@ responsePrototype.render = (view, options={}, callback)->
 
     # unless we get a request to partially render content, render the [`layout`](../../client/views/layout.dust) view,
     # passing it the view associated with the current model as a `mainView` variable.
-    if !req.xhr        
+    if !req.xhr
         try
             options.title ?= require("views/"+view).prototype.title
         options.mainView = view

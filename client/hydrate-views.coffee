@@ -8,18 +8,17 @@
 # ```  
 # This will instantiate the named view, model, and collection.
 
-collectionsBeingFetched = {}
-fetchCollection = (url, ctors)->
+collectionsBeingAssembled = {}
+assembleCollection = (url, ctors)->
     return unless url
-    collection = collectionsBeingFetched[url]
+    collection = collectionsBeingAssembled[url]
     unless collection
         CollectionCtor = ctors.collection or Backbone.Collection
         collection = new CollectionCtor([], {
             model: ctors.collectionModel or Backbone.Model
         })
         collection.url = url
-        collectionsBeingFetched[url] = collection
-        collection.fetch()
+        collectionsBeingAssembled[url] = collection
 
     return collection
 
@@ -29,7 +28,7 @@ fetchModel = (el, ModelCtor)->
     modelUrl = data.modelUrl
 
     $parent = $(el).parents("[data-collection-model='#{modelType}']")
-    collection = collectionsBeingFetched[$parent.data('collection-url')]
+    collection = collectionsBeingAssembled[$parent.data('collection-url')]
     if collection
         # when a model-view is inside a collection-view with the same model type,
         # add the model to the collection, and assume the collection will fetch it and merge
@@ -75,11 +74,11 @@ hydrateView = (el, parentView)->
 
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
-    if data.collectionUrl
-        options.collection = fetchCollection(data.collectionUrl, constructors)
-
     if data.modelUrl
         options.model = fetchModel(el, constructors.model)
+
+    if data.collectionUrl
+        options.collection = assembleCollection(data.collectionUrl, constructors)
 
     # initialize the view, giving it a chance to register for 'change' events
     try
@@ -96,6 +95,8 @@ hydrateView = (el, parentView)->
     hydrateSubviews(el, view)
     view.attach()
     view.trigger("hydrate")
+    if view.alwaysfetchCollection
+        view.collection?.fetch()
     window.views ?= {}
     window.views[view.cid] = view
     viewName = constructors.view.name
@@ -113,7 +114,7 @@ hydrateSubviews = (parentEl, parentView)->
 
 $(document).ready(->
     hydrateSubviews(document)
-    collectionsBeingFetched = {}
+    collectionsBeingAssembled = {}
 )
 
 module.exports = hydrateView

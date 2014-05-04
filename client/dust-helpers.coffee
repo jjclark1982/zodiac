@@ -96,12 +96,12 @@ dust.onLoad = (name, callback)->
                     attrString = view.attrString()
                     branch.write("<#{tagName} #{attrString}>\n")
 
-                    view.templateContext((err, context)->
+                    view.templateContext((err, locals)->
                         if err then return branch.setError(err)
 
                         # TODO: use the parent's globals instead of {}
-                        context = dust.makeBase({}).push(context)
-                        branch = view.template(branch, context)
+                        context = dust.makeBase({}).push(locals)
+                        branch = view.template(branch, context) unless locals.model?.showSkeletonView
                         branch.write("\n</#{tagName}>\n")
                         branch.end()
                     )

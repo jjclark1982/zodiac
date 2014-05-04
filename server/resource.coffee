@@ -120,9 +120,15 @@ sendList = (req, res, next, collection)->
             )
         when 'html'
             res.type("html") # set this before streaming begins so that gzip can kick in
-            # pre-populate only the first 5 items for streaming
-            for model, i in collection.models when i < 5
-                model.needsData = true
+
+            # pre-populate only the first 20 items for streaming
+            streamItems = parseInt(req.query?.streamItems) or 20
+            for model, i in collection.models
+                if i < streamItems
+                    model.needsData = true
+                else
+                    model.showSkeletonView = true
+
             # note that this, and all other `res.render()` functions, employ
             # [DUST-RENDERER.COFFEE](dust-renderer.html) to override the default rendering function
             view = req.query?.view or req.view or collection.model.prototype.defaultListView

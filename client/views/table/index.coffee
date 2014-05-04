@@ -14,6 +14,8 @@ module.exports = class TableView extends BaseView
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 
+    alwaysFetchCollection: true # TODO: pagination
+
     initialize: (options)->
         modelProto = @collection?.model?.prototype
         if modelProto

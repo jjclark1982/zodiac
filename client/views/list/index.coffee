@@ -33,6 +33,8 @@ module.exports = class ListView extends BaseView
             #     @collection.trigger("filter")
             # )
             # @listenTo(@collection, "all", ->console.log(arguments))
+            @handleScroll = _.debounce(@handleScroll, 100).bind(@)
+            @listenTo(@, "hydrate", @handleScroll)
             $(document).on("scroll", @handleScroll)
         return @
 
@@ -172,22 +174,57 @@ module.exports = class ListView extends BaseView
                     count++
                 else
                     itemView.$el.detach()
-            countStr = "#{count} " + (if count is 1 then 'activity' else 'activities')
+            countStr = "#{count} " + (if count is 1 then 'item' else 'items')
             @$(".num-found").text("Found #{countStr} matching your criteria")
         )
         return @
-
-    handleScroll: (event)=>
-        # for each item view
-            # if it is near the viewport and needs data or rendering
-                # render it
-        # ideally, assume a linear flow so we can stop looking once we are off screen
-        # and only start looking around the previous leave off
-        # TODO: does this need to handle resize, too?
-        # console.log(event.target.body.scrollTop)
-        return
 
     remove: ->
         if window?
             $(document).off("scroll", @handleScroll)
         super(arguments...)
+
+    handleScroll: (event)=>
+        console.log("scrolling")
+        viewportReached = false
+        outOfViewCount = 0
+        for cid, view of @subviews
+            inView = isInView(view.$el, 100)
+            if !inView
+                if !viewportReached
+                    continue # skip the items above the viewport
+                else
+                    # skip the items below the viewport
+                    break if (++outOfViewCount) > 5 # fix for staggered layouts
+            else
+                outOfViewCount = 0
+                viewportReached = true
+                if view.model
+                    view.model.needsData ?= (Object.keys(view.model.attributes).length is 0)
+                    if view.model.needsData
+                        # console.log("fetching", _.result(view.model, "url"))
+                        view.model.needsData = false
+                        view.model.fetch().then((->),
+                            (err)->
+                                view.model.needsData = true
+                        )
+        return
+
+isInView = ($el, padding=0)->
+    top = $el.offset().top
+    bottom = top + $el.height()
+    $viewport = $el.scrollParent()
+    viewTop = $viewport.scrollTop()
+    if $viewport[0] is document
+        # when the viewport is the entire document, use the window height
+        viewBottom = viewTop + $(window).height()
+    else
+        # when the viewport is some scrollable div, make sure it is also visible
+        if !isInView($viewport, padding)
+            return false
+        viewBottom = viewTop + $viewport.height()
+
+    if top < (viewBottom+padding) and bottom > (viewTop-padding)
+        return true
+    else
+        return false
