@@ -53,7 +53,7 @@ sendModel = (req, res, next, model)->
 
     res.set({
         'Last-Modified': model.lastMod
-        'Vary': 'Accept,Accept-Encoding'
+        'Vary': "Accept"
         'ETag': model.etag + '.' + format
         'X-DB-Query-Time': new Date() - res.dbStartTime
     })
@@ -72,6 +72,7 @@ sendModel = (req, res, next, model)->
             item._vclock = model.vclock
             res.json(item)
         when 'html'
+            res.type("html") # set this before streaming begins so that gzip can kick in
             view = req.query?.view or req.view or model.defaultView
             res.render(view, {
                 model: model
@@ -106,12 +107,19 @@ sendList = (req, res, next, collection)->
             , (err, models)->
                 if err then return next(err)
                 res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+                lastMod = null
+                for model in collection.models
+                    lastMod = model.lastMod unless lastMod > model.lastMod
+                res.set({'Last-Modified': lastMod})
+                if req.fresh
+                    return res.send(304)
                 res.json(collection)
                 #TODO: pass through req.headers for things like cache-control
                 #TODO: support streaming by iterating through fetch promises
                 # then we would no longer depend on async
             )
         when 'html'
+            res.type("html") # set this before streaming begins so that gzip can kick in
             # pre-populate only the first 5 items for streaming
             for model, i in collection.models when i < 5
                 model.needsData = true
