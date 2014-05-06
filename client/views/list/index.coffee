@@ -68,11 +68,12 @@ module.exports = class ListView extends BaseView
     populateItems: (collection=@collection, options={})->
         # ensure that @modelViews only has current items
         @modelViews ?= {}
-        for cid, subview of @subviews or {} when subview.model?
-            @modelViews[subview.model.cid] = subview
-        for cid, subview of @modelViews
-            if subview.model.collection isnt collection
-                @removeItemView(model)
+        for cid, subview of @subviews or {}
+            if collection.contains(subview.model)
+                @modelViews[subview.model.cid] = subview
+            else
+                subview.remove()
+                delete @subviews[cid]
 
         # insert each current item at the correct location
         @$lis = null
@@ -160,9 +161,6 @@ module.exports = class ListView extends BaseView
     filter: ->
         return unless @collection.filterCond
 
-        @$el.children().detach()
-        # TODO: figure out why each li was being duplicated on load
-
         _.defer(=>
             @populateItems()
 
@@ -175,7 +173,11 @@ module.exports = class ListView extends BaseView
                 else
                     itemView.$el.detach()
             countStr = "#{count} " + (if count is 1 then 'item' else 'items')
+            # note: this currently doesn't match any element
             @$(".num-found").text("Found #{countStr} matching your criteria")
+
+            # what is onscreen may have changed, so run the scroll handler
+            @handleScroll()
         )
         return @
 
