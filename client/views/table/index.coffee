@@ -29,9 +29,6 @@ module.exports = class TableView extends BaseView
             @listenTo(@collection, "add", @orderRows)
             @listenTo(@collection, "remove", @orderRows)
             @listenTo(@collection, "reset", @orderRows)
-            @listenTo(@collection, "request", @syncStarted)
-            @listenTo(@collection, "error", @syncError)
-            @listenTo(@collection, "sync", @syncFinished)
             @listenToOnce(@collection, "sync", @firstSyncFinished)
 
     attributes: ->
@@ -39,20 +36,9 @@ module.exports = class TableView extends BaseView
         atts["data-columns"] = JSON.stringify(@columns)
         return atts
 
-    # TODO: move these three into baseView
-    syncStarted: (collection, xhr, options = {})->
-        @$el.addClass("loading")
-        xhr.always(=>
-            @syncFinished(collection, xhr, options)
-        )
-
-    syncError: (collection, xhr, options = {})->
-        @$el.addClass("error").attr("data-error", "#{xhr.status} #{xhr.statusText}")
-
-    syncFinished: (collection, xhr, options = {})->
-        @$el.removeClass("loading")
-
-    firstSyncFinished: (collection, xhr, options = {})->
+    firstSyncFinished: (object, xhr, options = {})->
+        return unless object is @collection
+        @render()
         for cid, subview of @subviews
             # fill in the columns for each row so we don't have to serialize them more than once
             subview.columns = @columns

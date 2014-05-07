@@ -95,7 +95,7 @@ hydrateView = (el, parentView)->
     hydrateSubviews(el, view)
     view.attach()
     view.trigger("hydrate")
-    if view.alwaysfetchCollection
+    if view.alwaysFetchCollection
         view.collection?.fetch()
     window.views ?= {}
     window.views[view.cid] = view
