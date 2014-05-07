@@ -17,10 +17,11 @@ module.exports = class RiakStore extends express.session.Store
 
     get: (sid, callback)->
         db.get(@bucket, sid, (err, session, meta)->
-            if meta.statusCode is 404
-                return callback()
             if err
-                return callback(err)
+                if err.statusCode is 404
+                    return callback() # no item found - ok to create one
+                else
+                    return callback(err)
             return callback(null, session)
             # TODO: resolve links
         )
