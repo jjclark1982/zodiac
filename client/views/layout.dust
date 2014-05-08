@@ -1,38 +1,38 @@
-<!doctype html>
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, maximum-scale=1.0">
-    <link rel="stylesheet" href="/stylesheets/app.css">
-    <!--[if IE 7]><link rel="stylesheet" href="stylesheets/font-awesome-ie7.min.css"><![endif]-->
-    <title>{#title}{.}{:else}{settings.appName}{/title}</title>
-</head>
+<!doctype html>{~n}
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->{~n}
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->{~n}
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->{~n}
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->{~n}
+<head>{~n}{~s}{~s}
+    <meta charset="utf-8">{~n}{~s}{~s}
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">{~n}{~s}{~s}
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0">{~n}{~s}{~s}
+    <link rel="stylesheet" href="/stylesheets/app.css">{~n}{~s}{~s}
+    <!--[if IE 7]><link rel="stylesheet" href="stylesheets/font-awesome-ie7.min.css"><![endif]-->{~n}{~s}{~s}
+    <title>{#title}{.}{:else}{settings.appName}{/title}</title>{~n}
+</head>{~n}
 {!
     Don't put anything above this point that might slow down page loading.
     Asynchronous tracking links are ok.
     Synchronous scripts, images, and fonts should go at the end of the page.
 !}
-<body>
+<body>{~n}
 
     {! {>header /} !}
 
-    <div id="main-navigator" class="navigation-view">
-        <div class="navigation-item current">
-            {>"{mainView}" /}
-        </div>
-    </div>
+    <div id="main-navigator" class="navigation-view">{~n}
+        <div class="navigation-item current">{~n}
+            {>"{mainView}" /}{~n}
+        </div>{~n}
+    </div>{~n}
 
     {! {>footer /} !}
 
-    <script src="/javascripts/vendor.js"></script>
-    <script src="/javascripts/app.js"></script>
-    <script>require('initialize')</script>
+    <script src="/javascripts/vendor.js"></script>{~n}
+    <script src="/javascripts/app.js"></script>{~n}
+    <script>require('initialize')</script>{~n}
 
-    <style> .streaming-indicator { display: none; } </style>
+    <style>.streaming-indicator { display: none; }</style>{~n}
 
-</body>
+</body>{~n}
 </html>

@@ -2,7 +2,7 @@ if window?
     dust = window.dust
 else
     dust = require("dustjs-linkedin")
-    if process.env.NODE_ENV is 'development'
+    if process.env.DUST_RETAIN_WHITESPACE
         dust.optimizers.format = (ctx, node)->node
 
 module.exports = dust
@@ -45,17 +45,6 @@ if (require.extensions)
         module.exports.reload = (callback)->
             loadDustFile(filename, callback)
 
-
-mergeContext = (context)->
-    obj = {}
-    cursor = context.stack
-    while cursor.head
-        for key, val of cursor.head
-            obj[key] ?= val
-        cursor = cursor.tail
-    return obj
-
-
 # dust.render('page') triggers require('views/page')
 # usage: {>page mainView=mainView options=options /}
 # {>"{itemView}" model=. tagName="li" />
@@ -94,23 +83,26 @@ dust.onLoad = (name, callback)->
                 return chunk.map((branch)->
                     tagName = view.tagName or 'div'
                     attrString = view.attrString()
-                    branch.write("<#{tagName} #{attrString}>\n")
+                    branch.write("\n<#{tagName} #{attrString}>")
 
                     view.templateContext((err, locals)->
                         if err then return branch.setError(err)
 
-                        # TODO: use the parent's globals instead of {}
+                        # TODO: consider using the parent's globals instead of {}
                         context = dust.makeBase({}).push(locals)
                         branch = view.template(branch, context) unless locals.model?.showSkeletonView
-                        branch.write("\n</#{tagName}>\n")
+                        branch.write("</#{tagName}>")
+                        if process?.env?.NODE_ENV is 'development'
+                            branch.write("<!-- end of \"#{name}\" view -->")
+                        branch.write("\n")
                         branch.end()
                     )
                 )
             catch e
                 return chunk.setError(e)
     else
-        # this appears to be a dust template
-        # fill in the cache so it doesn't try to compile
+        # this appears to be a compiled dust template
+        # fill in the cache so it doesn't try to recompile
         dust.cache[name] = module
     callback()
 

@@ -4,6 +4,6 @@
 You can edit this page at <tt>client/views/home/template.dust</tt>
 </p>
 
-{#models}
-    <p><a href="{prototype.urlRoot}">{prototype.urlRoot}</a></p>
-{/models}
+{#urlRoots}
+    <p><a href="{.}">{.}</a></p>
+{/urlRoots}

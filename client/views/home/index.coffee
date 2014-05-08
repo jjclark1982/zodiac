@@ -13,7 +13,7 @@ module.exports = class HomeView extends BaseView
     template: require("./template")
 
     initialize: (options)->
-        @models = []
+        @urlRoots = []
         for modelName, Model of require("models")
             if Model.prototype.urlRoot
-                @models.push(Model)
+                @urlRoots.push(Model.prototype.urlRoot)

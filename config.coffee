@@ -38,6 +38,9 @@ exports.config =
     autoReload:
       persistent: (process.env.NODE_ENV isnt 'production')
 
+    dust:
+      retainWhitespace: !!process.env.DUST_RETAIN_WHITESPACE
+
     # see documentation at http://www.coffeelint.org/
     coffeelint:
       pattern: /^client\/.*\.coffee$/
