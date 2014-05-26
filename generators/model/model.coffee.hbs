@@ -27,8 +27,8 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
     # # to create Riak secondary indexes
     # index: ->
     #    index = {
-    #        all: 1,
-    #        active: if @get("active") then "1" else "0"
+    #        all: 1
+    #        # active: if @get("active") then "1" else "0" # example of type coersion
     #    }
     #    return index
 
