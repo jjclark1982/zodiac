@@ -95,6 +95,7 @@ based on [Connect](http://www.senchalabs.org/connect/)
 - [jQuery](http://api.jquery.com/) - DOM manipulation and AJAX
 - [Lodash](http://lodash.com/docs) - Functional programming utilities based on [Underscore](http://underscorejs.org/)
 - [Backbone](http://backbonejs.org/) - Data transport modeling and event binding
+- [Backbone.stickit](http://nytimes.github.io/backbone.stickit/) - Two-way reactive data binding
 - [Font Awesome](http://fortawesome.github.com/Font-Awesome/) - Icon font
 
 ### Language Reference

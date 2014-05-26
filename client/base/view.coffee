@@ -114,6 +114,7 @@ module.exports = class BaseView extends Backbone.View
             throw new Error("Tried to render #{@constructor.name} without a DOM")
         @trigger("render:before")
         @$el.addClass("rendering")
+        @unstickit()
         @getInnerHTML((err, html)=>
             if err
                 @$el.addClass("error").attr("data-error", err.message)
@@ -136,6 +137,8 @@ module.exports = class BaseView extends Backbone.View
         @$el.data('viewAttached', true)
 
         @attachSubviews()
+        if @model and @bindings
+            @stickit()
         @trigger("render:after")
         return @
 

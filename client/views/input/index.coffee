@@ -37,8 +37,9 @@ module.exports = class InputView extends BaseView
         if @type is 'link'
             @value = @model.getLink(@field.name)
 
-        if window?
-            @listenTo(@model, "change:#{@field.name}", @modelChanged)
+    hydrate: ->
+        # don't set classes from common events as we expect a superview to handle that
+        return this
 
     attributes: ->
         atts = super(arguments...)
@@ -46,40 +47,6 @@ module.exports = class InputView extends BaseView
             atts["data-name"] = @field.name
         return atts
 
-    events: {
-        "keyup *": "domChanged"
-        "change *": "domChanged"
+    bindings: -> {
+        "[name]": @field.name
     }
-
-    modelChanged: (model, value, options)->
-        @value = value
-        @$input ?= @$("[name='#{@field.name}']")
-        switch @type
-            when 'link'
-                @value = @model.getLink(@field.name)
-            when 'boolean'
-                @$input[0]?.checked = !!@value
-            when 'json'
-                try
-                    @value = JSON.stringify(@value)
-                    @$input.val(@value) unless @$input.val() is @value
-            else
-                @$input.val(@value) unless @$input.val() is @value
-
-    domChanged: _.debounce((event)->
-        $input = $(event.target)
-        switch @type
-            when 'number'
-                value = parseFloat($input.val())
-            when 'boolean'
-                value = $input.is(":checked")
-            when 'json'
-                try
-                    value = JSON.parse($input.val())
-                catch e
-                    @model.trigger('invalid', @model, e)
-                    return
-            else
-                value = $input.val()
-        @model.set(@field.name, value)
-    , 30)
