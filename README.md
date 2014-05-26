@@ -50,7 +50,6 @@ Most server modules should export a singleton. Most client modules should export
 
 - `render:before` - triggered each time a view begins rendering
 - `render:after` - triggered each time a view finishes rendering
-- `hydrate` - triggered on a view once when it has attached to a DOM element after being transmitted and instantiated separately
 - `filter` - triggered on a collection when a its `filterCond` has been updated
 
 ### Directory Organization

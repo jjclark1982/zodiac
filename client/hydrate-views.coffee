@@ -96,8 +96,7 @@ hydrateView = (el, parentView)->
     # recursively hydrate any subviews before reaching them in a higher loop
     parentView?.registerSubview?(view)
     hydrateSubviews(el, view)
-    view.attach()
-    view.trigger("hydrate")
+    view.attach() # will trigger render:after
     if view.alwaysFetchCollection
         view.collection?.fetch()
     window.views ?= {}

@@ -167,10 +167,18 @@ module.exports = class BaseView extends Backbone.View
         @subviews = null
         super(arguments...)
 
-    # Automatically set some classes and data attributes in response to common events
     constructor: ->
+        # The default constructor sets @model and @collection and runs @initialize()
         super(arguments...)
-        if window? and @model
+
+        if window?
+            @hydrate?()
+
+    # Automatically set some classes and data attributes in response to common events.
+    # Subclasses may opt out of this by redefining hydrate() without a call to super()
+    hydrate: ->
+        @trigger("hydrate")
+        if @model
             @listenTo(@model, 'request', (object, xhr, options)->
                 if object is @model
                     @$el.addClass('loading')
@@ -198,7 +206,8 @@ module.exports = class BaseView extends Backbone.View
             #         @remove()
             #     )
             # )
-        if window? and @collection
+        
+        if @collection
             @listenTo(@collection, 'request', (object, xhr, options)->
                 if object is @collection
                     @$el.addClass('loading')
