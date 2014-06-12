@@ -80,11 +80,15 @@ dust.onLoad = (name, callback)->
             try
                 view = new viewCtor(options)
                 superview?.registerSubview?(view)
-                return chunk.map((branch)->
-                    tagName = view.tagName or 'div'
-                    attrString = view.attrString()
-                    branch.write("\n<#{tagName} #{attrString}>")
+            catch e
+                return chunk.setError(e)
 
+            return chunk.map((branch)->
+                tagName = view.tagName or 'div'
+                attrString = view.attrString()
+                branch.write("\n<#{tagName} #{attrString}>")
+
+                try
                     view.templateContext((err, locals)->
                         if err then return branch.setError(err)
 
@@ -97,9 +101,9 @@ dust.onLoad = (name, callback)->
                         branch.write("\n")
                         branch.end()
                     )
-                )
-            catch e
-                return chunk.setError(e)
+                catch e
+                    branch.setError(e)
+            )
     else
         # this appears to be a compiled dust template
         # fill in the cache so it doesn't try to recompile

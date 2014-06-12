@@ -57,10 +57,10 @@ responsePrototype.render = (view, options={}, callback)->
             return res.end() unless err
             
             if res.headersSent
-                message = 'Error'
+                message = err.toString()
                 if app.get('env') is 'development'
                     message = err.stack
-                res.end("[Template #{message}]")
+                res.end("<pre>[Template #{message}]</pre>")
             else
                 next(err)
 
