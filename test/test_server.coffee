@@ -1,12 +1,26 @@
-chai = require 'chai'
+chai = require("chai")
 expect = chai.expect
-fs = require 'fs'
-path = require 'path'
-coffeelint = require 'coffeelint'
+fs = require ("fs")
+path = require ("path")
+coffeelint = require("coffeelint")
 lintConfig = require("../config.coffee").config.plugins.coffeelint.options
 
 serverDir = path.join(__dirname, '..', 'server')
 serverFiles = fs.readdirSync(serverDir)
+
+describe('Database', ->
+    it('should connect without errors', (done)->
+        db = require('../server/db')
+        db.ping((err, isAlive)->
+            if err
+                return done(err)
+            if !isAlive
+                return done(new Error("Unable to establish connection to riak server"  + process.env.RIAK_SERVERS))
+            else
+                return done()
+        )
+    )
+)
 
 describe('Server', ->
     for file in serverFiles when file.match(/\.coffee$/)
