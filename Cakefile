@@ -28,6 +28,9 @@ shellScript = (source = '')-> ->
         stdio: ['pipe', process.stdout, process.stderr]
     })
     shell.stdin.end(source)
+    shell.on("exit", (code, signal)->
+        process.exit(code)
+    )
 
 task 'console', 'Open an interactive prompt', ->
     moduleName = (filename)->
@@ -64,7 +67,7 @@ task 'develop', 'Run server with auto-reloading', shellScript """
 """
 
 task 'test', 'Run server-side tests', shellScript """
-    mocha --compilers coffee:coffee-script --globals _,Backbone test/test_server.coffee
+    mocha --compilers coffee:coffee-script/register --globals _,Backbone test/test_server.coffee
     # open 'http://localhost:#{config.server.port}/test'
 """
 
