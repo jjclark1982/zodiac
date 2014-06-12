@@ -2,7 +2,8 @@
 # ### [Cosmo's Middleware Factory](http://www.youtube.com/watch?v=lIPan-rEQJA)
 
 # *This file instantiates a [riak](http://basho.com/riak/) db and then builds a middleware stack for
-# [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) operations that might be commonly performed on it.*
+# [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)
+# operations that might be commonly performed on it.*
 # ***
 
 express = require('express')
@@ -32,9 +33,9 @@ saveModel = (req, res, next, model, options={})->
         sendModel(req, res, next, model)
 
     , (error)->
-            if options.statusCode
-                res.status(options.statusCode)
-            next(error)
+        if options.statusCode
+            res.status(options.statusCode)
+        next(error)
     )
 
 sendModel = (req, res, next, model)->
