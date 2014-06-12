@@ -26,38 +26,38 @@ processAllTasks = ()->
 
 processTask = (key, callback)->
     db.get("tasks", key, {}, (err, task, meta)->
+        if err
+            return callback(err)
+        if task.status isnt "created"
+            return callback()
+
+        try
+            handler = require("./task-handlers/" + task.type)
+        catch e
+            return callback("no handler for #{task.type}: " + e)
+
+
+        task.status = "working"
+        options = {
+            vclock: task.vclock,
+            index: {status: task.status}
+        }
+        console.info("Starting task: #{task.name}")
+        db.save("tasks", key, task, options, reportError)
+
+        handler(task, (err)->
             if err
-                return callback(err)
-            if task.status isnt "created"
-                return callback()
+                task.status = "failed"
+                task.error = err
+            else
+                task.status = "finished"
 
-            try
-                handler = require("./task-handlers/" + task.type)
-            catch e
-                return callback("no handler for #{task.type}: " + e)
-
-
-            task.status = "working"
-            options = {
-                vclock: task.vclock,
-                index: {status: task.status}
-            }
-            console.info("Starting task: #{task.name}")
+            options.index.status = task.status
+            console.info("#{task.status}: #{task.name}")
             db.save("tasks", key, task, options, reportError)
-
-            handler(task, (err)->
-                if err
-                    task.status = "failed"
-                    task.error = err
-                else
-                    task.status = "finished"
-
-                options.index.status = task.status
-                console.info("#{task.status}: #{task.name}")
-                db.save("tasks", key, task, options, reportError)
-            )
-
         )
+
+    )
 
 startWorker = (interval=10)->
     setInterval(processAllTasks, interval * 1000)
