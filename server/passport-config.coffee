@@ -143,3 +143,4 @@ middleware.get('/logout', (req, res, next)->
 )
 
 module.exports = middleware
+module.exports.hash = hash

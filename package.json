@@ -27,22 +27,23 @@
     "async": "~0.2.9"
   },
   "devDependencies": {
-    "brunch": "~1.7.2",
-    "coffee-script-brunch": ">= 1.0 < 1.8",
-    "coffeelint-brunch": ">= 1.4 < 1.8",
-    "javascript-brunch": ">= 1.0 < 1.8",
-    "uglify-js-brunch": ">= 1.0 < 1.8",
-    "stylus-brunch": ">= 1.0 < 1.8",
-    "css-brunch": ">= 1.0 < 1.8",
-    "clean-css-brunch": ">= 1.0 < 1.8",
     "auto-reload-brunch": ">= 1.5 < 1.8",
-    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
     "bower": "~1.2.3",
-    "chokidar": "~0.6.3",
+    "brunch": "~1.7.2",
     "chai": "~1.7.2",
-    "mocha": "~1.12.0",
+    "chokidar": "~0.6.3",
+    "clean-css-brunch": ">= 1.0 < 1.8",
+    "coffee-script-brunch": ">= 1.0 < 1.8",
     "coffeelint": "~0.5.7",
+    "coffeelint-brunch": ">= 1.4 < 1.8",
+    "css-brunch": ">= 1.0 < 1.8",
+    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
+    "groc": "~0.6.1",
+    "javascript-brunch": ">= 1.0 < 1.8",
+    "mocha": "~1.12.0",
+    "prompt": "^0.2.13",
     "scaffolt": "~0.4.0",
-    "groc": "~0.6.1"
+    "stylus-brunch": ">= 1.0 < 1.8",
+    "uglify-js-brunch": ">= 1.0 < 1.8"
   }
 }
