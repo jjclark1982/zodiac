@@ -19,6 +19,7 @@ else
         continue if filename is 'index.coffee'
 
         modelName = filename.replace(/\..*$/, '')
+        continue unless filename # ignore dotfiles
         models[modelName] = require("models/"+modelName)
 
 module.exports = models
