@@ -11,17 +11,34 @@ module.exports = class RiakStore extends express.session.Store
         db.saveBucket(@bucket, bucketOptions, (err)=>
             if err
                 @emit("disconnect")
-                throw err
+                @checkConnection()
         )
+        process.nextTick(=>
+            @emit("disconnect")
+            @checkConnection()
+        , 1)
         return this
 
+    checkConnection: =>
+        db.ping((err, isAlive)=>
+            if isAlive
+                @emit("connect")
+            else
+                @emit("disconnect")
+                setTimeout(@checkConnection, 30*1000)
+        )
+
     get: (sid, callback)->
-        db.get(@bucket, sid, (err, session, meta)->
+        db.get(@bucket, sid, (err, session, meta)=>
             if err
                 if err.statusCode is 404
                     return callback() # no item found - ok to create one
                 else
-                    return callback(err)
+                    @emit("disconnect")
+                    @checkConnection()
+                    e = new Error("Unable to load session: "+err.message)
+                    e.statusCode = 502
+                    return callback(e)
             return callback(null, session)
             # TODO: resolve links
         )

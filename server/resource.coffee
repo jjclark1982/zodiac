@@ -103,6 +103,7 @@ sendList = (req, res, next, collection)->
                         collection.remove(model, {silent: true})
                         callback()
                     else
+                        fetchErr.statusCode ?= 502
                         callback(fetchErr)
                 )
             , (err, models)->
@@ -172,6 +173,7 @@ module.exports = (moduleOptions = {})->
                 req.model = null
                 next()
             else
+                err.statusCode ?= 502
                 next(err)
         )
     )
@@ -187,7 +189,10 @@ module.exports = (moduleOptions = {})->
 
         collection.fetch().then(->
             sendList(req, res, next, collection)
-        , next)
+        , (err)->
+            err.statusCode ?= 502
+            next(err)
+        )
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
@@ -218,6 +223,7 @@ module.exports = (moduleOptions = {})->
                 if err.statusCode is 404
                     saveModel(req, res, next, model, {create: true})
                 else
+                    err.statusCode ?= 502
                     next(err)
             )
     )
@@ -301,6 +307,7 @@ module.exports = (moduleOptions = {})->
                     req.linkTarget = null
                     next()
                 else
+                    err.statusCode ?= 502
                     next(err)
             )
     )

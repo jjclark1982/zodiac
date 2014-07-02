@@ -3,7 +3,7 @@ riak = require("riak-js")
 unless process.env.RIAK_SERVERS
     console.error("Cannot connect to database: RIAK_SERVERS environment variable must be set")
 
-servers = process.env.RIAK_SERVERS.split(/,/)
+servers = (process.env.RIAK_SERVERS or '').split(/,/)
 
 if servers.length > 1
     riakOptions = {
@@ -26,7 +26,7 @@ db = riak.getClient(riakOptions)
 
 db.ping((err, isAlive)->
     if !isAlive
-        throw new Error("Unable to establish connection to riak server "+servers)
+        console.error("Unable to establish connection to riak server "+servers)
 )
 
 module.exports = db

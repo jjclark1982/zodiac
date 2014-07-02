@@ -119,7 +119,7 @@ middleware.use(middleware.router)
 # remap `/users/me` to the logged-in user, if any
 middleware.use((req, res, next)->
     if !req.url.indexOf('/users/me') # starts with
-        if req.session.passport.user
+        if req.session?.passport?.user
             req.url = req.url.replace(/^\/users\/me($|\/|\?)/, '/users/'+req.session.passport.user+'$1')
         else
             return next(401)
