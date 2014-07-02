@@ -9,16 +9,14 @@ fsPath = require("path")
 # Load [DUST-HELPERS.COFFEE](../client/dust-helpers.html): custom-written helpers for Dust templating 
 dust = require("../client/dust-helpers")
 
-# Dust works best with plain objects. This function takes in a series of arguments and returns a flattened dust 
-# `context` that contains a straightforward key: value store of these arguments.
-makeContext = (args...)->
-    context = dust.makeBase({})
-    for arg in args when arg
-        obj = {}
-        for key, val of arg
-            obj[key] = val
-        context = context.push(obj)
-    return context
+# Dust works best with plain JS objects. This function merges one ore more items
+# of any kind into a flat object, with later values overwriting earlier ones.
+merge = (args...)->
+    result = {}
+    for obj in args
+        for key, val of obj
+            result[key] = val
+    return result
 
 # During development, we want to reload templates that have changed on disk.
 # Emptying the dust cache will cause them to be reloaded.
@@ -72,7 +70,10 @@ responsePrototype.render = (view, options={}, callback)->
         options.mainView = view
         view = 'layout'
 
-    context = makeContext(app.locals, res.locals, options, {})
+    # make app and res locals available globally
+    # so that all subviews can access the site name, the current user, etc
+    globals = merge(app.locals, res.locals)
+    context = dust.makeBase(globals).push(options).push({})
     # TODO: eliminate the vestigal {} at the end of context
 
     stream = dust.stream(view, context)

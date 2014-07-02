@@ -50,16 +50,16 @@ if (require.extensions)
 # {>"{itemView}" model=. tagName="li" />
 dust.onLoad = (name, callback)->
     try
-        module = require("views/"+name)
+        loadedModule = require("views/"+name)
     catch e
         try
-            module = require(name)
+            loadedModule = require(name)
         catch e2
-            return callback(e)
+            return callback(e2)
 
-    if module.prototype?.registerSubview
+    if loadedModule.prototype?.registerSubview
         # this appears to be a backbone view
-        viewCtor = module
+        viewCtor = loadedModule
         # fill in the cache so it doesn't try to compile
         dust.cache[name] = (chunk, context)->
             superview = null
@@ -92,9 +92,9 @@ dust.onLoad = (name, callback)->
                     view.templateContext((err, locals)->
                         if err then return branch.setError(err)
 
-                        # TODO: consider using the parent's globals instead of {}
-                        context = dust.makeBase({}).push(locals)
-                        branch = view.template(branch, context) unless locals.model?.showSkeletonView
+                        # create a context with the parent's globals and this view's locals
+                        childContext = dust.makeBase(context.global).push(locals)
+                        branch = view.template(branch, childContext) unless locals.model?.showSkeletonView
                         branch.write("</#{tagName}>")
                         if process?.env?.NODE_ENV is 'development'
                             branch.write("<!-- end of \"#{name}\" view -->")
@@ -107,7 +107,7 @@ dust.onLoad = (name, callback)->
     else
         # this appears to be a compiled dust template
         # fill in the cache so it doesn't try to recompile
-        dust.cache[name] = module
+        dust.cache[name] = loadedModule
     callback()
 
 dust.helpers or= {}
