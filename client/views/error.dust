@@ -1,6 +1,6 @@
 {#error}
     <div style="margin: 2em">
-        <h2>HTTP Status {status}: {name}</h2>
+        <h2>HTTP Status {statusCode}: {name}</h2>
         {#stack}
             <p style="white-space:pre-wrap;">{.}</p>
         {:else}

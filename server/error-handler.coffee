@@ -21,14 +21,18 @@ module.exports = (err, req, res, next)->
     # if we have gotten to the error handler without a numeric status, assume 500 Server Error
     # TODO: use err.statusCode here and everywhere else
     if res.statusCode >= 400
-        err.status = res.statusCode
-    err.status ?= err.statusCode or 500
-    err.name = http.STATUS_CODES[err.status] or 'unknown'
+        statusCode = res.statusCode
 
-    if err.status >= 400
+    statusCode ?= err.statusCode
+    statusCode ?= err.status
+    statusCode ?= 500
+    res.statusCode = statusCode
+
+    err.statusCode = statusCode
+    err.name = http.STATUS_CODES[err.statusCode] or 'unknown'
+
+    if err.statusCode >= 400
         err.message or= "cannot #{req.method} #{req.path}"
-
-    res.statusCode = err.status
 
     if req.app.get('env') is 'production'
         err.stack = null
@@ -38,7 +42,7 @@ module.exports = (err, req, res, next)->
         json: ->
             try
                 errJSON = {
-                    status: err.status
+                    statusCode: err.statusCode
                     name: err.name
                     message: err.message
                 }
@@ -47,7 +51,7 @@ module.exports = (err, req, res, next)->
             catch e
                 res.end(err.message)
         html: ->
-            res.render('error', {title: "#{err.status} #{err.name}", error: err})
+            res.render('error', {title: "#{statusCode} #{err.name}", error: err})
         default: ->
             res.end(err.message)
     })
