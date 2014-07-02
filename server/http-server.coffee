@@ -68,7 +68,9 @@ if process.env.NODE_ENV is 'development'
         expressApp = require("./express-app")
 
     watcher = chokidar.watch([__dirname, __dirname+"/../client"])
-    watcher.on("all", _.debounce(reloadApp, 100))
+    setTimeout(->
+        watcher.on("all", _.throttle(reloadApp, 1000))
+    , 5000)
 
 
 # Export the server object
