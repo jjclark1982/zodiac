@@ -29,16 +29,25 @@ module.exports = class RiakStore extends express.session.Store
         )
 
     get: (sid, callback)->
-        db.get(@bucket, sid, (err, session, meta)=>
-            if err
-                if err.statusCode is 404
-                    return callback() # no item found - ok to create one
-                else
+        db.get(@bucket, sid, (dbErr, session, meta)=>
+            if dbErr
+                if dbErr.statusCode is 404
+                     # no item found - ok to create one
+                    return callback()
+
+                else if dbErr.code is 'ETIMEDOUT' or dbErr.syscall is 'connect'
+                    # unable to connect to database
                     @emit("disconnect")
                     @checkConnection()
-                    e = new Error("Unable to load session: "+err.message)
-                    e.statusCode = 502
+                    e = new Error("Unable to load session: "+dbErr.message)
+                    e.statusCode = 504
                     return callback(e)
+
+                else
+                    # some other error
+                    dbErr.statusCode ?= 502
+                    return callback(dbErr)
+                    
             return callback(null, session)
             # TODO: resolve links
         )

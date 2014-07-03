@@ -12,6 +12,27 @@ async = require('async')
 # define the server-side global Backbone that syncs to Riak
 require("./backbone-sync-riak")
 
+gatewayError = (dbErr)->
+    if dbErr.code is 'ETIMEDOUT' or dbErr.syscall is 'connect'
+        statusCode = 504
+        name = "GatewayError"
+        message = "Unable to connect to database"
+    else if dbErr.statusCode is 500 or !dbErr.statusCode?
+        statusCode = 502
+        name = "DatabaseError"
+        message = dbErr.message
+    else
+        # this error already has useful information such as 401, 403, etc
+        return dbErr
+
+    err = new Error(message)
+    err.statusCode = statusCode
+    if name
+        err.name = name
+
+    err.stack = err.stack + "From previous " + dbErr.stack
+    return err
+
 saveModel = (req, res, next, model, options={})->
     vclock = model.attributes._vclock or model?.vclock
     delete model.attributes._vclock
@@ -103,8 +124,7 @@ sendList = (req, res, next, collection)->
                         collection.remove(model, {silent: true})
                         callback()
                     else
-                        fetchErr.statusCode ?= 502
-                        callback(fetchErr)
+                        callback(gatewayError(fetchErr))
                 )
             , (err, models)->
                 if err then return next(err)
@@ -172,9 +192,8 @@ module.exports = (moduleOptions = {})->
                 # This model doesn't exist yet. Let method handlers decide what to do.
                 req.model = null
                 next()
-            else
-                err.statusCode ?= 502
-                next(err)
+            else 
+                next(gatewayError(err))
         )
     )
 
@@ -190,8 +209,7 @@ module.exports = (moduleOptions = {})->
         collection.fetch().then(->
             sendList(req, res, next, collection)
         , (err)->
-            err.statusCode ?= 502
-            next(err)
+            next(gatewayError(err))
         )
     )
 
@@ -223,8 +241,7 @@ module.exports = (moduleOptions = {})->
                 if err.statusCode is 404
                     saveModel(req, res, next, model, {create: true})
                 else
-                    err.statusCode ?= 502
-                    next(err)
+                    next(gatewayError(err))
             )
     )
 
@@ -307,8 +324,7 @@ module.exports = (moduleOptions = {})->
                     req.linkTarget = null
                     next()
                 else
-                    err.statusCode ?= 502
-                    next(err)
+                    next(gatewayError(err))
             )
     )
 
