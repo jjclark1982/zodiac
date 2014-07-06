@@ -47,6 +47,18 @@ module.exports = class InputView extends BaseView
             atts["data-name"] = @field.name
         return atts
 
-    bindings: -> {
-        "[name]": @field.name
-    }
+    bindings: ->
+        if @type is 'json'
+            return {
+                "[name]": {
+                    observe: @field.name
+                    onGet: (data)->
+                        JSON.stringify(data)
+                    onSet: (input)->
+                        JSON.parse(input) #throws errors
+                }
+            }
+        else
+            return {
+                "[name]": @field.name
+            }
