@@ -12,27 +12,6 @@ async = require('async')
 # define the server-side global Backbone that syncs to Riak
 require("./backbone-sync-riak")
 
-gatewayError = (dbErr)->
-    if dbErr.code is 'ETIMEDOUT' or dbErr.syscall is 'connect'
-        statusCode = 504
-        name = "GatewayError"
-        message = "Unable to connect to database"
-    else if dbErr.statusCode is 500 or !dbErr.statusCode?
-        statusCode = 502
-        name = "DatabaseError"
-        message = dbErr.message
-    else
-        # this error already has useful information such as 401, 403, etc
-        return dbErr
-
-    err = new Error(message)
-    err.statusCode = statusCode
-    if name
-        err.name = name
-
-    err.stack = err.stack + "From previous " + dbErr.stack
-    return err
-
 saveModel = (req, res, next, model, options={})->
     vclock = model.attributes._vclock or model?.vclock
     delete model.attributes._vclock
@@ -124,7 +103,7 @@ sendList = (req, res, next, collection)->
                         collection.remove(model, {silent: true})
                         callback()
                     else
-                        callback(gatewayError(fetchErr))
+                        callback(fetchErr)
                 )
             , (err, models)->
                 if err then return next(err)
@@ -193,7 +172,7 @@ module.exports = (moduleOptions = {})->
                 req.model = null
                 next()
             else 
-                next(gatewayError(err))
+                next(err)
         )
     )
 
@@ -209,7 +188,7 @@ module.exports = (moduleOptions = {})->
         collection.fetch().then(->
             sendList(req, res, next, collection)
         , (err)->
-            next(gatewayError(err))
+            next(err)
         )
     )
 
@@ -241,7 +220,7 @@ module.exports = (moduleOptions = {})->
                 if err.statusCode is 404
                     saveModel(req, res, next, model, {create: true})
                 else
-                    next(gatewayError(err))
+                    next(err)
             )
     )
 
@@ -324,7 +303,7 @@ module.exports = (moduleOptions = {})->
                     req.linkTarget = null
                     next()
                 else
-                    next(gatewayError(err))
+                    next(err)
             )
     )
 

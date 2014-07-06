@@ -1,4 +1,5 @@
 db = require("./db")
+gatewayError = require("./gateway-error")
 global._ = require('lodash')
 global.Backbone = require('backbone')
 Promise = require('bluebird')
@@ -24,7 +25,7 @@ Backbone.sync = (method, model={}, options={})->
             throw new Error("cannot #{method} a model that has no bucket defined")
 
         callback = (err, object={}, meta={})->
-            if err then return reject(err)
+            if err then return reject(gatewayError(err))
 
             # make sure the id gets filled in if it was provided by riak
             object[idAttribute] = meta.key
@@ -71,7 +72,7 @@ Backbone.sync = (method, model={}, options={})->
                     if options.streamAllKeys
                         items = []
                         db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
-                            if err then return reject(err)
+                            if err then return reject(gatewayError(err))
                             resolve(items)
                         ).on('keys', (keys=[])->
                             for key in keys
@@ -81,7 +82,7 @@ Backbone.sync = (method, model={}, options={})->
                         ).start()
                     else
                         db.query(bucket, query, options, (err, keys=[], meta)->
-                            if err then return reject(err)
+                            if err then return reject(gatewayError(err))
                             items = []
                             for key in keys
                                 item = {}
