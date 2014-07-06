@@ -67,9 +67,24 @@ Backbone.sync = (method, model={}, options={})->
                 else if model instanceof Backbone.Collection
                     collection = model
                     # assume the default query if none is provided, but do not redirect to it
-                    query = collection.query or {all: '1'}
+                    query = options.query
+                    fullOrder = query.order or idAttribute
+                    orderParts = fullOrder.split(' ') # TODO: support multiple keys with comma
+                    [sortKey, sortDirection] = orderParts
+                    delete query.order
+                    if Object.keys(query).length is 0
+                        query.all = '1'
 
-                    if options.streamAllKeys
+                    if true
+                        db.mapreduce
+                        .add(bucket) # TODO: use 2i
+                        .map('Riak.mapValuesJson')
+                        .reduce(sort, {by: sortKey, order: sortDirection})
+                        .run((err, values=[], meta)->
+                            if err then return reject(gatewayError(err))
+                            resolve(values)
+                        )
+                    else if options.streamAllKeys
                         items = []
                         db.keys(bucket, {keys: 'stream'}, (err, keys, meta)->
                             if err then return reject(gatewayError(err))
@@ -104,3 +119,13 @@ Backbone.sync = (method, model={}, options={})->
     return promise
 
 module.exports = Backbone.sync
+
+sort = (values, arg) ->
+    field = arg?.by
+    reverse = arg?.order is 'desc'
+    values.sort((a, b)->
+        if reverse then [a,b] = [b,a]
+        if a?[field] < b?[field] then -1
+        else if a?[field] is b?[field] then 0
+        else if a?[field] > b?[field] then 1
+    )
