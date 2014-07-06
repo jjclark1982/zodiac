@@ -38,11 +38,9 @@ module.exports = class TableView extends BaseView
 
     firstSyncFinished: (object, xhr, options = {})->
         return unless object is @collection
-        @render()
         for cid, subview of @subviews
             # fill in the columns for each row so we don't have to serialize them more than once
             subview.columns = @columns
-            subview.render() #TODO: make row-view respond to change events so this can go
             subview.$el.attr("data-model-cid", subview.model.cid)
         @listenTo(@collection, "sort", @orderRows)
 
