@@ -109,7 +109,15 @@ BaseModel.loadFromUrl = (url, options={})->
     @_modelsByUrl ?= {}
     model = @_modelsByUrl[url]
     unless model
-        model = new Constructor()
+        atts = {}
+        # guess the id if it fits the urlRoot pattern
+        # this isn't very RESTful, but it really helps with de-duplication
+        if @prototype.urlRoot
+            urlRootRE = new RegExp("^" + @prototype.urlRoot + "/")
+            if url.match(urlRootRE)
+                id = url.replace(urlRootRE, '')
+                atts[@prototype.idAttribute] = id
+        model = new Constructor(atts)
         model.url = url
         @_modelsByUrl[url] = model
         model.fetch(options).then(=>

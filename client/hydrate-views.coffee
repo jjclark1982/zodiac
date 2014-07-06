@@ -35,10 +35,7 @@ fetchModel = (el, ModelCtor)->
         if collection
             model = collection?.detect((m)->_.result(m,'url') is modelUrl)
             unless model
-                atts = {}
-                id = modelUrl.replace(model.urlRoot + '/', '')
-                atts[model.idAttribute] = id
-                model = new ModelCtor(atts)
+                model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
                 model.needsData = true
 
                 # don't fire an 'add' event because the collection view is already populated
