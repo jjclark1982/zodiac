@@ -14,44 +14,6 @@ if CommonDustjsHelpers
 
 module.exports = dust
 
-# Publish a Node.js require() handler for .dust files
-if (require.extensions)
-    setDustAlias = (filename)->
-        if process.env.NODE_PATH
-            alias = filename.replace(process.cwd()+'/'+process.env.NODE_PATH+'/', '')
-            alias = alias.replace(/^views\//,'')
-            alias = alias.replace(/\.dust$/,'')
-            dust.cache[alias] = dust.cache[filename]
-
-    loadDustFile = (filename, callback)->
-        fs = require('fs')
-        if callback
-            # async version
-            fs.readFile(filename, 'utf8', (err, text)->
-                if err then return callback(err)
-                source = dust.compile(text.trim(), filename)
-                tmpl = dust.loadSource(source, filename)
-                setDustAlias(filename)
-                callback(null, tmpl)
-            )
-        else
-            # sync version
-            text = fs.readFileSync(filename, 'utf8')
-            source = dust.compile(text.trim(), filename)
-            tmpl = dust.loadSource(source, filename)
-            setDustAlias(filename)
-            return tmpl
-
-    require.extensions[".dust"] = (module, filename)->
-        tmpl = loadDustFile(filename)
-        module.exports = tmpl
-        module.exports.render = (context, callback)->
-            dust.render(filename, context, callback)
-        module.exports.stream = (context)->
-            dust.stream(filename, context, callback)
-        module.exports.reload = (callback)->
-            loadDustFile(filename, callback)
-
 # dust.render('page') triggers require('views/page')
 # usage: {>page mainView=mainView options=options /}
 # {>"{itemView}" model=. tagName="li" />
