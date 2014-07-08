@@ -185,7 +185,7 @@ module.exports = (moduleOptions = {})->
         if Object.keys(req.query).length > 0
             collection.query = req.query
 
-        collection.fetch().then(->
+        collection.fetch({query: req.query}).then(->
             sendList(req, res, next, collection)
         , (err)->
             next(err)

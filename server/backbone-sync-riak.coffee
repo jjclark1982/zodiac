@@ -75,9 +75,11 @@ Backbone.sync = (method, model={}, options={})->
                     if Object.keys(query).length is 0
                         query.all = '1'
 
-                    if true
+                    if process.env.USE_MAP_REDUCE
                         db.mapreduce
-                        .add(bucket) # TODO: use 2i
+                        .add(bucket)
+                        # todo: specify actual index somehow
+                        # .add({bucket: bucket, index: 'all_bin', key: '1'})
                         .map('Riak.mapValuesJson')
                         .reduce(sort, {by: sortKey, order: sortDirection})
                         .run((err, values=[], meta)->
@@ -129,3 +131,72 @@ sort = (values, arg) ->
         else if a?[field] is b?[field] then 0
         else if a?[field] > b?[field] then 1
     )
+
+
+###
+
+
+function returnPosts(postKeys, req, res){
+    
+  //init empty inputs array
+  var inputs = [];
+    //postKeys is a list of riak keys. loop over them
+    for (var i=0;i < postKeys.length;i++){
+      //bk (bucket/key) is created as it's own array of two
+      //strings ["bucket","key"] (i use a "posts" bucket in my app)
+      var bk = ["posts", postKeys[i].toString() ];
+      //bk array is pushed onto the inputs array
+      inputs.push(bk);
+    }
+ 
+  //construct map function 
+  var map = function(v, keydata, args) {
+    //v is the full value of data kept in riak
+    //your data plus meta data
+    //check riak wiki m/r page for an example of what 'v' looks like
+    if (v.values) {
+      //init an empty return array
+      var ret = [];
+      //set 'o' (for object) equal to the data portion
+      //Riak.mapValuesJson is an internal riak js func
+      o = Riak.mapValuesJson(v)[0]; 
+      //interesting part for the sorting. 
+      //pull the last modified datestamp string out of the meta data
+      //and turn it into an int     
+      o.lastModifiedParsed = Date.parse(v["values"][0]["metadata"]["X-Riak-Last-Modified"]);
+      //i also return the key just for good measure which i use elsewhere in my app
+      o.key = v["key"];
+      //push the 'o' object into the ret array
+      ret.push(o);
+      return ret;
+    } else { //if no value return an empty array
+      return [];
+    }
+  };
+ 
+  //construct reduce function   
+  var reduceDescending = function ( v , args ) {
+    //by default sort() sorts elements ascending, alpha.
+    //we want numeric sort so we provide a numeric sort function
+    //there is a riak builtin func but it expects an array of numeric values, 
+    //not the numeric nested in an object 
+    //here I return in DESC order, if you want ASC order rewrite return to 'a-b' 
+    v.sort ( function(a,b) { return b['lastModifiedParsed'] - a['lastModifiedParsed'] } );
+    return v
+  };
+ 
+  //riak is my connection to riak via nodejs    
+  riak
+    //call map phase passing in map function
+    .map(map)
+    //call reduce phase passing in reduce function
+    .reduce(reduceDescending)
+    //execute the m/r with the array of keys created earlier
+    //you could simply m/r over an entire bucket by replacing 'inputs' with "bucket_name"
+    //ymmv depending on total keys in your system, not recommended  
+    .run(inputs)(function(response) {
+      res.simpleJSON(200, response );
+    });
+    
+}
+###
