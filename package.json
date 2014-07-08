@@ -12,19 +12,20 @@
     "npm": "1.2.x"
   },
   "dependencies": {
-    "coffee-script": "~1.7.1",
-    "express": "3.3.5",
-    "spdy": "~1.10.5",
-    "dustjs-linkedin": "~2.3.4",
-    "lodash": "~1.3.1",
+    "async": "~0.2.9",
     "backbone": "~1.1.0",
-    "riak-js": "~0.10.2",
+    "bluebird": "~1.0.5",
+    "coffee-script": "~1.7.1",
+    "common-dustjs-helpers": "^0.1.0",
+    "dustjs-linkedin": "~2.3.4",
+    "express": "3.3.5",
+    "highland": "~1.17.0",
+    "lodash": "~1.3.1",
     "passport": "~0.1.17",
     "passport-local": "~0.1.6",
     "request": "~2.30.0",
-    "bluebird": "~1.0.5",
-    "highland": "~1.17.0",
-    "async": "~0.2.9"
+    "riak-js": "~0.10.2",
+    "spdy": "~1.10.5"
   },
   "devDependencies": {
     "auto-reload-brunch": ">= 1.5 < 1.8",
@@ -37,7 +38,7 @@
     "coffeelint": "~0.5.7",
     "coffeelint-brunch": ">= 1.4 < 1.8",
     "css-brunch": ">= 1.0 < 1.8",
-    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git",
+    "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git#v2.3.5",
     "groc": "~0.6.1",
     "javascript-brunch": ">= 1.0 < 1.8",
     "mocha": "~1.12.0",

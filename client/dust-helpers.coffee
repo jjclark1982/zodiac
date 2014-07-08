@@ -1,9 +1,16 @@
 if window?
     dust = window.dust
+    CommonDustjsHelpers = window.CommonDustjsHelpers
 else
     dust = require("dustjs-linkedin")
+    try
+        CommonDustjsHelpers = require("common-dustjs-helpers").CommonDustjsHelpers
     if process.env.DUST_RETAIN_WHITESPACE
         dust.optimizers.format = (ctx, node)->node
+
+if CommonDustjsHelpers
+    commonDustjsHelpers = new CommonDustjsHelpers()
+    commonDustjsHelpers.export_helpers_to(dust)
 
 module.exports = dust
 
