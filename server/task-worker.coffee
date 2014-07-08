@@ -3,7 +3,8 @@ require('coffee-script/register')
 
 db = require("./db")
 async = require("async")
-Task = require("models/task")
+ServerTask = require("models/server-task")
+bucket = ServerTask.prototype.bucket
 
 reportError = (err,obj, meta)->
     if err
@@ -14,7 +15,7 @@ processAllTasks = ()->
     # return if processing
     processing = true
     console.info("Checking for new tasks")
-    db.query('tasks', {status: 'created'}, (err, keys, meta)->
+    db.query(bucket, {status: 'created'}, (err, keys, meta)->
         if err
             console.log("Error reading task:", err)
         async.each(keys, processTask, (err)->
@@ -25,7 +26,7 @@ processAllTasks = ()->
     )
 
 processTask = (key, callback)->
-    db.get("tasks", key, {}, (err, task, meta)->
+    db.get(bucket, key, {}, (err, task, meta)->
         if err
             return callback(err)
         if task.status isnt "created"
@@ -54,7 +55,7 @@ processTask = (key, callback)->
 
             options.index.status = task.status
             console.info("#{task.status}: #{task.name}")
-            db.save("tasks", key, task, options, reportError)
+            db.save(bucket, key, task, options, reportError)
         )
 
     )

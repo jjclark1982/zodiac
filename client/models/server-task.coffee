@@ -1,10 +1,10 @@
 BaseModel = require("base/model")
 
-module.exports = class Task extends BaseModel
+module.exports = class ServerTask extends BaseModel
     # A model that provides its requirePath can be re-instantiated from its url after serialization
     requirePath: module.id
-    urlRoot: "/tasks"
-    bucket: "tasks"
+    urlRoot: "/server-tasks"
+    bucket: "server-tasks"
 
     # The router consults a model's defaultView and defaultListView to present it
     defaultView: "form"
