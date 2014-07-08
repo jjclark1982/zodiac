@@ -73,13 +73,21 @@ app.use(app.router)
 app.use((req, res, next)->
     next(404)
 )
+# app.use((err, req, res, next)->
+#     if err is 401 or err.status is 401 or req.statusCode is 401
+#         # redirect to login page
+# )
 app.use(errorHandler)
 
 # ###### Global routings
 
-app.get('/', (req, res, next)->
-    res.render('home')
-)
+# mount all PageViews at their defined mountPoint
+# for example, the 'home' page mounts at '/'
+for pageName, PageView of require("pages") then do (pageName, PageView)->
+    mountPoint = PageView.prototype?.mountPoint or '/'+pageName
+    app.get(mountPoint, (req, res, next)->
+        res.render("pages/"+pageName)
+    )
 
 # MAP '/info' to information about the setup for testing
 app.get('/info', (req, res, next)->

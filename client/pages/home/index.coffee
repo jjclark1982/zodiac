@@ -9,6 +9,8 @@ module.exports = class HomeView extends BaseView
 
     title: "New Zodiac App"
 
+    mountPoint: '/'
+
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 

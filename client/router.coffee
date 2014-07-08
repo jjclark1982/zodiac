@@ -2,15 +2,17 @@ NavigationView = require("views/navigation")
 LightboxView = require("views/lightbox")
 
 class Router extends Backbone.Router
-    routes: {
-        "": "home"
-    }
+    # routes: {
+    #     "": "home"
+    # }
 
-    home: ->
+    # home: ->
+    #     @showPageView(require("pages/home"))
+
+    showPageView: (ViewCtor, options={})->
         view = @getPoppedView()
         unless view
-            HomeView = require("views/home")
-            view = new HomeView()
+            view = new ViewCtor()
             view.render()
         @setMainView(view)
 
@@ -170,6 +172,13 @@ class Router extends Backbone.Router
 
     initialize: ->
         instance = this
+
+        # route pages
+        for pageName, PageView of require("pages") then do (pageName, PageView)->
+            mountPoint = (PageView.prototype?.mountPoint or pageName).replace(/^\//, '')
+            instance.route(mountPoint, pageName, ()->
+                instance.showPageView(PageView)
+            )
 
         # create routes for all models that have a `urlRoot`
         for modelName, Model of require("models") then do (modelName, Model)->

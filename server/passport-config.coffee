@@ -133,10 +133,6 @@ middleware.post('/login', passport.authenticate('local',  {
     # TODO: support showing useful messages
 }))
 
-middleware.get('/login', (req, res, next)-> 
-    res.render('login')
-)
-
 middleware.get('/logout', (req, res, next)-> 
     req.logout()
     res.redirect(req.get("referer") or '/')
