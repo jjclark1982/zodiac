@@ -16,6 +16,8 @@ module.exports = class HomeView extends BaseView
 
     initialize: (options)->
         @urlRoots = []
+        for pageName, Page of require("pages") when pageName isnt 'home'
+            @urlRoots.push(Page.prototype.mountPoint or '/'+pageName)
         for modelName, Model of require("models")
             if Model.prototype.urlRoot
                 @urlRoots.push(Model.prototype.urlRoot)
