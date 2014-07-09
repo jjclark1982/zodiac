@@ -18,10 +18,10 @@ else
     fs = require("fs")
     itemFiles = fs.readdirSync(__dirname)
     for filename in itemFiles
+        continue if filename[0] is '.' # skip dot-files
         continue if filename is 'index.coffee' # skip this file
 
         itemName = filename.replace(/\..*$/, '') # remove extension
-        continue unless filename # ignore dotfiles
         items[itemName] = require('./'+filename)
 
 module.exports = items
