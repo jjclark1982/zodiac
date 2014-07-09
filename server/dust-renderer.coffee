@@ -8,6 +8,7 @@ fs = require("fs")
 fsPath = require("path")
 # Load [DUST-HELPERS.COFFEE](../client/dust-helpers.html): custom-written helpers for Dust templating 
 dust = require("../client/dust-helpers")
+BaseView = require("base/view")
 
 # Publish a Node.js require() handler for .dust files
 if (require.extensions)
@@ -74,7 +75,7 @@ invalidateCache = (views)->
 # the default `res.render()` does not support streaming
 # so we override it with one that does
 responsePrototype = require("express/lib/response")
-responsePrototype.render = (view, options={}, callback)->
+responsePrototype.render = (viewName, options={}, callback)->
     res = this
     req = res.req
     app = res.app
@@ -97,15 +98,15 @@ responsePrototype.render = (view, options={}, callback)->
                     message = err.stack
                 res.end("<pre>[Template #{message}]</pre>")
             else
-                next(err)
+                req.next(err)
 
     # unless we get a request to partially render content, render the [`layout`](../../client/views/layout.dust) view,
     # passing it the view associated with the current model as a `mainView` variable.
     if !req.xhr
         try
-            options.title ?= require("views/"+view).prototype.title
-        options.mainView = view
-        view = 'layout'
+            options.title ?= BaseView.requireView(viewName).prototype.title
+        options.mainView = viewName
+        viewName = 'layouts/webpage'
 
     # make app and res locals available globally
     # so that all subviews can access the site name, the current user, etc
@@ -113,7 +114,7 @@ responsePrototype.render = (view, options={}, callback)->
     context = dust.makeBase(globals).push(options).push({})
     # TODO: eliminate the vestigal {} at the end of context
 
-    stream = dust.stream(view, context)
+    stream = dust.stream(viewName, context)
     stream.on('data', (data)->
         return unless data.length > 0
         unless res.connection?.writable

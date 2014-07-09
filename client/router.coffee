@@ -1,5 +1,6 @@
-NavigationView = require("views/navigation")
-LightboxView = require("views/lightbox")
+BaseView = require("base/view")
+NavigationView = require("widgets/navigation")
+LightboxView = require("widgets/lightbox")
 
 class Router extends Backbone.Router
     # routes: {
@@ -35,7 +36,7 @@ class Router extends Backbone.Router
         view = @getPoppedView()
         unless view
             options = _.defaults(options, {
-                viewCtor: require("views/list")
+                viewCtor: require("widgets/list")
                 collectionCtor: Backbone.Collection
                 collectionOptions: { url: document.location.pathname }
             })
@@ -193,7 +194,7 @@ class Router extends Backbone.Router
                 document.title = modelProto.collectionTitle or ''
                 query or= document.location.search.replace(/^\?/,'')
                 instance.showCollectionView({
-                    viewCtor: require("views/" + modelProto.defaultListView)
+                    viewCtor: BaseView.requireView(modelProto.defaultListView)
                     collectionCtor: Backbone.Collection
                     collectionOptions: { url: document.location.pathname, model: Model }
                     collectionQuery: query
@@ -205,7 +206,7 @@ class Router extends Backbone.Router
             routeName = Model.name #TODO: consider how this interacts with minification
             instance.route(route, routeName, (id)->
                 instance.showModelView({
-                    viewCtor: require("views/" + modelProto.defaultView)
+                    viewCtor: BaseView.requireView(modelProto.defaultView)
                     modelCtor: Model
                 })
             )
@@ -218,7 +219,7 @@ class Router extends Backbone.Router
                 routeName = Model.name + " link to " + linkDef.name
                 instance.route(route, routeName, (id)->
                     instance.showModelView({
-                        viewCtor: require("views/"+Target.prototype.defaultView)
+                        viewCtor: BaseView.requireView(Target.prototype.defaultView)
                         modelCtor: Target
                         })
                 )

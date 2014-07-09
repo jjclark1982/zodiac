@@ -7,9 +7,7 @@ unless window?
 
 Query = require("models/query")
 
-normalizePath = (requirePath='')->
-    return requirePath.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
-
+# The BaseView class provides lifecycle functions for subclasses to inherit
 module.exports = class BaseView extends Backbone.View
     # A class that provides its requirePath can be re-instantiated after serialization
     requirePath: module.id
@@ -227,3 +225,22 @@ module.exports = class BaseView extends Backbone.View
                         errString += ": " + JSON.parse(xhr.responseText).message
                     @$el.addClass('error').attr("data-error", errString)
             )
+
+# transform a module id into a path that can be required on client or server
+normalizePath = (requirePath='')->
+    return requirePath.replace(/^.*\/client\/|(\/index)?(\.[^\/]+)?$/g, '')
+
+# load a view given its normalized path. works the same as require(name) for full paths
+# Usage:
+# ListView = BaseView.requireView("list")
+BaseView.requireView = (name)->
+    paths = ['views/', 'widgets/', 'pages/', '']
+    for path in paths
+        try
+            View = require(path+name)
+        catch e
+            lastError = e
+    if View
+        return View
+    else
+        throw lastError

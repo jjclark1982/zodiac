@@ -19,12 +19,12 @@ module.exports = dust
 # {>"{itemView}" model=. tagName="li" />
 dust.onLoad = (name, callback)->
     try
-        loadedModule = require("views/"+name)
+        # this should find subclasses of BaseView in the normal places
+        # and plain .dust files given a full enough path
+        BaseView = require("base/view")
+        loadedModule = BaseView.requireView(name)
     catch e
-        try
-            loadedModule = require(name)
-        catch e2
-            return callback(e2)
+        return callback(e)
 
     if loadedModule.prototype?.registerSubview
         # this appears to be a backbone view

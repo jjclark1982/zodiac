@@ -23,7 +23,7 @@ RiakStore = require("./riak-store")
 app = express()
 
 # All of the views renderable by express live in `/client`
-app.set('views', '../client/views')
+app.set('views', '../client')
 # Map the local appname variable to the name specified in `package.json`
 app.locals.appName = require('../package.json').name
 

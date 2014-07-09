@@ -1,10 +1,21 @@
+{!
+    This is a plain dust template with no executable component
+    so that it can be useful even when BaseView is not working
+!}
+<style>
+.error-message {
+    margin: 2em;
+}
+.error-message .stack-trace {
+    white-space: pre-wrap;
+}
+</style>
 {#error}
-    <div style="margin: 2em">
-        <h2>HTTP Status {statusCode}: {name}</h2>
+    <div class="error-message">
+        <h2>{message}</h2>
+        <p><i>{#statusCode}Status Code {.}: {/statusCode}{name}</i></p>
         {#stack}
-            <p style="white-space:pre-wrap;">{.}</p>
-        {:else}
-            <p>{message}</p>
+            <p class="stack-trace">{.}</p>
         {/stack}
     </div>
 {/error}

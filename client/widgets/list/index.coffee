@@ -203,6 +203,7 @@ module.exports = class ListView extends BaseView
                 if view.model
                     view.model.needsData ?= (view.model.keys().length is 0)
                     if view.model.needsData
+                        # TODO: batch fetches in prototype or in Backbone.Sync
                         # console.log("fetching", _.result(view.model, "url"))
                         view.model.needsData = false
                         view.model.fetch().then((->),
