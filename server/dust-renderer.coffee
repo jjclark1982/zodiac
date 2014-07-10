@@ -10,6 +10,10 @@ fsPath = require("path")
 dust = require("../client/dust-helpers")
 BaseView = require("base/view")
 
+if process.env.NODE_ENV is 'development'
+    dust.isDebug = true
+    dust.debugLevel = 'WARN'
+
 # Publish a Node.js require() handler for .dust files
 if (require.extensions)
     setDustAlias = (filename)->
@@ -115,6 +119,7 @@ responsePrototype.render = (viewName, options={}, callback)->
     # TODO: eliminate the vestigal {} at the end of context
 
     stream = dust.stream(viewName, context)
+    stream.events = { data: [], error: [], end: [] } # prevent warnings
     stream.on('data', (data)->
         return unless data.length > 0
         unless res.connection?.writable
