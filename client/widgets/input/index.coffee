@@ -5,6 +5,8 @@ typeMap = {
     'html': 'textarea'
     'object': 'json'
     'string': 'text' # TODO: fix these in model defs
+    'int': 'number'
+    'float': 'number'
 }
 
 module.exports = class InputView extends BaseView
