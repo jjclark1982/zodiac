@@ -3,24 +3,24 @@ require('coffee-script/register')
 
 db = require("./db")
 async = require("async")
-ServerTask = require("models/server-task")
-bucket = ServerTask.prototype.bucket
+BackgroundJob = require("models/background-job")
+bucket = BackgroundJob.prototype.bucket
 
 reportError = (err,obj, meta)->
     if err
-        console.log("Error updating task:", err)
+        console.log("Error updating background job:", err)
 
 processing = false
 processAllTasks = ()->
     # return if processing
     processing = true
-    console.info("Checking for new tasks")
+    console.info("Checking for new jobs")
     db.query(bucket, {status: 'created'}, (err, keys, meta)->
         if err
-            console.log("Error reading task:", err)
+            console.log("Error reading background job:", err)
         async.each(keys, processTask, (err)->
             if err
-                console.log("Error running task:", err)
+                console.log("Error running background job:", err)
             processing = false
         )
     )
@@ -33,7 +33,7 @@ processTask = (key, callback)->
             return callback()
 
         try
-            handler = require("./task-handlers/" + task.type)
+            handler = require("./background-job-handlers/" + task.type)
         catch e
             return callback("no handler for #{task.type}: " + e)
 
@@ -43,8 +43,8 @@ processTask = (key, callback)->
             vclock: task.vclock,
             index: {status: task.status}
         }
-        console.info("Starting task: #{task.name}")
-        db.save("tasks", key, task, options, reportError)
+        console.info("Starting background job: #{task.name}")
+        db.save(bucket, key, task, options, reportError)
 
         handler(task, (err)->
             if err

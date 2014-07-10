@@ -1,11 +1,11 @@
 BaseView = require("base/view")
 
-module.exports = class ServerTaskView extends BaseView
+module.exports = class BackgroundJobView extends BaseView
     # A view that provides its requirePath can be re-instantiated after serialization
     requirePath: module.id
 
     # The CSS class for this view
-    className: "server-task-view"
+    className: "background-job-view"
 
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
