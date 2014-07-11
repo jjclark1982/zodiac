@@ -18,7 +18,7 @@ module.exports = class ListView extends BaseView
             if _.isString(@itemViewOptions)
                 @itemViewOptions = JSON.parse(@itemViewOptions)
         # data-ify all string options?
-        @itemViewCtor = require("views/"+@itemView)
+        @itemViewCtor = BaseView.requireView(@itemView)
         @collection ?= new Backbone.Collection()
         if window?
             @listenTo(@collection, "add", @insertItemView)
