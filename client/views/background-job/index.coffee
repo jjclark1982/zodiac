@@ -14,7 +14,7 @@ module.exports = class BackgroundJobView extends BaseView
     title: ()->
         return @model.get("name")
 
-    initialize: (options)->
+    hydrate: ->
         @listenTo(@model, "change:status", @updateStatus)
         @pollInterval = setInterval(=>
             console.log("polling:", @model, @model.get("status"))
