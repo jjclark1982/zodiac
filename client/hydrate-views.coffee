@@ -27,7 +27,7 @@ fetchModel = (el, ModelCtor)->
     modelType = data.model
     modelUrl = data.modelUrl
 
-    $parent = $(el).parents("[data-collection-model='#{modelType}']")
+    $parent = $(el).parents("[data-collection-model='#{modelType}']").eq(0)
     collection = collectionsBeingAssembled[$parent.data('collection-url')]
     if collection
         # when a model-view is inside a collection-view with the same model type,
@@ -53,7 +53,11 @@ hydrateView = (el, parentView)->
     data = $(el).data()
     return if data['viewAttached']
 
-    options = {el: el}
+    options = {
+        el: el
+        className: el.className
+    }
+
     # send any data attributes not read by this function directly to the view initializer
     for key, val of data when !(key in ['view', 'model', 'collection', 'collectionModel'])
         options[key] = val
