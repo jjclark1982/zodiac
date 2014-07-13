@@ -3,6 +3,7 @@ express = require("express")
 passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
 db = require("./db")
+gatewayError = require("./gateway-error")
 
 # cryptographic hash function
 hash = (password, salt, callback)->
@@ -34,16 +35,18 @@ passport.deserializeUser((id, callback)->
     db.get('users', id, (err, user, meta)->
         if err?.statusCode is 404
             return callback(null, null) # log in as null
-        if err then return callback(err)
+        if err
+            return callback(gatewayError(err))
         callback(null, user)
     )
 )
 
 passport.use(new LocalStrategy((username, password, done)->
     db.get('users', username, (err, user, meta)->
-        if meta.statusCode is 404
+        if err?.statusCode is 404
             return done(null, false, {message: "no such user"})
-        if err then return done(err)
+        if err
+            return done(gatewayError(err))
 
         hash(password, user.password_salt, (err, hash)->
             if err then return done(err)
@@ -68,7 +71,8 @@ middleware.use((req, res, next)->
     return next()
     return next() unless req.session?.passport?.user
     db.get('users', req.session.passport.user, (err, user, meta)->
-        if err then return next(err)
+        if err
+            return next(gatewayError(err))
         req.login(user, (err)->
             if err then return next(err)
             next()

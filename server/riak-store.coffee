@@ -1,5 +1,6 @@
 express = require("express")
 db = require("./db")
+gatewayError = require("./gateway-error")
 
 module.exports = class RiakStore extends express.session.Store
     constructor: (options = {})->
@@ -30,23 +31,22 @@ module.exports = class RiakStore extends express.session.Store
 
     get: (sid, callback)->
         db.get(@bucket, sid, (dbErr, session, meta)=>
+            if session isnt Object(session)
+                # data is not in the expected format
+                dbErr ?= new Error(session)
+                @emit("disconnect")
             if dbErr
                 if dbErr.statusCode is 404
                      # no item found - ok to create one
                     return callback()
 
-                else if dbErr.code is 'ETIMEDOUT' or dbErr.syscall is 'connect'
+                err = gatewayError(dbErr)
+                if err.statusCode is 504
                     # unable to connect to database
                     @emit("disconnect")
                     @checkConnection()
-                    e = new Error("Unable to load session: "+dbErr.message)
-                    e.statusCode = 504
-                    return callback(e)
 
-                else
-                    # some other error
-                    dbErr.statusCode ?= 502
-                    return callback(dbErr)
+                return callback(err)
                     
             return callback(null, session)
             # TODO: resolve links
