@@ -111,6 +111,7 @@ module.exports = class BaseView extends Backbone.View
         unless window?
             throw new Error("Tried to render #{@constructor.name} without a DOM")
         @trigger("render:before")
+        @preRender?()
         @$el.addClass("rendering")
         @unstickit()
         @getInnerHTML((err, html)=>
@@ -126,6 +127,8 @@ module.exports = class BaseView extends Backbone.View
         )
         return @
 
+    # after a view is serialized for transmission or inclusion in a superview,
+    # it must be reattached to the correct element
     attach: ($element)->
         if $element? and $element isnt @$el
             @setElement($element)
@@ -137,14 +140,22 @@ module.exports = class BaseView extends Backbone.View
         @attachSubviews()
         if @model and @bindings
             @stickit()
+        @postRender?()
         @trigger("render:after")
         return @
 
     attachSubviews: ->
+        # when rendering a view with subviews, the subviews are initialized with dummy elements
+        # and then rendered to the text of the parent element
+        # once that text is parsed into elements,
+        # each subview can be attached to the element with the matching data-cid
         @subviews or= {}
         for cid, subview of @subviews
             $el = @$("[data-cid=#{cid}]")
             unless $el.data('viewAttached')
+                # render() will not have been called by the dust partial,
+                # so call preRender functions here instead
+                subview.preRender?()
                 subview.trigger("render:before")
                 subview.attach($el)
 
