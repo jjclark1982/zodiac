@@ -9,7 +9,7 @@ if [ ! -e "./node_modules/" ]; then
 fi
 
 # install bower components
-bower install
+bower install --config.interactive=false
 
 # build the production client
 brunch build --production
