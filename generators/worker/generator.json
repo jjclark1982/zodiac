@@ -2,7 +2,7 @@
   "files": [
     {
       "from": "worker.coffee.hbs",
-      "to": "server/task-handlers/{{name}}.coffee"
+      "to": "server/background-job-handlers/{{name}}.coffee"
     }
   ]
 }

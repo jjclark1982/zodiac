@@ -12,25 +12,25 @@ module.exports = class {{#camelize}}{{name}}{{/camelize}} extends BaseModel
 
     # # Define fields with established types to support general-purpose displays and editors
     # fields: [
-    #    {
-    #        name: "name",
-    #        type: "string"
-    #    },
-    #    {
-    #        name: "createdBy",
-    #        type: "link",
-    #        target: "user"
-    #    }
+    #     {
+    #         name: "name",
+    #         type: "string"
+    #     },
+    #     {
+    #         name: "createdBy",
+    #         type: "link",
+    #         target: "user"
+    #     }
     # ]
 
     # # Return a hash of {key: value} with string or number values
     # # to create Riak secondary indexes
     # index: ->
-    #    index = {
-    #        all: 1
-    #        # active: if @get("active") then "1" else "0" # example of type coersion
-    #    }
-    #    return index
+    #     index = {
+    #         all: 1
+    #         # active: if @get("active") then "1" else "0" # example of type coersion
+    #     }
+    #     return index
 
     validate: (attributes, options)->
         editor = options.editor
