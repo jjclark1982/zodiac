@@ -11,15 +11,14 @@ module.exports = class PopupEditorView extends BaseView
     template: require("./template")
 
     initialize: (options)->
-        window.pe = @
         @location = options.location or {x: 0, y: 0}
         @fieldName = options.fieldName
-        @listenTo(@, "render:after", ->
-            @$el.css({
-                left: @location.x
-                top: @location.y
-            })
-        )
+
+    postRender: ->
+        @$el.css({
+            left: @location.x
+            top: @location.y
+        })
 
     events: {
         "click .save-button": "save"
