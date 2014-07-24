@@ -1,7 +1,7 @@
 ###
 
 We need to transmit metadata such as the vector clock along with model data.
-This can be done with the x-riak-vclock header.
+This can be done with the X-Riak-Vclock header.
 We add and remove the metadata here.
 
 The case for collections is more complicated, because we need to ensure that
@@ -15,17 +15,14 @@ oldSync = Backbone.sync
 Backbone.sync = (method, model, options)->
     if model instanceof Backbone.Model
         if model.vclock
-            options.attrs ?= model.toJSON(options)
-            options.attrs._vclock = model.vclock
             options.headers ?= {}
-            options.headers["x-riak-vclock"] = model.vclock
+            options.headers["X-Riak-Vclock"] = model.vclock
 
         oldSuccess = options.success
         options.success = (response, status, xhr)->
-            vclock = xhr?.getResponseHeader("x-riak-vclock") or response._vclock
+            vclock = xhr?.getResponseHeader("X-Riak-Vclock")
             if vclock
                 model.vclock = vclock
-                delete response._vclock
             oldSuccess?(response, status, xhr)
 
     if model instanceof Backbone.Collection
@@ -34,16 +31,9 @@ Backbone.sync = (method, model, options)->
         options.success = (response, status, xhr)->
             vclocks = null
             try
-                vclocks = JSON.parse(xhr.getResponseHeader("x-riak-vclocks"))
+                vclocks = JSON.parse(xhr.getResponseHeader("X-Riak-Vclocks"))
             unless vclocks
                 vclocks = {}
-                idAttr = collection.model.prototype.idAttribute
-                for item in response or []
-                    id = item[idAttr]
-                    vclock = item._vclock
-                    if vclock
-                        vclocks[id] = vclock
-                        delete item._vclock
             collection.once("sync", ->
                 for id, vclock of vclocks
                     collection.get(id)?.vclock = vclock
