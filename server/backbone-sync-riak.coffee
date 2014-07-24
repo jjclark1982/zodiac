@@ -4,7 +4,7 @@ global._ = require('lodash')
 global.Backbone = require('backbone')
 Promise = require('bluebird')
 
-# Convert any ids stored in this model's "_links" attribute
+# Convert any ids stored in this model's "link" fields
 # into the format for storing with riak-js
 formatLinks = (model)->
     linkKeys = []

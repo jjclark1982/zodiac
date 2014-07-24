@@ -13,7 +13,7 @@ async = require('async')
 require("./backbone-sync-riak")
 
 saveModel = (req, res, next, model, options={})->
-    vclock = model.attributes._vclock or model?.vclock
+    vclock = req.get("x-riak-vclock") or model.attributes._vclock or model?.vclock
     delete model.attributes._vclock
 
     # run the backbone validator
@@ -73,7 +73,7 @@ sendModel = (req, res, next, model)->
     switch format
         when 'json'
             item = model.toJSON()
-            item._vclock = model.vclock
+            # item._vclock = model.vclock
             res.json(item)
         when 'html'
             res.type("html") # set this before streaming begins so that gzip can kick in
@@ -97,9 +97,11 @@ sendList = (req, res, next, collection)->
         return next(406)
     switch format
         when 'json'
+            vclocks = {}
             async.map(collection.models, (model, callback)->
                 model.fetch().then(->
-                    model.attributes._vclock = model.vclock
+                    vclocks[model.id] = model.vclock
+                    # model.attributes._vclock = model.vclock
                     callback(null, model)
                 , (fetchErr)->
                     if fetchErr.statusCode is 404
@@ -111,6 +113,7 @@ sendList = (req, res, next, collection)->
             , (err, models)->
                 if err then return next(err)
                 res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+                res.set({"x-riak-vclocks": JSON.stringify(vclocks)})
                 lastMod = null
                 for model in collection.models
                     lastMod = model.lastMod unless lastMod > model.lastMod

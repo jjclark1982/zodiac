@@ -48,6 +48,3 @@ module.exports = class User extends BaseModel
             if editor.username isnt @id
                 return "You are not permitted to edit this user"
         return null
-
-if window?
-    User.current = User.loadFromUrl("/users/me")

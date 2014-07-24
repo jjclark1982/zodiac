@@ -1,4 +1,7 @@
-require("models/user")
+require("backbone-sync-vclock")
+User = require("models/user")
+User.current = User.loadFromUrl("/users/me")
+
 require("hydrate-views")
 
 Router = require("router")
