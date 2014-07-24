@@ -55,9 +55,12 @@ sendModel = (req, res, next, model)->
     res.set({
         'Last-Modified': model.lastMod
         'Vary': "Accept"
-        'ETag': model.etag + '.' + format
         'X-DB-Query-Time': new Date() - res.dbStartTime
     })
+    if format is 'json'
+        res.set({"ETag": model.etag})
+    # the ETag of the html is not known before rendering because the template may have changed
+    # TODO: support sending it as a trailer
     for name, value of model.metadataFromRiak._headers when name.match(/^x-riak/i)
         res.set(name, value)
 
