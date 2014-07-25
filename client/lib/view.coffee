@@ -246,13 +246,14 @@ normalizePath = (requirePath='')->
 # Usage:
 # ListView = BaseView.requireView("list")
 BaseView.requireView = (name)->
+    errors = []
     paths = ['views/', 'views/common/', 'pages/', '']
     for path in paths
         try
             View = require(path+name)
         catch e
-            lastError = e
+            errors.push(e)
     if View
         return View
     else
-        throw lastError
+        throw errors[0]
