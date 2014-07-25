@@ -1,4 +1,4 @@
-require("backbone-sync-vclock")
+require("backbone-sync-metadata")
 User = require("models/user")
 User.current = User.loadFromUrl("/users/me")
 

@@ -110,20 +110,25 @@ BaseModel.loadFromUrl = (url, options={})->
     model = @_modelsByUrl[url]
     unless model
         atts = {}
-        # guess the id if it fits the urlRoot pattern
+        # Guess the id if it fits the urlRoot pattern.
         # this isn't very RESTful, but it really helps with de-duplication
         if @prototype.urlRoot
             urlRootRE = new RegExp("^" + @prototype.urlRoot + "/")
             if url.match(urlRootRE)
                 id = url.replace(urlRootRE, '')
                 atts[@prototype.idAttribute] = id
-        model = new Constructor(atts)
+        model = new Constructor(atts, options)
         model.url = url
         @_modelsByUrl[url] = model
-        model.fetch(options).then(=>
-            # for aliased urls, cache the model under both
-            alias = @prototype.url.apply(model)
-            if alias isnt url
+        model.once('sync', =>
+            # update the cache with multiple urls for the same model
+            receivedUrl = _.result(model, 'url')
+            defaultUrl = @prototype.url.apply(model)
+            for alias in [receivedUrl, defaultUrl] when alias isnt url
+                existing = @_modelsByUrl[alias]
+                if existing and existing isnt model
+                    throw new Error("Duplicate models for url ", alias, model, existing)
                 @_modelsByUrl[alias] = model
-        ) unless options.fetch is false
+        )
+        model.fetch(options) unless options.fetch is false
     return model
