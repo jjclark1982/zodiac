@@ -81,13 +81,13 @@ dust.onLoad = (name, callback)->
 
 dust.helpers or= {}
 
-dust.helpers.keyvalue = (chunk, context, bodies)->
-    items = context.current()
+dust.helpers.keyvalue = (chunk, context, bodies, params={})->
+    items = params.object or context.current()
     if typeof items is 'function'
         items = items()
 
-    for key, val of items
-        ctx = {"key" : key, "value" : val}
+    for key, value of items
+        ctx = {"key" : key, "value" : value}
         chunk = chunk.render(bodies.block, context.push(ctx))
 
     return chunk
