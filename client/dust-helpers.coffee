@@ -114,8 +114,18 @@ dust.helpers.contextDump = (chunk, context, bodies, params={})->
         return chunk.write(dump)
 
 dust.filters or= {}
+
+# Support for using arbitrary data in a css class
+# Usage: <span class="field-named-{fieldName|className}">{value}</span>
+#        <style>.field-named-last-modified { display: none; }</style>
 dust.filters.className = (value) ->
     return value.replace(/\W+/g, '-')
+
+# When assigning JSON data to a variable in an inline <script>,
+# use this filter to prevent injection with </script> in a string.
+# Usage: <script>var x = {x|js|inlineScript|s};</script>
+dust.filters.inlineScript = (value)->
+    return value.replace(/<\//g, "<\\/")
 
 dust.filters.date = (value)->
     return $?.format.date( new Date( value ), 'MMMM yyyy' )
