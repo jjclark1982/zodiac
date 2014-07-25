@@ -1,5 +1,5 @@
-BaseView = require("base/view")
-require("toggles")
+BaseView = require("lib/view")
+require("lib/toggles")
 
 module.exports = class FormView extends BaseView
     requirePath: module.id

@@ -21,7 +21,7 @@ dust.onLoad = (name, callback)->
     try
         # this should find subclasses of BaseView in the normal places
         # and plain .dust files given a full enough path
-        BaseView = require("base/view")
+        BaseView = require("lib/view")
         loadedModule = BaseView.requireView(name)
     catch e
         return callback(e)

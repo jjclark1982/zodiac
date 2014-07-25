@@ -4,7 +4,7 @@
 # *This view is a lightbox*
 # ***
 
-BaseView = require("base/view")
+BaseView = require("lib/view")
 
 module.exports = class LightboxView extends BaseView
     requirePath: module.id

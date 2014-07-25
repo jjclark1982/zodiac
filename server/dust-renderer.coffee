@@ -7,8 +7,8 @@
 fs = require("fs")
 fsPath = require("path")
 # Load [DUST-HELPERS.COFFEE](../client/dust-helpers.html): custom-written helpers for Dust templating 
-dust = require("../client/dust-helpers")
-BaseView = require("base/view")
+dust = require("lib/dust-helpers")
+BaseView = require("lib/view")
 
 if process.env.NODE_ENV is 'development'
     dust.isDebug = true

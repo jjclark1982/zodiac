@@ -1,4 +1,4 @@
-BaseView = require("base/view")
+BaseView = require("lib/view")
 
 typeMap = {
     'longtext': 'textarea'

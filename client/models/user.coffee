@@ -1,4 +1,4 @@
-BaseModel = require("base/model")
+BaseModel = require("lib/model")
 
 module.exports = class User extends BaseModel
     requirePath: module.id

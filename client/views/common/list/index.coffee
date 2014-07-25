@@ -1,4 +1,4 @@
-BaseView = require("base/view")
+BaseView = require("lib/view")
 animationLength = 10
 
 module.exports = class ListView extends BaseView

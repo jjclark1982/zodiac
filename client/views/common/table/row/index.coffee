@@ -1,4 +1,4 @@
-BaseView = require("base/view")
+BaseView = require("lib/view")
 
 module.exports = class TableRowView extends BaseView
     # A view that provides its requirePath can be re-instantiated after serialization

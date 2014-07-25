@@ -8,6 +8,8 @@
 # ```  
 # This will instantiate the named view, model, and collection.
 
+BaseView = require("lib/view")
+
 collectionsBeingAssembled = {}
 assembleCollection = (url, ctors)->
     return unless url
@@ -91,7 +93,6 @@ hydrateView = (el, parentView)->
         # don't let an error in one view initialization block the rest of the page loading
         console.log("Error initializing #{data.view}-view:", initError)
         $(el).addClass("error").attr("data-error", initError.message)
-        BaseView = require("base/view")
         view = new BaseView(options)
 
     # recursively hydrate any subviews before reaching them in a higher loop

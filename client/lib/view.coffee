@@ -1,4 +1,4 @@
-require("dust-helpers") # define the subview loader helper
+require("lib/dust-helpers") # define the subview loader helper
 unless window?
     global._ = require('lodash')
     global.Backbone = require('backbone')
@@ -184,12 +184,13 @@ module.exports = class BaseView extends Backbone.View
         super(arguments...)
 
         if window?
+            @trigger("hydrate")
             @hydrate?()
 
     # Automatically set some classes and data attributes in response to common events.
     # Subclasses may opt out of this by redefining hydrate() without a call to super()
+    # TODO: make it harder to opt out accidentally
     hydrate: ->
-        @trigger("hydrate")
         if @model
             @listenTo(@model, 'request', (object, xhr, options)->
                 if object is @model
@@ -245,7 +246,7 @@ normalizePath = (requirePath='')->
 # Usage:
 # ListView = BaseView.requireView("list")
 BaseView.requireView = (name)->
-    paths = ['views/', 'widgets/', 'pages/', '']
+    paths = ['views/', 'views/common/', 'pages/', '']
     for path in paths
         try
             View = require(path+name)

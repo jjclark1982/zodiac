@@ -1,4 +1,4 @@
-BaseModel = require("base/model")
+BaseModel = require("lib/model")
 
 module.exports = class BackgroundJob extends BaseModel
     # A model that provides its requirePath can be re-instantiated from its url after serialization

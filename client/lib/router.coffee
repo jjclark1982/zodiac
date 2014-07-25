@@ -1,6 +1,6 @@
-BaseView = require("base/view")
-NavigationView = require("widgets/navigation")
-LightboxView = require("widgets/lightbox")
+BaseView = require("lib/view")
+NavigationView = require("lib/navigation")
+LightboxView = require("lib/lightbox")
 
 class Router extends Backbone.Router
     # routes: {
@@ -36,7 +36,7 @@ class Router extends Backbone.Router
         view = @getPoppedView()
         unless view
             options = _.defaults(options, {
-                viewCtor: require("widgets/list")
+                viewCtor: BaseView.requireView('list')
                 collectionCtor: Backbone.Collection
                 collectionOptions: { url: document.location.pathname }
             })

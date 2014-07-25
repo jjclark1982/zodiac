@@ -1,4 +1,4 @@
-BaseModel = require("base/model")
+BaseModel = require("lib/model")
 
 encode = (str)->
     return encodeURIComponent(str).replace(/%20/g, '+')
