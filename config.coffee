@@ -9,6 +9,9 @@ exports.config =
     watched: ["client", "test", "vendor"]
     public: "build"
 
+  conventions:
+    ignored: /^client\/layouts/
+
   modules:
     nameCleaner: (path)->
       path.replace(/^client\//, '')
