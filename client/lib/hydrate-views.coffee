@@ -1,6 +1,7 @@
 # For any view transmitted as:  
 #
-#     ```<div data-view="views/document"  
+# ```
+#     <div data-view="views/document"  
 #          data-model="models/document"  
 #          data-model-url="/documents/1">  
 #         Field: initial value  
@@ -32,24 +33,24 @@ fetchModel = (el, ModelCtor)->
     $parent = $(el).parents("[data-collection-model='#{modelType}']").eq(0)
     collection = collectionsBeingAssembled[$parent.data('collection-url')]
     if collection
-        # when a model-view is inside a collection-view with the same model type,
-        # add the model to the collection, and assume the collection will fetch it and merge
+        # When a model-view is inside a collection-view with the same model type,
+        # add the model to the collection, and assume the collection will fetch it and merge.
         if collection
             model = collection?.detect((m)->_.result(m,'url') is modelUrl)
             unless model
                 model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
                 model.needsData = true
 
-                # don't fire an 'add' event because the collection view is already populated
+                # Don't fire an 'add' event because the collection view is already populated.
                 collection.add(model, {silent: true})
     else
-        # for lone models, de-duplicate with the class cache
+        # For lone models, de-duplicate with the class cache. (TODO: garbage collect that cache)
+        # If the same model is both in and out of a collection on the same page,
+        # this will de-duplicate them as long as they share the same URL.
+        # Dealing with aliased URLs is harder. It is recommended to transmit the canonical URL.
         model = ModelCtor.loadFromUrl(modelUrl)
 
     return model
-
-# there is no solution for de-duplicating an item in and out of a collection on the same page
-# which is probably ok in most cases
 
 hydrateView = (el, parentView)->
     data = $(el).data()
@@ -57,6 +58,7 @@ hydrateView = (el, parentView)->
 
     options = {
         el: el
+        tagName: el.tagName
         className: el.className
     }
 
@@ -97,10 +99,9 @@ hydrateView = (el, parentView)->
 
     # recursively hydrate any subviews before reaching them in a higher loop
     parentView?.registerSubview?(view)
-    hydrateSubviews(el, view)
+    hydrateSubviews(el, view) # will populate view.collection with subviews' models
+    view.collection?.fetch()
     view.attach() # will trigger render:after
-    if view.alwaysFetchCollection
-        view.collection?.fetch()
     window.views ?= {}
     window.views[view.cid] = view
     viewName = constructors.view.name

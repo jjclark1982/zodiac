@@ -10,10 +10,6 @@ module.exports = class {{#camelize}}{{name}}-view{{/camelize}} extends BaseView
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 
-    # set this to true for collection views that expect a small enough data size
-    # to load everything into memory at page load, instead of paginating
-    alwaysFetchCollection: false
-
     # This runs once every time a view is instantiated 
     initialize: (options)->
         return this
