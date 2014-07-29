@@ -18,36 +18,15 @@ process.env = env
 
 config = require("./config").config
 
-# Helper function to run a shell script
+# Helper function to run a shell script provided as a string
 shellScript = (source = '')-> ->
-    shell = child_process.spawn('sh', ['-x'], {
-        stdio: ['pipe', process.stdout, process.stderr]
+    shell = child_process.spawn('sh', ['-xc', source], {
+        stdio: 'inherit'
+        env: env
     })
-    shell.stdin.end(source)
     shell.on("exit", (code, signal)->
         process.exit(code)
     )
-
-task 'console', 'Open an interactive prompt', ->
-    moduleName = (filename)->
-        filename.replace(/\..*?$/, '').replace(/[\W]+(.)?/g, (match, c)->
-            c?.toUpperCase() or ""
-        )
-    repl = require('coffee-script/lib/coffee-script/repl')
-    context = repl.start({prompt: "#{packageDef.name}> "}).context
-    for file in fs.readdirSync("./server") when file[0] isnt '.'
-        try
-            context[moduleName(file)] = require("./server/#{file}")
-        catch e
-            null
-
-    require.cache["base/model"] = require("./client/base/model")
-    for file in fs.readdirSync("./client/models") when file[0] isnt '.'
-        try
-            ModelCtor = require("./client/models/#{file}")
-            context[ModelCtor.name] = ModelCtor
-        catch e
-            console.log "Couldnt load #{file}", e
 
 task 'start', 'Run the server', shellScript """
     node server
