@@ -4,21 +4,17 @@ path = require 'path'
 child_process = require 'child_process'
 packageDef = require './package'
 
-# Read in a limited environment from the `.env` file
-env = {
-    HOME: process.env.HOME
-    PATH: "node_modules/.bin:"+process.env.PATH
-    NODE_PATH: "client"
-}
+# Load environment variables from an `.env` file if it is present
+env = process.env
+env.PATH = "node_modules/.bin:"+env.PATH
+env.NODE_PATH ?= "client"
 try
     envText = fs.readFileSync('.env', 'utf8')
     for line in envText.split(/\r\n|\r|\n/)
         match = line.match(/^([^=]+)=(.*)$/)
         if match
             env[match[1]] = match[2] # console.log("#{match[1]}=#{match[2]}")
-    process.env = env
-catch e
-    env = process.env
+process.env = env
 
 config = require("./config").config
 
