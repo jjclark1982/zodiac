@@ -37,7 +37,7 @@ task 'work', 'Start a worker', shellScript """
 """
 
 task 'develop', 'Run server with auto-reloading', shellScript """
-    (sleep 1; open 'http://localhost:#{config.server.port}/') &
+    #(sleep 1; open 'http://localhost:#{config.server.port}/') &
     brunch watch --server
 """
 
