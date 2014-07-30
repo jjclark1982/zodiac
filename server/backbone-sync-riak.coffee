@@ -61,9 +61,9 @@ Backbone.sync = (method, model={}, options={})->
                 if links?.length > 0
                     options.links = links
 
-                if options.editor?.username
+                if options.editor
                     options.headers ?= {}
-                    options.headers["X-Riak-Meta-Modified-By"] = options.editor.username
+                    options.headers["X-Riak-Meta-Modified-By"] = options.editor.id
 
                 db.save(bucket, model.id, model.toJSON(), options, callback)
 
