@@ -76,12 +76,17 @@ Backbone.sync = (method, model={}, options={})->
 
                 else if model instanceof Backbone.Collection
                     collection = model
+
+                    query = options.query or {}
+                    
+                    # Parse query string for order, page, etc
+                    if query.order
+                        fullOrder = query.order or idAttribute
+                        orderParts = fullOrder.split(' ') # TODO: support multiple keys with comma
+                        [sortKey, sortDirection] = orderParts
+                        delete query.order
+
                     # assume the default query if none is provided, but do not redirect to it
-                    query = options.query
-                    fullOrder = query.order or idAttribute
-                    orderParts = fullOrder.split(' ') # TODO: support multiple keys with comma
-                    [sortKey, sortDirection] = orderParts
-                    delete query.order
                     if Object.keys(query).length is 0
                         query.all = '1'
 
