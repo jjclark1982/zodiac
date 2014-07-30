@@ -33,7 +33,7 @@ task 'start', 'Run the server', shellScript """
 """
 
 task 'work', 'Start a worker', shellScript """
-    server/task-worker.coffee
+    server/worker.coffee
 """
 
 task 'develop', 'Run server with auto-reloading', shellScript """
