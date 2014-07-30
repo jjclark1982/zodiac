@@ -37,7 +37,8 @@ module.exports = class BaseView extends Backbone.View
             if cmp then atts['data-collection-model'] = cmp
 
         try
-            atts['data-model-url'] = _.result(@model, 'url')
+            if @model?.hasOwnProperty('url') or @model?.has(@model.idAttribute)
+                atts['data-model-url'] = _.result(@model, 'url')
         try
             curl = _.result(@collection, 'url')
             query = new Query(@collection?.query, {parse: true}).toString()

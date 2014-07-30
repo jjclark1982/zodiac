@@ -9,29 +9,30 @@
 # ```  
 # This will instantiate the named view, model, and collection.
 
+BaseModel = require("lib/model")
 BaseView = require("lib/view")
 
 collectionsBeingAssembled = {}
 assembleCollection = (url, ctors)->
-    return unless url
     collection = collectionsBeingAssembled[url]
     unless collection
         CollectionCtor = ctors.collection or Backbone.Collection
         collection = new CollectionCtor([], {
-            model: ctors.collectionModel or Backbone.Model
+            model: ctors.collectionModel or BaseModel
         })
-        collection.url = url
-        collectionsBeingAssembled[url] = collection
+        if url
+            collection.url = url
+            collectionsBeingAssembled[url] = collection
 
     return collection
 
-fetchModel = (el, ModelCtor)->
+fetchModel = (el, ModelCtor=BaseModel)->
     data = $(el).data()
     modelType = data.model
     modelUrl = data.modelUrl
 
     $parent = $(el).parents("[data-collection-model='#{modelType}']").eq(0)
-    collection = collectionsBeingAssembled[$parent.data('collection-url')]
+    collection = $parent.data("collection")
     if collection
         # When a model-view is inside a collection-view with the same model type,
         # add the model to the collection, and assume the collection will fetch it and merge.
@@ -39,7 +40,6 @@ fetchModel = (el, ModelCtor)->
             model = collection?.detect((m)->_.result(m,'url') is modelUrl)
             unless model
                 model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
-                model.needsData = true
 
                 # Don't fire an 'add' event because the collection view is already populated.
                 collection.add(model, {silent: true})
@@ -82,11 +82,12 @@ hydrateView = (el, parentView)->
 
     # fetch the latest data from the given url.
     # this is the primary way of loading non-displayed model attributes.
-    if data.modelUrl
+    if data.modelUrl or constructors.model
         options.model = fetchModel(el, constructors.model)
 
-    if data.collectionUrl
+    if data.collectionUrl or constructors.collection or constructors.collectionModel
         options.collection = assembleCollection(data.collectionUrl, constructors)
+        $(el).data("collection", options.collection)
 
     # initialize the view, giving it a chance to register for 'change' events
     try
@@ -100,7 +101,8 @@ hydrateView = (el, parentView)->
     # recursively hydrate any subviews before reaching them in a higher loop
     parentView?.registerSubview?(view)
     hydrateSubviews(el, view) # will populate view.collection with subviews' models
-    view.collection?.fetch()
+    if data.collectionUrl
+        view.collection.fetch()
     view.attach() # will trigger render:after
     window.views ?= {}
     window.views[view.cid] = view

@@ -106,6 +106,8 @@ module.exports = class BaseModel extends Backbone.Model
 #     me = User.loadFromUrl("/users/me")
 BaseModel.loadFromUrl = (url, options={})->
     Constructor = this
+    unless url
+        return new Constructor({}, options)
     @_modelsByUrl ?= {}
     model = @_modelsByUrl[url]
     unless model
