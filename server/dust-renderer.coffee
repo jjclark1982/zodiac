@@ -47,7 +47,7 @@ if (require.extensions)
         module.exports.render = (context, callback)->
             dust.render(filename, context, callback)
         module.exports.stream = (context)->
-            dust.stream(filename, context, callback)
+            dust.stream(filename, context)
         module.exports.reload = (callback)->
             loadDustFile(filename, callback)
 
