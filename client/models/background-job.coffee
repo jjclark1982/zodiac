@@ -17,7 +17,7 @@ module.exports = class BackgroundJob extends BaseModel
     fields: [
        {
            name: "name",
-           type: "readonly"
+           type: "text"
        },
        {
            name: "type",
@@ -30,7 +30,7 @@ module.exports = class BackgroundJob extends BaseModel
     ]
 
     defaults: {
-        status: "created"
+        status: "NEW"
     }
 
 
