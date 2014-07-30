@@ -2,8 +2,9 @@ crypto = require("crypto")
 express = require("express")
 passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
-db = require("./db")
 gatewayError = require("./gateway-error")
+require("./backbone-sync-riak")
+User = require("models/user")
 
 # cryptographic hash function
 hash = (password, salt, callback)->
@@ -28,34 +29,40 @@ validatePassword = (password='')->
     return null
 
 passport.serializeUser((user, callback)->
-    callback(null, user.username)
+    callback(null, user.id)
 )
 
 passport.deserializeUser((id, callback)->
-    db.get('users', id, (err, user, meta)->
-        if err?.statusCode is 404
-            return callback(null, null) # log in as null
-        if err
-            return callback(gatewayError(err))
+    user = new User()
+    user.id = id
+    user.fetch().then(->
         callback(null, user)
+    , (err)->
+        if err.statusCode is 404
+            return callback(null, null) # log in as nobody
+        else
+            return callback(gatewayError(err))
     )
 )
 
 passport.use(new LocalStrategy((username, password, done)->
-    db.get('users', username, (err, user, meta)->
-        if err?.statusCode is 404
-            return done(null, false, {message: "no such user"})
-        if err
-            return done(gatewayError(err))
-
-        hash(password, user.password_salt, (err, hash)->
+    user = new User()
+    user.id = username
+    user.fetch().then(->
+        hash(password, user.get("password_salt"), (err, hash)->
             if err then return done(err)
 
-            if hash.toString("base64") is user.password_hash
+            if hash.toString("base64") is user.get("password_hash")
                 return done(null, user)
             else
                 return done(null, false, {message: "wrong password"})
         )
+
+    , (err)->
+        if err.statusCode is 404
+            return done(null, false, {message: "no such user"})
+        else
+            return done(gatewayError(err))
     )
 ))
 
@@ -67,17 +74,8 @@ middleware.use(passport.session())
 # make the user available to views
 middleware.use((req, res, next)-> 
     res.locals.session = req.session
-    res.locals.user = req.user
+    res.locals.currentUser = req.user
     return next()
-    return next() unless req.session?.passport?.user
-    db.get('users', req.session.passport.user, (err, user, meta)->
-        if err
-            return next(gatewayError(err))
-        req.login(user, (err)->
-            if err then return next(err)
-            next()
-        )
-    )
 )
 
 # hash any received passwords before continuing
