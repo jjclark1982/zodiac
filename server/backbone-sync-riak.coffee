@@ -24,6 +24,8 @@ Backbone.sync = (method, model={}, options={})->
         unless bucket
             throw new Error("cannot #{method} a model that has no bucket defined")
 
+        changedAttributes = model.changedAttributes?()
+
         callback = (err, object={}, meta={})->
             if err then return reject(gatewayError(err))
 
@@ -40,11 +42,15 @@ Backbone.sync = (method, model={}, options={})->
 
             resolve(object)
 
+            # run the postCommit method after any successful save
+            if _.isFunction(model.postCommit) and method in ["create", "update"]
+                options.changedAttributes = changedAttributes
+                process.nextTick(->
+                    model.postCommit(options)
+                )
+
         switch method
             when "create", "update"
-                unless model.isValid()
-                    return reject(model.validationError)
-
                 options.returnbody ?= true
                 options.vclock ?= model.vclock
                 
@@ -54,6 +60,10 @@ Backbone.sync = (method, model={}, options={})->
                 links = formatLinks(model)
                 if links?.length > 0
                     options.links = links
+
+                if options.editor?.username
+                    options.headers ?= {}
+                    options.headers["X-Riak-Meta-Modified-By"] = options.editor.username
 
                 db.save(bucket, model.id, model.toJSON(), options, callback)
 

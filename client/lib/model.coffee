@@ -127,7 +127,7 @@ BaseModel.loadFromUrl = (url, options={})->
             for alias in [receivedUrl, defaultUrl] when alias isnt url
                 existing = @_modelsByUrl[alias]
                 if existing and existing isnt model
-                    throw new Error("Duplicate models for url #{alias} (#{model.cid}, #{existing.cid})")
+                    console.warn("Duplicate models for url #{alias}", model, existing)
                 @_modelsByUrl[alias] = model
         )
         model.fetch(options) unless options.fetch is false

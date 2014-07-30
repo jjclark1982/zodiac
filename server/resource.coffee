@@ -15,27 +15,25 @@ require("./backbone-sync-riak")
 saveModel = (req, res, next, model, options={})->
     model.vclock = req.get("X-Riak-Vclock")
 
-    # run the backbone validator
-    unless model.isValid({editor: req.user})
+    isValid = model.save({}, {
+        wait: true
+        editor: req.user
+        success: ->
+            if options.create
+                res.status(201) # created
+
+                # when creating by POST, redirect from the urlRoot to the new model's url
+                if req.method is "POST"
+                    return res.redirect(303, model.url())
+
+            sendModel(req, res, next, model)
+        error: (error)->
+            next(error)
+    })
+
+    unless isValid
         res.status(403)
         return next(new Error(model.validationError))
-
-    # save it if it passed validation
-    model.save().then(->
-        if options.create
-            res.status(201) # created
-
-            # when creating by POST, redirect from the urlRoot to the new model's url
-            if req.method is "POST"
-                return res.redirect(303, model.url())
-
-        sendModel(req, res, next, model)
-
-    , (error)->
-        if options.statusCode
-            res.status(options.statusCode)
-        next(error)
-    )
 
 sendModel = (req, res, next, model)->
     format = req.params.format or req.accepts(['json', 'html'])
@@ -53,7 +51,7 @@ sendModel = (req, res, next, model)->
 
     res.set({
         'Last-Modified': model.lastMod
-        'Vary': "Accept"
+        'Vary': "Accept" # TODO: make sure this doesn't overwrite anything important
         'X-DB-Query-Time': new Date() - res.dbStartTime
     })
     if format is 'json'
@@ -233,7 +231,7 @@ module.exports = (moduleOptions = {})->
         if req.model
             model = req.model
             # model.attributes = req.body
-            model.set(req.body, {editor: req.user})
+            model.set(req.body, {validate: false})
         else
             # allow creation by PUT
             model = new modelCtor(req.body)
@@ -366,7 +364,7 @@ module.exports = (moduleOptions = {})->
         unless child.isValid({editor: req.user})
             res.status(403)
             return next(new Error(child.validationError))
-        child.save().then(->
+        child.save({wait: true, editor: req.user}).then(->
             parent = req.model
 
             if req.linkDef.multiple
@@ -382,7 +380,7 @@ module.exports = (moduleOptions = {})->
             unless isValid
                 res.status(403)
                 return next(new Error(parent.validationError))
-            parent.save().then(->
+            parent.save({wait: true, editor: req.user}).then(->
                 res.status(201)
                 res.location(child.url()) # no need to do a full redirect
                 sendModel(req, res, next, child)
@@ -406,7 +404,7 @@ module.exports = (moduleOptions = {})->
         unless isValid
             res.status(403)
             return next(new Error(parent.validationError))
-        parent.save().then(->
+        parent.save({wait: true, editor: req.user}).then(->
             res.location(parent.url())
             res.status(204)
             res.end()
