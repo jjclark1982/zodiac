@@ -1,10 +1,16 @@
+require ("../backbone-sync-riak")
+BackgroundJob = require("models/background-job")
+
 module.exports = handleTask = (task, callback)->
     # write the worker here
     callback("not implemented")
 
 if module is require.main
     # write the unit test here
-    exampleTask = {}
+    exampleTask = new BackgroundJob({})
     handleTask(exampleTask, (err)->
-        console.log("done")
+        if err
+            console.error(err)
+        else
+            console.log("finished")
     )

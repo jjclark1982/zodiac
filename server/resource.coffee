@@ -364,7 +364,7 @@ module.exports = (moduleOptions = {})->
         unless child.isValid({editor: req.user})
             res.status(403)
             return next(new Error(child.validationError))
-        child.save({wait: true, editor: req.user}).then(->
+        child.save({}, {wait: true, editor: req.user}).then(->
             parent = req.model
 
             if req.linkDef.multiple
@@ -380,7 +380,7 @@ module.exports = (moduleOptions = {})->
             unless isValid
                 res.status(403)
                 return next(new Error(parent.validationError))
-            parent.save({wait: true, editor: req.user}).then(->
+            parent.save({}, {wait: true, editor: req.user}).then(->
                 res.status(201)
                 res.location(child.url()) # no need to do a full redirect
                 sendModel(req, res, next, child)
@@ -404,7 +404,7 @@ module.exports = (moduleOptions = {})->
         unless isValid
             res.status(403)
             return next(new Error(parent.validationError))
-        parent.save({wait: true, editor: req.user}).then(->
+        parent.save({}, {wait: true, editor: req.user}).then(->
             res.location(parent.url())
             res.status(204)
             res.end()

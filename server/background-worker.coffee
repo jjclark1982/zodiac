@@ -1,10 +1,9 @@
 #!/usr/bin/env coffee
 require('coffee-script/register')
 
-db = require("./db")
 async = require("async")
+require("./backbone-sync-riak")
 BackgroundJob = require("models/background-job")
-bucket = BackgroundJob.prototype.bucket
 
 reportError = (err,obj, meta)->
     if err
@@ -12,53 +11,53 @@ reportError = (err,obj, meta)->
 
 processing = false
 processAllTasks = ()->
-    # return if processing
+    return if processing
     processing = true
     console.info("Checking for new jobs")
-    db.query(bucket, {status: 'created'}, (err, keys, meta)->
-        if err
-            console.log("Error reading background job:", err)
-        async.each(keys, processTask, (err)->
-            if err
-                console.log("Error running background job:", err)
-            processing = false
-        )
-    )
+    newTasks = new Backbone.Collection([], {model: BackgroundJob})
+    newTasks.fetch({
+        query: {status: "NEW"}
+        error: (err)->
+            console.log("Error loading background jobs:", err)
+        success: ->
+            async.each(newTasks.models, processTask, (err)->
+                if err
+                    console.log("Error running background job:", err)
+                processing = false
+            )
+    })
 
-processTask = (key, callback)->
-    db.get(bucket, key, {}, (err, task, meta)->
-        if err
+processTask = (task, callback)->
+    task.fetch({
+        error: (err)->
             return callback(err)
-        if task.status isnt "created"
-            return callback()
+        success: ->
+            if task.get("status") isnt "NEW"
+                return callback()
 
-        try
-            handler = require("./background-job-handlers/" + task.type)
-        catch e
-            return callback("no handler for #{task.type}: " + e)
+            console.info("Starting background job: #{task.title()}")
+            task.save({status: "WORKING"}, {wait: true})
 
+            try
+                handler = require("./background-job-handlers/" + task.get('type'))
+            catch e
+                task.save({"NO_HANDLER"}, {wait: true})
+                return callback("no handler for #{task.get('type')}: " + e)
 
-        task.status = "working"
-        options = {
-            vclock: task.vclock,
-            index: {status: task.status}
-        }
-        console.info("Starting background job: #{task.name}")
-        db.save(bucket, key, task, options, reportError)
+            handler(task, (err)->
+                if err
+                    task.set({
+                        status: "FAILED"
+                        error: err
+                    })
+                else
+                    task.set({status: "FINISHED"})
 
-        handler(task, (err)->
-            if err
-                task.status = "failed"
-                task.error = err
-            else
-                task.status = "finished"
-
-            options.index.status = task.status
-            console.info("#{task.status}: #{task.name}")
-            db.save(bucket, key, task, options, reportError)
-        )
-
-    )
+                console.info("#{task.get('status')}: #{task.title()}")
+                task.save({}, {wait: true})
+                 # This should trigger post-commit handlers that can see tha change of state
+            )
+    })
 
 startWorker = (interval=10)->
     setInterval(processAllTasks, interval * 1000)
