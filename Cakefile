@@ -80,13 +80,13 @@ task 'docs', 'Compile internal documentation', ->
         foldPrefix: '^'
     }
     groc.CLI(['README.md',
-        'server/*',
-        'client/{*,*/*,*/*/*}'
+        'server/{*,*/*}',
+        'client/{*,*/*,*/*/*,*/*/*/*}'
         'scripts/*'
     ], (->))
 
-task 'docs:upload', 'Compile internal documentation and upload to GitHub-Pages', shellScript """
-    groc --github README.md server/* client/{*,*/*,*/*/*} scripts/*
+task 'docs:upload', 'Compile docs and upload to GitHub-Pages', shellScript """
+    groc --github README.md server/{*,*/*} client/{*,*/*,*/*/*,*/*/*/*} scripts/*
 """
 
 # Provide commands for any scripts in the `scripts` directory

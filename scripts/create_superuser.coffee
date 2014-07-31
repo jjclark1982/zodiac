@@ -2,6 +2,11 @@
 
 # Create a user with "admin" privileges
 
+require("../server/backbone-sync-riak")
+User = require("models/user")
+hash = require("../server/passport-config").hash
+prompt = require("prompt")
+
 # Usage:
 # To enter username and password at prompt:
 # > create_superuser.coffee
@@ -10,11 +15,6 @@
 # > create_superuser.coffee [username] [password]
 # or:
 # > echo [password] | create_superuser.coffee [username]
-
-require("../server/backbone-sync-riak")
-User = require("models/user")
-hash = require("../server/passport-config").hash
-prompt = require("prompt")
 
 createSuperuser = (username, password)->
     hash(password, (err, salt, hash)->

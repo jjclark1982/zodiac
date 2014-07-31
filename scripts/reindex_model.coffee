@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
 
+# Re-save a bucket with the latest 'index' function.
+
 highland = require("highland")
 db = require("../server/db")
 require("../server/backbone-sync-riak")
@@ -25,7 +27,10 @@ loadModel = highland.wrapCallback((key, callback)->
 )
 
 saveModel = highland.wrapCallback((model, callback)->
-    model.save().then(->
+    headers = {
+        "X-Riak-Meta-Modified-By": model.metadataFromRiak._headers['x-riak-meta-modified-by']
+    }
+    model.save({wait: true, validate: false, headers: headers}).then(->
         callback(null, {statusCode: 200})
     , callback)
 )

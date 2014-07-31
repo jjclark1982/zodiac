@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
 
+# Delete all objects in a named riak bucket
+
 highland = require("highland")
 db = require("../server/db")
 
