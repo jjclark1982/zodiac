@@ -50,6 +50,18 @@ task 'build', 'Compile the client', shellScript """
     brunch build
 """
 
+task 'build:release', 'Compile a release on the `build` branch', ->
+    devPackages = (name for name, dep of packageDef.devDependencies)
+
+    script = """
+        git branch build
+        git checkout build
+        npm uninstall #{devPackages.join(' ')}
+        git add -f node_modules build
+        git commit -m "Build that passed tests on `date`"
+    """
+    shellScript(script)()
+
 task 'docs', 'Compile internal documentation', ->
     groc = require("groc")
     groc.LANGUAGES.Dust = {
