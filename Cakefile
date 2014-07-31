@@ -54,11 +54,13 @@ task 'build:release', 'Compile a release on the `build` branch', ->
     devPackages = (name for name, dep of packageDef.devDependencies)
 
     script = """
-        git branch build
+        BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        git branch build || echo "build branch already exists"
         git checkout build
         npm uninstall #{devPackages.join(' ')}
         git add -f node_modules build
         git commit -m "Build that passed tests on `date`"
+        git checkout $BRANCH
     """
     shellScript(script)()
 
