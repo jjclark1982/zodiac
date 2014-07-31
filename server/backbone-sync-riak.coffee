@@ -29,6 +29,10 @@ Backbone.sync = (method, model={}, options={})->
         callback = (err, object={}, meta={})->
             if err then return reject(gatewayError(err))
 
+            if meta.statusCode is 300
+                throw new Error("database returned multiple options: " + object)
+                # TODO: pass this to the frontend
+
             # make sure the id gets filled in if it was provided by riak
             object[idAttribute] = meta.key
 
