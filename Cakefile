@@ -19,34 +19,40 @@ process.env = env
 config = require("./config").config
 
 # Helper function to run a shell script provided as a string
-shellScript = (source = '')-> ->
+scriptsRunning = 0
+exitCode = 0
+shellScript = (source = '')->
+    scriptsRunning++
     shell = child_process.spawn('sh', ['-xc', source], {
         stdio: 'inherit'
         env: env
     })
     shell.on("exit", (code, signal)->
-        process.exit(code)
+        exitCode or= code
+        scriptsRunning--
+        if scriptsRunning is 0
+            process.exit(exitCode)
     )
 
-task 'start', 'Run the server', shellScript """
+task 'start', 'Run the server', ->shellScript """
     node server
 """
 
-task 'work', 'Start a worker', shellScript """
+task 'work', 'Start a worker', ->shellScript """
     server/worker.coffee
 """
 
-task 'develop', 'Run server with auto-reloading', shellScript """
+task 'develop', 'Run server with auto-reloading', ->shellScript """
     #(sleep 1; open 'http://localhost:#{config.server.port}/') &
     brunch watch --server
 """
 
-task 'test', 'Run server-side tests', shellScript """
+task 'test', 'Run server-side tests', ->shellScript """
     mocha --compilers coffee:coffee-script/register --globals _,Backbone test/test_server.coffee
     # open 'http://localhost:#{config.server.port}/test'
 """
 
-task 'build', 'Compile the client', shellScript """
+task 'build', 'Compile the client', ->shellScript """
     brunch build --production
 """
 
@@ -70,7 +76,7 @@ task 'docs', 'Compile internal documentation', ->
         '{client,server,scripts}/**'
     ], (->))
 
-task 'docs:upload', 'Compile docs and upload to GitHub-Pages', shellScript """
+task 'docs:upload', 'Compile docs and upload to GitHub-Pages', ->shellScript """
     groc --github README.md '{client,server,scripts}/**'
 """
 
@@ -91,9 +97,10 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
 
     task(title, description, ->
         # pass command-line arguments directly in to the script
-        args = process.argv[3..].join(' ')
+        index = process.argv.indexOf(title)
+        args = process.argv.slice(index+1).join(' ')
         script = "#{filename} #{args}"
-        shellScript(script)()
+        shellScript(script)
         # prevent invoking further tasks
         global.invoke = (->)
     )
