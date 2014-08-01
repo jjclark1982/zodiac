@@ -47,33 +47,8 @@ task 'test', 'Run server-side tests', shellScript """
 """
 
 task 'build', 'Compile the client', shellScript """
-    brunch build
+    brunch build --production
 """
-
-task 'build:release', 'Compile a release on the `build` branch', ->
-    devPackages = (name for name, dep of packageDef.devDependencies).join(' ')
-    builtFiles = "node_modules build"
-
-    script = """
-        DATE=$(date)
-        TIMESTAMP=$(date +"%s")
-        BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-        git checkout -b build-$TIMESTAMP
-        npm uninstall #{devPackages}
-        git add --all --force #{builtFiles}
-        git commit -m "copy #{builtFiles} from $BRANCH"
-
-        git branch build || echo "branch build already exists"
-        git checkout build --force
-        git merge build-$TIMESTAMP --strategy=subtree -m "Build as of $DATE"
-        git branch -D build-$TIMESTAMP
-
-        git checkout $BRANCH
-        git checkout build -- #{builtFiles}
-        git rm -r --cached #{builtFiles}
-    """
-    shellScript(script)()
 
 task 'docs', 'Compile internal documentation', ->
     groc = require("groc")
