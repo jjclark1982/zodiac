@@ -104,6 +104,7 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
     filename = "./scripts/#{basename}"
     contents = fs.readFileSync(filename, 'utf8')
     title = basename.replace(/\..*?$/, '')
+    # use the first block comment in the file as its description
     description = ''
     for line, i in contents.split(/\r|\n|\r\n/)
         if line.match(/^#!/) then continue
@@ -112,4 +113,12 @@ for basename in fs.readdirSync("./scripts") then do (basename)->
             description += line.replace(/^\s*(#|\/\/)\s*/, ' ').trim()
             continue
         break
-    task(title, description, shellScript(filename))
+
+    task(title, description, ->
+        # pass command-line arguments directly in to the script
+        args = process.argv[3..].join(' ')
+        script = "#{filename} #{args}"
+        shellScript(script)()
+        # prevent invoking further tasks
+        global.invoke = (->)
+    )

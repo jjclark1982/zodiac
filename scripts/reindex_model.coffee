@@ -9,8 +9,9 @@ require("../server/backbone-sync-riak")
 modelName = process.argv[2]
 try
     Model = require("models/"+modelName)
+    console.log("Reindexing each instance of", Model.name)
 catch e
-    console.err("Could not load models/"+modelName)
+    console.error("Could not load models/"+modelName)
     process.exit(1)
 
 
