@@ -101,8 +101,6 @@ hydrateView = (el, parentView)->
     # recursively hydrate any subviews before reaching them in a higher loop
     parentView?.registerSubview?(view)
     hydrateSubviews(el, view) # will populate view.collection with subviews' models
-    if data.collectionUrl
-        view.collection.fetch()
     view.attach() # will trigger render:after
     window.views ?= {}
     window.views[view.cid] = view
@@ -121,7 +119,13 @@ hydrateSubviews = (parentEl, parentView)->
 
 $(document).ready(->
     hydrateSubviews(document)
+    # after hydrating the entire document recursively, fetch collections
+    for url, collection of collectionsBeingAssembled when url
+        collection.fetch()
     collectionsBeingAssembled = {}
+    # TODO: garbage-collect the views structure without breaking router
+    # (maybe by using jquery data link)
+    # window.views = {}
 )
 
 module.exports = hydrateView
