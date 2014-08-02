@@ -52,6 +52,7 @@ module.exports = class NavigationView extends BaseView
 
     goToIndex: (index)->
         @currentIndex = index
+        # TODO: actually remove unused pages from the DOM
         @$el.children().removeClass("current").eq(index).addClass("current")
         # TODO: detect parent scroller more intelligently
         if window.router?.lightbox?

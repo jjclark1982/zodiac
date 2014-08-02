@@ -58,8 +58,7 @@ class Router extends Backbone.Router
         @setMainView(view)
 
     getMainView: ->
-        cid = @mainNavigator.$el.children().children("[data-view]").data("cid")
-        mainView = window.views[cid]
+        mainView = @mainNavigator.$("[data-view]").data("viewAttached")
         return mainView
 
     setMainView: (view)->
@@ -141,7 +140,6 @@ class Router extends Backbone.Router
         # if we don't have pushState, simply discard old cached views
         if !window.history.pushState? and @recentViews.length > 10
             for oldView in @recentViews.splice(0, @recentViews.length-10)
-                delete window.views[oldView.cid]
                 oldView.remove()
             return
 
@@ -149,7 +147,6 @@ class Router extends Backbone.Router
         depth = window.history.state?.depth
         # @previousDepth = depth
         for oldView in @recentViews.splice(depth+1)
-            delete window.views[oldView.cid]
             # TODO: remove the view's model from its _modelsByUrl cache
             # unless it is also in low-depth history
             oldView.remove()
@@ -241,7 +238,6 @@ class Router extends Backbone.Router
                 $(document.body).append(@mainNavigator.$el)
 
             # set the initial state
-            window.views ?= {}
             @initDate = new Date()
             @mainView = @getMainView()
             @saveState()

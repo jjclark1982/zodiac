@@ -102,11 +102,6 @@ hydrateView = (el, parentView)->
     parentView?.registerSubview?(view)
     hydrateSubviews(el, view) # will populate view.collection with subviews' models
     view.attach() # will trigger render:after
-    window.views ?= {}
-    window.views[view.cid] = view
-    viewName = constructors.view.name
-    viewName = viewName.charAt(0).toLowerCase() + viewName.substring(1)
-    window.views[viewName] or= view
 
 # hydrate all subviews of a given element.
 hydrateSubviews = (parentEl, parentView)->
