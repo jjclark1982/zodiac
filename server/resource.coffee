@@ -158,9 +158,27 @@ module.exports = (moduleOptions = {})->
     # Sets up a new express router with the following substack:
     router = new express.Router()
 
-    # * Provides a function to look up an object on the riak server by modelID(?)
+    # * Look up an object in the database by its id
     router.param('modelId', (req, res, next, modelId)->
         res.dbStartTime = new Date()
+
+        if modelId is 'random'
+            # Redirect to a random item of this type (read-only)
+            return next(405) unless req.method in ["GET", "HEAD", "OPTIONS"]
+            collection = new Backbone.Collection([], {model: modelCtor})
+            collection.fetch().then(->
+                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+                if collection.length is 0
+                    return next(404)
+                randomIndex = Math.floor(Math.random()*collection.length)
+                randomId = collection.at(randomIndex)?.id or ''
+                newUrl = req.originalUrl.replace(/\/random/, '/'+randomId)
+                res.redirect(302, newUrl)
+            , (err)->
+                next(err)
+            )
+            return
+
         model = new modelCtor()
         model.id = modelId
         model.fetch().then(->
@@ -174,22 +192,6 @@ module.exports = (moduleOptions = {})->
                 next()
             else 
                 next(err)
-        )
-    )
-
-    # Redirect to a random item of this type
-    router.get('/random.:format?', (req, res, next)->
-        res.dbStartTime = new Date()
-        collection = new Backbone.Collection([], {model: modelCtor})
-        collection.url = modelProto.urlRoot
-        collection.fetch().then(->
-            res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
-            randomIndex = Math.floor(Math.random()*collection.length)
-            randomId = collection.at(randomIndex)?.id or ''
-            newUrl = req.originalUrl.replace(/\/random/, '/'+randomId)
-            res.redirect(302, newUrl)
-        , (err)->
-            next(err)
         )
     )
 

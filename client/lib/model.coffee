@@ -119,6 +119,7 @@ BaseModel.loadFromUrl = (url, options={})->
             id = url.replace(urlRootRE, '')
 
     # when url is /random, don't use the cache
+    # TODO: make this work with cache-control headers instead of special-casing this url
     if id is 'random'
         model = new Constructor({}, options)
         model.url = url
