@@ -106,19 +106,32 @@ module.exports = class BaseModel extends Backbone.Model
 #     me = User.loadFromUrl("/users/me")
 BaseModel.loadFromUrl = (url, options={})->
     Constructor = this
-    unless url
+
+    # when there is no url, instantiate a model of the right type
+    if !url
         return new Constructor({}, options)
+
+    # Guess the id if it fits the urlRoot pattern.
+    # this isn't very RESTful, but it really helps with de-duplication
+    if @prototype.urlRoot
+        urlRootRE = new RegExp("^" + @prototype.urlRoot + "/")
+        if url.match(urlRootRE)
+            id = url.replace(urlRootRE, '')
+
+    # when url is /random, don't use the cache
+    if id is 'random'
+        model = new Constructor({}, options)
+        model.url = url
+        model.fetch(options) unless options.fetch is false
+        return model
+
+    # otherwise, check the cache for a model with this url
     @_modelsByUrl ?= {}
     model = @_modelsByUrl[url]
     unless model
         atts = {}
-        # Guess the id if it fits the urlRoot pattern.
-        # this isn't very RESTful, but it really helps with de-duplication
-        if @prototype.urlRoot
-            urlRootRE = new RegExp("^" + @prototype.urlRoot + "/")
-            if url.match(urlRootRE)
-                id = url.replace(urlRootRE, '')
-                atts[@prototype.idAttribute] = id
+        if id
+            atts[@prototype.idAttribute] = id
         model = new Constructor(atts, options)
         model.url = url
         @_modelsByUrl[url] = model

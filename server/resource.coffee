@@ -177,6 +177,22 @@ module.exports = (moduleOptions = {})->
         )
     )
 
+    # Redirect to a random item of this type
+    router.get('/random.:format?', (req, res, next)->
+        res.dbStartTime = new Date()
+        collection = new Backbone.Collection([], {model: modelCtor})
+        collection.url = modelProto.urlRoot
+        collection.fetch().then(->
+            res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+            randomIndex = Math.floor(Math.random()*collection.length)
+            randomId = collection.at(randomIndex)?.id or ''
+            newUrl = req.originalUrl.replace(/\/random/, '/'+randomId)
+            res.redirect(302, newUrl)
+        , (err)->
+            next(err)
+        )
+    )
+
     # * Provides a default route for the base url of the model to GET objects by passing in a query, or all objects if
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/.:format?', (req, res, next)->

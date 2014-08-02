@@ -28,6 +28,13 @@ class Router extends Backbone.Router
 
             model = @mainView?.collection?.detect((m)->_.result(m,'url') is options.url)
             model ?= options.modelCtor.loadFromUrl(options.url)
+            # when an aliased model receives its canonical url, update the navbar
+            @listenToOnce(model, "sync", ->
+                if @mainView.model is model
+                    url = _.result(model, 'url')
+                    if url isnt document.location.pathname
+                        Backbone.history.navigate(url, {replace: true})
+            )
             view = new options.viewCtor({model: model})
             view.render()
         @setMainView(view)
