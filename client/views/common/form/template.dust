@@ -1,7 +1,7 @@
 <form method="POST" action="{model.url}">
     <fieldset>
         <legend>
-            <a href="{model.urlWithSlug}">{model.url}</a>
+            <a class="form-link" href="{model.urlWithSlug}">{model.url}</a>
             <i class="show-when-loading icon-spinner icon-spin"></i>
             <i class="show-when-error icon-remove"></i>
             <i class="show-when-success icon-ok"></i>

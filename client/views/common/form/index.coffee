@@ -6,16 +6,30 @@ module.exports = class FormView extends BaseView
     template: require("./template")
     className: "form-view"
 
-    events: {
-        "click form": "clickButton"
-        "submit form": "handleSubmit"
-    }
-
     initialize: (options)->
         if @model.fields
             @fields = @model.fields
         else
             @fields = ({name: k, type: "text"} for k in @model.keys)
+
+    bindings: -> {
+        "form": {
+            observe: @model.idAttribute
+            update: ($el, val, model, options)->
+                $el.attr("action", _.result(@model, 'url'))
+        }
+        ".form-link": {
+            observe: @model.idAttribute
+            update: ($el, val, model, options)->
+                $el.attr("href", @model.urlWithSlug())
+                $el.text(_.result(@model, 'url'))
+        }
+    }
+
+    events: {
+        "click form": "clickButton"
+        "submit form": "handleSubmit"
+    }
 
     clickButton: (event)->
         @lastClicked = event.target
