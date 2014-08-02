@@ -187,11 +187,17 @@ module.exports = class BaseView extends Backbone.View
         if window?
             @trigger("hydrate")
             @hydrate?()
+            @listenToStandardEvents?()
 
     # Automatically set some classes and data attributes in response to common events.
-    # Subclasses may opt out of this by redefining hydrate() without a call to super()
-    # TODO: make it harder to opt out accidentally
-    hydrate: ->
+    # Subclasses may opt out of this by declaring listenToStandardEvents: false
+    listenToStandardEvents: ->
+        errString = (xhr)->
+            string = "#{xhr.status} #{xhr.statusText}"
+            try
+                string += ": " + JSON.parse(xhr.responseText).message
+            return string
+
         if @model
             @listenTo(@model, 'request', (object, xhr, options)->
                 if object is @model
@@ -205,11 +211,8 @@ module.exports = class BaseView extends Backbone.View
             @listenTo(@model, 'error', (object, xhr, options)->
                 if object is @model
                     @$el.removeClass('loading')
-                    errString = "#{xhr.status} #{xhr.statusText}"
-                    try
-                        errString += ": " + JSON.parse(xhr.responseText).message
-                    @$el.addClass('error').attr("data-error", errString)
-                    @$(".show-when-error").attr("title", errString)
+                    @$el.addClass('error').attr("data-error", errString(xhr))
+                    @$(".show-when-error").attr("title", errString(xhr))
             )
             @listenTo(@model, 'invalid', (model, error, options)->
                 @$el.removeClass('loading')
@@ -234,10 +237,7 @@ module.exports = class BaseView extends Backbone.View
             @listenTo(@collection, 'error', (object, xhr, options)->
                 if object is @collection
                     @$el.removeClass('loading')
-                    errString = "#{xhr.status} #{xhr.statusText}"
-                    try
-                        errString += ": " + JSON.parse(xhr.responseText).message
-                    @$el.addClass('error').attr("data-error", errString)
+                    @$el.addClass('error').attr("data-error", errString(xhr))
             )
 
 # transform a module id into a path that can be required on client or server

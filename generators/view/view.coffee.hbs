@@ -16,13 +16,12 @@ module.exports = class {{#camelize}}{{name}}-view{{/camelize}} extends BaseView
 
     # # This runs once when a view is instantiated with a working DOM element
     # hydrate: ->
-    #     super(arguments...) # set up listeners for common events
-    #     return this
+    #     @listenTo(...)
 
     # events: {
-    #     # "EVENT SELECTOR": "METHOD"
+    #     "EVENT SELECTOR": "METHOD"
     # }
 
     # bindings: {
-    #     # "SELECTOR": "FIELD"
+    #     "SELECTOR": "FIELD"
     # }
