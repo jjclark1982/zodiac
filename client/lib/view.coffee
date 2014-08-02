@@ -200,6 +200,7 @@ module.exports = class BaseView extends Backbone.View
             @listenTo(@model, 'sync', (object, response, options)->
                 if object is @model
                     @$el.removeClass('loading')
+                    @$el.attr('data-model-url', _.result(@model, 'url'))
             )
             @listenTo(@model, 'error', (object, xhr, options)->
                 if object is @model
