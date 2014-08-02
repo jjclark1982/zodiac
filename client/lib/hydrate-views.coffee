@@ -77,7 +77,7 @@ hydrateView = (el, parentView)->
                 try
                     constructors[type] = require(data[type])
                 catch e2
-                    console.log("Failed to hydrate", el, ":", e)
+                    console.warn("Failed to hydrate", el, ":", e)
                     return
 
     # fetch the latest data from the given url.
@@ -94,7 +94,7 @@ hydrateView = (el, parentView)->
         view = new constructors.view(options)
     catch initError
         # don't let an error in one view initialization block the rest of the page loading
-        console.log("Error initializing #{data.view}-view:", initError)
+        console.warn("Error initializing #{data.view}-view:", initError)
         $(el).addClass("error").attr("data-error", initError.message)
         view = new BaseView(options)
 
@@ -118,9 +118,6 @@ $(document).ready(->
     for url, collection of collectionsBeingAssembled when url
         collection.fetch()
     collectionsBeingAssembled = {}
-    # TODO: garbage-collect the views structure without breaking router
-    # (maybe by using jquery data link)
-    # window.views = {}
 )
 
 module.exports = hydrateView

@@ -137,12 +137,6 @@ module.exports = class BaseView extends Backbone.View
         @$el.attr('data-cid', @cid)
         @$el.addClass(_.result(@, 'className'))
         @$el.data('viewAttached', this) # a jquery-accessible pointer from DOM to view
-        if document.location.hash.match(/debug/)
-            window.views ?= {}
-            window.views[@cid] = @
-            viewName = @constructor.name
-            viewName = viewName.charAt(0).toLowerCase() + viewName.substring(1)
-            window.views[viewName] or= @
 
         @attachSubviews()
         if @model and @bindings
