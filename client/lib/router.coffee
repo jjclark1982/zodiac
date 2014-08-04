@@ -230,11 +230,12 @@ class Router extends Backbone.Router
 
         $(document).ready(=>
             # create the main navigator. the modal navigator will be created on demand
-            @mainNavigator = new NavigationView({
-                id: "main-navigator"
-                el: $("#main-navigator")
-            })
-            if @mainNavigator.$el.parent().length is 0
+            @mainNavigator = $("#main-navigator").data("viewAttached")
+            unless @mainNavigator
+                @mainNavigator = new NavigationView({
+                    id: "main-navigator"
+                    el: $("#main-navigator")
+                })
                 $(document.body).append(@mainNavigator.$el)
 
             # set the initial state

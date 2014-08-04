@@ -20,7 +20,7 @@
 
     {! {>header /}{~n} !}
 
-    <div id="main-navigator" class="navigation-view">{~n}
+    <div id="main-navigator" class="navigation-view" data-view="lib/navigation">{~n}
         <div class="navigation-item current">{~n}
             {>"{mainView}" /}{~n}
         </div>{~n}
