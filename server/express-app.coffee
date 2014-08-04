@@ -25,7 +25,7 @@ app = express()
 # All of the views renderable by express live in `/client`
 app.set('views', '../client')
 # Map the local appname variable to the name specified in `package.json`
-app.locals.appName = require('../package.json').name
+app.locals.appName = require('../package').name
 
 # ###### All app.use calls add middleware to the express stack:
 
@@ -89,21 +89,8 @@ for pageName, PageView of require("pages") then do (pageName, PageView)->
         res.render("pages/"+pageName)
     )
 
-# MAP '/info' to information about the setup for testing
-app.get('/info', (req, res, next)->
-    info = {
-        user: req.user
-        session: req.session
-        headers: req.headers
-        server: req.connection.server
-    }
-    res.render('page', {model:require("util").inspect(info)})
-)
 
-
-# app.get('/', (req, res, next)->
-
-# )
+app.get("/api-blueprint", require("./api-blueprint"))
 
 # Exports the application
 module.exports = app

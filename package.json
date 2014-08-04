@@ -1,7 +1,8 @@
 {
   "name": "zodiac",
-  "repository": "git@github.com:DestinationSoftware/stacktest.git",
-  "version": "0.0.1",
+  "description": "Web server with Riak backend and Backbone frontend",
+  "repository": "git@github.com:DestinationSoftware/zodiac.git",
+  "version": "0.1.0",
   "scripts": {
     "install": "cake install",
     "test": "cake test",

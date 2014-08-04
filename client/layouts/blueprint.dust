@@ -1,0 +1,62 @@
+FORMAT: 1A
+HOST: {host}
+
+# {packageDef.name}
+{packageDef.description}
+
+{@keyvalue object=modelProtos}
+## {key} Collection [{value.urlRoot}]
+### List all {key}s [GET]
++ Response 200 (application/json)
+
+        [{
+            "{value.idAttribute}": 1, "{value.titleAttribute}": "foo"
+        }, {
+            "{value.idAttribute}": 2, "{value.titleAttribute}": "bar"
+        }]
+
+### Create a {key} [POST]
++ Request (application/json)
+
+        {"{value.titleAttribute}": "baz"}
+
++ Response 201 (application/json)
+
+        {"{value.idAttribute}": 3, "{value.titleAttribute}": "baz"}
+
+## {key} [{value.urlRoot}/{~lb}{value.idAttribute}{~rb}]
+A single {key} object with all its details
+
++ Parameters
+    + {value.idAttribute} (required, string, `3`) ... `{value.idAttribute}` of the {key} to perform action with. Has example value.
+
+### Retrieve a {key} [GET]
++ Response 200 (application/json)
+
+    + Header
+
+            Location: Canonical url for this {key}
+            Last-Modified: Date of last edit
+            X-Riak-Meta-Modified-By: user responsible for last edit
+            X-Riak-Vclock: Vector clock used for conflict detection and resolution
+            X-DB-Query-Time: Number of milliseconds it took the database to return this data
+
+    + Body
+
+            { "{value.idAttribute}": 2, "{value.titleAttribute}": "bar" }
+
+### Update a {key} [PUT]
++ Request (application/json)
+
+        {"{value.titleAttribute}": "qux"}
+
++ Response 200 (application/json)
+
+    + Body
+
+            { "{value.idAttribute}": 3, "{value.titleAttribute}": "qux" }
+
+### Delete a {key} [DELETE]
++ Response 204
+
+{/keyvalue}
