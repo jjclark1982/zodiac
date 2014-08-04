@@ -2,39 +2,41 @@
 
 Developmental [Express](http://expressjs.com/) server with [Brunch](http://brunch.io) frontend and [Riak](http://basho.com/riak/) backend
 
-## Install
+## Installation
 
-Presently, this framework expects a Riak instance as its data store.
+Presently, this framework uses Riak as its data store.
 Instructions for installing Riak are available [here](http://docs.basho.com/riak/latest/quickstart/).
 
 ### Step 1. Install [node.js](http://nodejs.org/)
 
-For convenience, we've consolidated by-OS [instructions](NODE_INSTALL.md) for how to get the node.js platform installed on your machine.
-
-If you've previously installed node.js, skip to **Step 2** below, though also ensure that you have the `git` package installed as well.
-
-### Step 2. Grab the framework
+### Step 2. Clone the project template
 
     git clone https://github.com/DestinationSoftware/zodiac.git
     cd zodiac
 
 ### Step 3. Install dependencies with npm and bower
 
-(***DO NOT RUN AS SUDO***)
-
     npm install
 
-### Step 4. Set up `.env` file and append `node_modules/.bin` to path
+This will install all backend and frontend dependencies locally. Running this as superuser or with the `-g` (global) flag could cause conflicts.
 
-**Be sure to replace `[your server]` below with the link to your own riak instance.**
+### Step 4. Set environment variables
 
     echo NODE_ENV=development > .env
-    echo RIAK_SERVERS= [your server] > .env
+    echo RIAK_SERVERS=example.com:8098 >> .env
     export PATH=$PATH:node_modules/.bin
 
 ### Step 5. Launch
 
+Run `cake` without any arguments to see what it can do. (All the items in the `scripts` directory are automatically added to this list.) Cake loads environment variables from an `.env` file and/or a configuration management server, and runs commands in that environment.
+
+In development you usually want to run the server with auto-reloading:
+
     cake develop
+
+And in production you usually want to start the server without auto-reloading:
+
+    cake start
 
 ## Code Style Guide
 
@@ -54,21 +56,24 @@ Most server modules should export a singleton. Most client modules should export
 
 ### Directory Organization
 
-[.env](.env) - specify development environment variables
-[Cakefile](Cakefile) - run tasks in the specified environment with `cake`
-[Procfile](Procfile) - define production tasks
-[scripts/](scripts/) - tasks that don't fit in the Cakefile
-[generators/](generators/) - scaffolds for use with `scaffolt`
+Source Code
 
-[package.json](package.json) - specify server libraries for installation with `npm`
-[node_modules/](node_modules/) - installed server libraries
-[server/](server/index.html) - original backend source code
+[client/](client/) - original frontend source code  
+[server/](server/index.html) - original backend source code  
+[scripts/](scripts/) - commands to run in the same environment as the server, on an as-needed basis  
 
-[config.coffee](config.coffee) - `brunch` configuration
-[bower.json](bower.json) - specify client libraries for installation with `bower`
-[bower_components/](bower_components/) - installed client libraries
-[client/](client/) - original frontend source code
-[build/](build/) - compiled frontend
+Configuration
+
+[.env](.env) - specify development environment variables  
+[package.json](package.json) - specify server dependencies for installation with `npm`  
+[bower.json](bower.json) - specify client dependencies for installation with `bower`  
+[Cakefile](Cakefile) - run tasks in the specified environment with `cake`  
+[config.coffee](config.coffee) - `brunch` configuration  
+[generators/](generators/) - scaffolds for use with `scaffolt`  
+[node_modules/](node_modules/) - automatically installed server dependencies  
+[bower_components/](bower_components/) - automatically managed client dependencies  
+[vendor/](vendor/) - manually managed client dependencies such as licensed fonts  
+[build/](build/) - compiled client  
 
 ## Documentation
 

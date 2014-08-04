@@ -1,10 +1,8 @@
 # # resource.coffee
-# ### [Cosmo's Middleware Factory](http://www.youtube.com/watch?v=lIPan-rEQJA)
 
-# *This file instantiates a [riak](http://basho.com/riak/) db and then builds a middleware stack for
-# [REST](http://en.wikipedia.org/wiki/Representational_state_transfer)
-# operations that might be commonly performed on it.*
-# ***
+# *This file implements a middleware handler with
+# [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) endpoints
+# for a a given model type.*
 
 express = require('express')
 async = require('async')
@@ -54,15 +52,16 @@ sendModel = (req, res, next, model)->
         'Vary': "Accept" # TODO: make sure this doesn't overwrite anything important
         'X-DB-Query-Time': new Date() - res.dbStartTime
     })
-    if format is 'json'
-        res.set({"ETag": model.etag})
     # the ETag of the html is not known before rendering because the template may have changed
     # TODO: support sending it as a trailer
-    for name, value of model.metadataFromRiak._headers when name.match(/^x-riak/i)
+    if format is 'json'
+        res.set({"ETag": model.etag})
+    for name, value of model.metadataFromRiak._headers when name.match(/^x-/i)
         res.set(name, value)
 
     # now that last-modified, vary, and etag are set,
-    # we can send a "not modified" response to clients a fresh cache
+    # we can send a "not modified" response to clients with a fresh cache.
+    # this may be useful for filling in metadata for a bootstrapped data-only model
     if req.fresh
         return res.send(304)
 

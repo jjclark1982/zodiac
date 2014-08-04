@@ -59,6 +59,7 @@ module.exports = class NavigationView extends BaseView
             window.router.lightbox.el.scrollTop = 0
         else
             document.body.scrollTop = 0
+        return currentIndex
 
     goBack: ->
         newIndex = Math.max(0, @currentIndex-1)
@@ -86,3 +87,8 @@ module.exports = class NavigationView extends BaseView
 # TODO: detach non-current items from the dom after their transitions finish
 # (so they don't impact performance)
 # and re-add them before the next transition
+
+# normally this view should have one child. during a transition it should have two.
+# (skipping intermediate pages is fine)
+# should the child be a navigation-item or a mainView?
+# probably a navigation item, so the mainView can focus on its own layout

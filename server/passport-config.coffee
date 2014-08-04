@@ -8,13 +8,16 @@ User = require("models/user")
 
 # cryptographic hash function
 hash = (password, salt, callback)->
+    # TODO: store password as "#{salt}:#{iterations}:#{hash}"
     keylen = 128
     iterations = 12345
+    saltLen = 64
     if callback?
         crypto.pbkdf2(password, salt, iterations, keylen, callback)
     else
+        # when there is no "salt" argument, create a salt and save it
         callback = salt
-        crypto.randomBytes(keylen, (err, salt)->
+        crypto.randomBytes(saltLen, (err, salt)->
             if err then return callback(err)
             salt = salt.toString('base64')
             crypto.pbkdf2(password, salt, iterations, keylen, (err, hash)->
