@@ -1,7 +1,7 @@
 FORMAT: 1A
 HOST: {host}
 
-# {packageDef.name}
+# {packageDef.name} API
 {packageDef.description}
 
 {@keyvalue object=modelProtos}
@@ -10,9 +10,9 @@ HOST: {host}
 + Response 200 (application/json)
 
         [{
-            "{value.idAttribute}": 1, "{value.titleAttribute}": "foo"
+            "{value.idAttribute}": "1", "{value.titleAttribute}": "foo"
         }, {
-            "{value.idAttribute}": 2, "{value.titleAttribute}": "bar"
+            "{value.idAttribute}": "2", "{value.titleAttribute}": "bar"
         }]
 
 ### Create a {key} [POST]
@@ -28,11 +28,9 @@ HOST: {host}
 A single {key} object with all its details
 
 + Parameters
-    + {value.idAttribute} (required, string, `3`) ... `{value.idAttribute}` of the {key} to perform action with. Has example value.
+    + {value.idAttribute} (required, string, `"123"`) ... `{value.idAttribute}` of the {key} to perform action with. Has example value.
 
-### Retrieve a {key} [GET]
-+ Response 200 (application/json)
-
++ Model
     + Header
 
             Location: Canonical url for this {key}
@@ -43,20 +41,49 @@ A single {key} object with all its details
 
     + Body
 
-            { "{value.idAttribute}": 2, "{value.titleAttribute}": "bar" }
+            {
+                {#value.fields}"{name}": <{type}>{@last}{:else},
+                {/last}{/value.fields}
+            }
+
+### Retrieve a {key} [GET]
++ Response 200 (application/json)
+
+    [{key}][]
+
 
 ### Update a {key} [PUT]
 + Request (application/json)
 
-        {"{value.titleAttribute}": "qux"}
+        {
+            {#value.fields}{@if test=type isnt="id"}"{name}": <{type}>{@last}{:else},
+            {/last}{/if}{/value.fields}
+        }
 
 + Response 200 (application/json)
 
-    + Body
+    [{key}][]
 
-            { "{value.idAttribute}": 3, "{value.titleAttribute}": "qux" }
+### Partially update a {key} [PATCH]
+Only transmitted attributes will be modified.
++ Request (application/json)
+
+        {
+            "{value.titleAttribute}": "example"
+        }
+
++ Response 200 (application/json)
+
+    [{key}][]
 
 ### Delete a {key} [DELETE]
 + Response 204
+
+{#value.fields}{@if test=type is="link"}
+## {key} "{name}" link [{value.urlRoot}/{~lb}{value.idAttribute}{~rb}/{name}]
+### Retrieve a {key}'s {name} [GET]
++ Response 200
+{! TODO: link to the target type by its key !}
+{/if}{/value.fields}
 
 {/keyvalue}

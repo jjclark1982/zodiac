@@ -6,6 +6,7 @@ oldFormat = dust.optimizers.format
 dust.optimizers.format = (ctx, node)->node
 template = require("layouts/blueprint")
 dust.optimizers.format = oldFormat
+require("lib/dust-helpers")
 
 # construct a hash of ModelName: modelPrototype
 modelProtos = {}
