@@ -1,6 +1,24 @@
 BaseView = require("lib/view")
 require("lib/toggles")
 
+Backbone.Stickit?.addHandler({
+    selector: "form"
+    updateModel: false
+    updateView: true
+    update: ($el, val, model, options)->
+        $el.attr("action", _.result(model, 'url'))
+})
+
+Backbone.Stickit?.addHandler({
+    selector: "a.link-to-model"
+    updateModel: false
+    updateView: true
+    update: ($el, val, model, options)->
+        url = _.result(model, 'url')
+        $el.attr("href", model.urlWithSlug?() or url)
+        $el.text(url)
+})
+
 module.exports = class FormView extends BaseView
     requirePath: module.id
     template: require("./template")
@@ -13,17 +31,8 @@ module.exports = class FormView extends BaseView
             @fields = ({name: k, type: "text"} for k in @model.keys)
 
     bindings: -> {
-        "form": {
-            observe: @model.idAttribute
-            update: ($el, val, model, options)->
-                $el.attr("action", _.result(@model, 'url'))
-        }
-        ".form-link": {
-            observe: @model.idAttribute
-            update: ($el, val, model, options)->
-                $el.attr("href", @model.urlWithSlug())
-                $el.text(_.result(@model, 'url'))
-        }
+        "form": @model.idAttribute
+        ".link-to-model": @model.idAttribute
     }
 
     events: {

@@ -59,7 +59,7 @@ module.exports = class NavigationView extends BaseView
             window.router.lightbox.el.scrollTop = 0
         else
             document.body.scrollTop = 0
-        return currentIndex
+        return @currentIndex
 
     goBack: ->
         newIndex = Math.max(0, @currentIndex-1)
