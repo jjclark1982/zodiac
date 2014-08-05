@@ -6,6 +6,10 @@ DATE=$(date)
 TIMESTAMP=$(date +"%s")
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BUILT_FILES="node_modules build"
+export GIT_AUTHOR_NAME="Release Bot"
+export GIT_AUTHOR_EMAIL="release-bot@no-email.com"
+export GIT_COMMITTER_NAME="$GIT_AUTHOR_NAME"
+export GIT_COMMITTER_EMAIL="$GIT_AUTHOR_EMAIL"
 
 # Remove the compilation/testing dependencies.
 # (Assume this is run after building and testing)
