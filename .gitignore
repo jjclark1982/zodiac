@@ -20,10 +20,10 @@ nbproject
 Thumbs.db
 
 # NPM packages folder.
-node_modules/
+/node_modules
 
 # Bower stuff.
-bower_components/
+/bower_components
 
 /.env
 /db
