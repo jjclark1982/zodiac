@@ -17,17 +17,17 @@ DEV_PACKAGES=$(node -e 'console.log(Object.keys(require("./package.json").devDep
 npm uninstall $DEV_PACKAGES
 
 # create a temporary branch with the current dependencies and binaries
-git checkout -b build-$TIMESTAMP
+git checkout -b build/$TIMESTAMP
 git add --all --force $BUILT_FILES
-git commit -m "copy $BUILT_FILES from $BRANCH"
+git commit -m "copy $BUILT_FILES from $BRANCH on $HOSTNAME"
 
 # merge the temporary branch into the build branch
-git branch build || echo "build branch already exists"
-git checkout build --force
-git merge build-$TIMESTAMP --strategy=subtree -m "Build as of $DATE"
-git branch -D build-$TIMESTAMP
+git branch build/$BRANCH || echo "build branch already exists"
+git checkout build/$BRANCH --force
+git merge build/$TIMESTAMP --strategy=subtree -m "Build as of $DATE"
+git branch -D build/$TIMESTAMP
 
 # restore the original branch
 git checkout $BRANCH
-git checkout build -- $BUILT_FILES
+git checkout build/$BRACNH -- $BUILT_FILES
 git rm -r --cached $BUILT_FILES
