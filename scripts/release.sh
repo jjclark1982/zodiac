@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 
 # Record the current dependencies and binaries
 
@@ -18,16 +18,25 @@ npm uninstall $DEV_PACKAGES
 
 # create a temporary branch with the current dependencies and binaries
 git checkout -b build/$TIMESTAMP
-git add --all --force $BUILT_FILES
-git commit -m "copy $BUILT_FILES from $BRANCH on $HOSTNAME"
+for FILE in $BUILT_FILES; do
+    git add --all --force $FILE
+done
+git commit -m "copy built files from $BRANCH on $(uname -a)"
 
 # merge the temporary branch into the build branch
 git branch build/$BRANCH || echo "build branch already exists"
-git checkout build/$BRANCH --force
+git checkout --force build/$BRANCH
 git merge build/$TIMESTAMP --strategy=subtree -m "Build as of $DATE"
 git branch -D build/$TIMESTAMP
 
 # restore the original branch
-git checkout $BRANCH
-git checkout build/$BRACNH -- $BUILT_FILES
-git rm -r --cached $BUILT_FILES
+git checkout --force $BRANCH
+for FILE in $BUILT_FILES; do
+    git checkout build/$BRANCH -- $FILE
+    git rm -r --cached $FILE
+done
+exit 0
+
+# may need to automatically edit the .gitignore file
+# sed -i.bak '/^\/node_modules/d' .gitignore
+# sed -i.bak '/^\/build/d' .gitignore
