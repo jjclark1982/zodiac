@@ -41,7 +41,7 @@ fetchModel = (el, ModelCtor=BaseModel)->
                 model = collection?.detect((m)->_.result(m,'url') is modelUrl)
         unless model
             model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
-            
+
             # Don't fire an 'add' event because the collection view is already populated.
             collection.add(model, {silent: true})
     else
@@ -95,8 +95,9 @@ hydrateView = (el, parentView)->
         view = new constructors.view(options)
     catch initError
         # don't let an error in one view initialization block the rest of the page loading
-        console.warn("Error initializing #{data.view}-view:", initError)
         $(el).addClass("error").attr("data-error", initError.message)
+        initError.message = "Error initializing #{data.view}-view:" + initError.message
+        _.defer(->throw initError) # show the stack trace in console with source map
         view = new BaseView(options)
 
     # recursively hydrate any subviews before reaching them in a higher loop

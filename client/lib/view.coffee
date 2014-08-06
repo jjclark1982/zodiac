@@ -118,8 +118,7 @@ module.exports = class BaseView extends Backbone.View
         @getInnerHTML((err, html)=>
             if err
                 @$el.addClass("error").attr("data-error", err.message)
-                console.error(err)
-                return
+                throw err
             @$el.html(html)
             @$el.removeClass("rendering")
 
