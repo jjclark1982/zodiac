@@ -36,13 +36,14 @@ fetchModel = (el, ModelCtor=BaseModel)->
     if collection
         # When a model-view is inside a collection-view with the same model type,
         # add the model to the collection, and assume the collection will fetch it and merge.
-        if collection
-            model = collection?.detect((m)->_.result(m,'url') is modelUrl)
-            unless model
-                model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
-
-                # Don't fire an 'add' event because the collection view is already populated.
-                collection.add(model, {silent: true})
+        if modelUrl
+            try
+                model = collection?.detect((m)->_.result(m,'url') is modelUrl)
+        unless model
+            model = ModelCtor.loadFromUrl(modelUrl, {fetch: false})
+            
+            # Don't fire an 'add' event because the collection view is already populated.
+            collection.add(model, {silent: true})
     else
         # For lone models, de-duplicate with the class cache. (TODO: garbage collect that cache)
         # If the same model is both in and out of a collection on the same page,
