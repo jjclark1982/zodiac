@@ -43,6 +43,15 @@ module.exports = class InputView extends BaseView
     # TODO: show validation errors that apply to this field
     listenToStandardEvents: false
 
+    preRender: ->
+        @value = @model.get(@field.name)
+
+    hydrate: ->
+        # some fields get rendered differently for new models.
+        # we re-render after creation to get the new display.
+        if @model.isNew()
+            @listenToOnce(@model, "sync", @render)
+
     attributes: ->
         atts = super(arguments...)
         if @field
