@@ -22,14 +22,15 @@ Backbone.sync = (method, model, options)->
             options.headers["X-Riak-Vclock"] = model.vclock
 
         # Read headers when receiving a model
-        oldSuccess = options.success
-        options.success = (response, status, xhr)->
-            for key, headerName of headersToRead
-                value = xhr.getResponseHeader(headerName)
-                if value
-                    model[key] = value # for example: model.vclock = headers["X-Riak-Vclock"]
+        if method isnt 'delete'
+            oldSuccess = options.success
+            options.success = (response, status, xhr)->
+                for key, headerName of headersToRead
+                    value = xhr.getResponseHeader(headerName)
+                    if value
+                        model[key] = value # for example: model.vclock = headers["X-Riak-Vclock"]
 
-            oldSuccess?(response, status, xhr)
+                oldSuccess?(response, status, xhr)
 
 
     # The case for collections is more complicated, because we need to ensure that
