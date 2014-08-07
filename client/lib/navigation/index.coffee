@@ -51,9 +51,25 @@ module.exports = class NavigationView extends BaseView
         return this
 
     goToIndex: (index)->
+        oldIndex = @currentIndex
         @currentIndex = index
-        # TODO: actually remove unused pages from the DOM
-        @$el.children().removeClass("current").eq(index).addClass("current")
+
+        view = @items[index]
+        if !view
+            throw new Error("no view for index #{index}")
+
+        @$el.children().removeClass("current")
+        $child = @elForItem(view)
+        $child.addClass("current")
+        if @currentIndex < oldIndex
+            @$el.prepend($child)
+        else
+            @$el.append($child)
+
+        # remove old ones immediately if we cannot depend on the transitionEnd event
+        unless $("html").is(".csstransitions")
+            @$el.chidlren().not(".current").detach()
+
         # TODO: detect parent scroller more intelligently
         if window.router?.lightbox?
             window.router.lightbox.el.scrollTop = 0
@@ -70,12 +86,15 @@ module.exports = class NavigationView extends BaseView
         @goToIndex(newIndex)
 
     events: {
-        "transitionend .navigation-item": "transitionEnd"
+        "transitionend": "transitionEnd"
     }
 
     transitionEnd: (event)->
+        $target = $(event.target)
+        return unless $target.is(".navigation-item")
+        @$el.children().not(".current").detach()
         return
-        $target = $(event.currentTarget)
+        # TODO: fine-tune vertical alignment inside lightbox
         if $target.hasClass("current")
             # make sure it is visible
             $target.css({"position": "relative"})
@@ -83,12 +102,6 @@ module.exports = class NavigationView extends BaseView
             # make sure it is hidden
             $target.css({"position": "absolute"})
 
-
-# TODO: detach non-current items from the dom after their transitions finish
-# (so they don't impact performance)
-# and re-add them before the next transition
-
 # normally this view should have one child. during a transition it should have two.
 # (skipping intermediate pages is fine)
-# should the child be a navigation-item or a mainView?
-# probably a navigation item, so the mainView can focus on its own layout
+# the child should be a navigation item, so the mainView can focus on its own layout

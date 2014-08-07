@@ -3,14 +3,22 @@
 // instant transition
 .navigation-view {
     padding: 0;
+    white-space: nowrap;
     > .navigation-item {
-        display: none;
+        display: inline-block;
+        min-width: 100%;
+        min-height: 100%;
+        vertical-align: top;
+        // this transition is used to detect when old views are offscreen, so they can be removed.
+        // we use margin-bottom as a dummy property for the instant transitions.
+        transition: margin-bottom 1ms linear;
+        margin-bottom: -1px;
     }
     > .navigation-item.current {
-        display: block;
+        margin-bottom: 0;
     }
     > .navigation-item.current ~ .navigation-item {
-        display: none;
+        margin-bottom: 1px
     }
 }
 
