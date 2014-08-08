@@ -41,10 +41,13 @@ module.exports = class User extends BaseModel
     validate: (attributes, options)->
         editor = options.editor
         if editor
-            if "admin" in (editor.permissions or [])
+            if editor.hasPermission("admin")
                 return null
             if "permissions" of @changed
                 return "You are not allowed to edit permissions"
-            if editor.username isnt @id
+            if editor.id isnt @id
                 return "You are not permitted to edit this user"
         return null
+
+    hasPermission: (permission)->
+        return (permission in (@get("permissions") or []))
