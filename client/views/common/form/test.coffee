@@ -13,8 +13,8 @@ describe("FormView", ->
         @view.remove()
     )
 
-    it("should render and re-render without errors", (done)->
-        @view.render(done)
+    it("should initialize and render without errors", ->
+        expect(@view).to.be.ok
     )
 
     it("should render a form that posts to its model's url", ->

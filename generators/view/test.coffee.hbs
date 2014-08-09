@@ -7,10 +7,10 @@ describe("{{#camelize}}{{name}}-view{{/camelize}}", ->
     )
 
     afterEach(->
-        @view.remove()
+        @view?.remove()
     )
 
-    it("should render and re-render without errors", (done)->
-        @view.render(done)
+    it("should initialize and render without errors", ->
+        expect(@view).to.be.ok
     )
 )
