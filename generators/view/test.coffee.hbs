@@ -1,0 +1,16 @@
+{{#camelize}}{{name}}-view{{/camelize}} = require("./index")
+
+describe("{{#camelize}}{{name}}-view{{/camelize}}", ->
+    beforeEach((done)->
+        @view = new {{#camelize}}{{name}}-view{{/camelize}}()
+        @view.render(done)
+    )
+
+    afterEach(->
+        @view.remove()
+    )
+
+    it("should render and re-render without errors", (done)->
+        @view.render(done)
+    )
+)

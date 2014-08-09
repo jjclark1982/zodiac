@@ -5,6 +5,10 @@
       "to": "client/views/{{name}}/index.coffee"
     },
     {
+      "from": "test.coffee.hbs",
+      "to": "client/views/{{name}}/test.coffee"
+    },
+    {
       "from": "template.hbs",
       "to": "client/views/{{name}}/template.dust"
     },
