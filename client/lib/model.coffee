@@ -52,7 +52,7 @@ module.exports = class BaseModel extends Backbone.Model
     # instantiate ready-to-fetch models for the links defined in a model's data
     linkedModels: ->
         @_linkedModels ?= {}
-        for linkDef in @fields when linkDef.type is "link"
+        for linkDef in (@fields or []) when linkDef.type is "link"
             @_linkedModels[linkDef.name] ?= @getLink(linkDef.name)
 
         return @_linkedModels
