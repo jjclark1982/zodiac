@@ -108,7 +108,7 @@ module.exports = class BaseView extends Backbone.View
             callback(err, outer)
         )
 
-    render: ->
+    render: (callback)->
         unless window?
             throw new Error("Tried to render #{@constructor.name} without a DOM")
         @trigger("render:before")
@@ -118,12 +118,14 @@ module.exports = class BaseView extends Backbone.View
         @getInnerHTML((err, html)=>
             if err
                 @$el.addClass("error").attr("data-error", err.message)
-                throw err
+                _.defer(->throw err) # show the stack trace in console with source map
+                callback(err)
             @$el.html(html)
             @$el.removeClass("rendering")
 
             # the template will have populated @subviews
             @attach()
+            callback()
         )
         return @
 
