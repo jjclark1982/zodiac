@@ -19,9 +19,9 @@ exports.config =
   files:
     javascripts:
       joinTo:
-        'javascripts/app.js': /^client/
+        'javascripts/app.js': /^client.*[\/\\](?!test)[^\/\\]*$/
         'javascripts/vendor.js': /^(bower_components|vendor)/
-        'test/test.js': /^test/
+        'test/test.js': /^test|\/test\./
       order:
         after: [
           'test/vendor/scripts/test-helper.js'
@@ -31,8 +31,6 @@ exports.config =
       joinTo:
         'stylesheets/app.css': /^(?!test)/
         'test/test.css': /^test/
-      order:
-        after: ['vendor/styles/helpers.css']
 
     templates:
       joinTo: 'javascripts/app.js'
