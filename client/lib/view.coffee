@@ -125,7 +125,7 @@ module.exports = class BaseView extends Backbone.View
 
             # the template will have populated @subviews
             @attach()
-            callback()
+            callback?()
         )
         return @
 
