@@ -119,11 +119,12 @@ module.exports = class BaseView extends Backbone.View
             if err
                 @$el.addClass("error").attr("data-error", err.message)
                 _.defer(->throw err) # show the stack trace in console with source map
-                callback(err)
+                return callback?(err)
+
             @$el.html(html)
             @$el.removeClass("rendering")
 
-            # the template will have populated @subviews
+            # the template will have populated @subviews, so attach can connect them to els
             @attach()
             callback?()
         )
