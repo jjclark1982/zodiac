@@ -2,7 +2,7 @@ unitTests = _.select(global.require.list(), (name)->
     name.match(/^(?!test).*test$/)
 )
 integrationTests = [
-    './views/footer-view-test'
+    # put relative filenames of tests here
 ]
 
 describe 'The testing environment', ->

@@ -42,7 +42,7 @@ module.exports = class BaseModel extends Backbone.Model
         if @_fieldDefs then return @_fieldDefs
 
         fieldDefs = {}
-        for fieldDef in @fields
+        for fieldDef in (@fields or [])
             fieldDefs[fieldDef.name] = fieldDef
 
         # cache the lookup table in the prototype to support other models of the same class

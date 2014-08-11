@@ -3,9 +3,9 @@ BaseModel = require("lib/model")
 
 describe("FormView", ->
     beforeEach((done)->
-        dummyModel = new BaseModel()
-        dummyModel.url = '/'
-        @view = new FormView({model: dummyModel})
+        @model = new BaseModel()
+        @model.url = '/dummy-url-for-testing-only'
+        @view = new FormView({model: @model})
         @view.render(done)
     )
 

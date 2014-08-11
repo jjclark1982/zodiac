@@ -10,7 +10,7 @@ module.exports = class PopupEditorView extends BaseView
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 
-    initialize: (options)->
+    initialize: (options={})->
         @location = options.location or {x: 0, y: 0}
         @fieldName = options.fieldName
 

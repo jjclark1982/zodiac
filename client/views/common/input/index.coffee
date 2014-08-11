@@ -19,13 +19,13 @@ module.exports = class InputView extends BaseView
 
     template: require("./template")
 
-    initialize: (options)->
+    initialize: (options={})->
         @showLabel = options.showLabel
 
         if options.name
             @field = @model.fieldDefs()[options.name] or {
                 name: options.name
-                type: options.type
+                type: options.type or 'text'
             }
         else if options.field
             @field = options.field
