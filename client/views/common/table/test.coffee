@@ -2,6 +2,7 @@ TableView = require("./index")
 BaseModel = require("lib/model")
 
 numItems = 5
+numFields = 5
 
 describe("TableView", ->
     beforeEach((done)->
@@ -9,10 +10,12 @@ describe("TableView", ->
         for i in [0...numItems]
             models.push(new BaseModel())
         @collection = new Backbone.Collection(models, {model: BaseModel})
-        @fields = [{
-            name: "example"
-            type: "text"
-        }]
+        @fields = []
+        for i in [0...numFields]
+            @fields.push({
+                name: "example"+i
+                type: "text"
+            })
         @view = new TableView({
             collection: @collection
             columns: @fields
@@ -28,15 +31,15 @@ describe("TableView", ->
         expect(@view).to.be.ok
     )
 
-    it("should show one row for each collection item, plus one header row", ->
+    it("should show #{numItems+1} rows for #{numItems} items", ->
         rows = @view.$el.find("tr")
         expect(rows.length).to.equal(numItems + 1)
     )
 
-    it("should show one column for each field, plus one id column and one action column and", ->
+    it("should show #{numFields+2} columns for #{numFields} fields", ->
         cells = @view.$el.find("th,td")
         rows = numItems + 1
         columnsPerRow = cells.length / rows
-        expect(columnsPerRow).to.equal(@fields.length + 2)
+        expect(columnsPerRow).to.equal(numFields + 2)
     )
 )
