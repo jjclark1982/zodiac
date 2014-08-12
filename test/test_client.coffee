@@ -4,7 +4,7 @@ describe "The frontend testing engine", ->
 
     describe "should compile unit tests without errors", ->
         unitTests = []
-        for name in (global.require?.list?() or []) when name.match(/^(?!test).*test$/)
+        for name in (window.require.list() or []) when name.match(/^(?!test).*test$/)
             unitTests.push(name)
         for name in unitTests then do (name)->
             it name, ->
