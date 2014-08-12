@@ -28,3 +28,7 @@ module.exports = class BackgroundJobView extends BaseView
             setTimeout(=>
                 @remove()
             , 1000)
+
+    remove: ->
+        clearInterval(@pollInterval)
+        super()
