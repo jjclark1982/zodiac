@@ -61,23 +61,30 @@ task 'docs', 'Compile internal documentation', ->
     groc.LANGUAGES.Dust = {
         nameMatchers: [ '.dust' ],
         pygmentsLexer: 'html',
-        multiLineComment: [ '<!--',
-            '',
-            '-->',
-            '{!',
-            '',
-            '!}' ],
+        multiLineComment: [
+            '<!--','','-->',
+            '{!','','!}'
+        ],
         strictMultiLineEnd: true,
         ignorePrefix: '#',
         foldPrefix: '^'
     }
+    groc.LANGUAGES.Stylus = {
+        nameMatchers: [ '.styl' ],
+        pygmentsLexer: 'sass',
+        singleLineComment: ['//'],
+        multiLineComment: [ '/*', '*', '*/'],
+        ignorePrefix: '}',
+        foldPrefix: '^'
+    }
     groc.CLI([
         'README.md',
-        '{client,server,scripts}/**'
+        '{client,server,scripts}/**/*.*',
+        '--out','./build/doc'
     ], (->))
 
 task 'docs:upload', 'Compile docs and upload to GitHub-Pages', ->shellScript """
-    groc --github README.md '{client,server,scripts}/**'
+    groc --github README.md '{client,server,scripts}/**/*.*'
 """
 
 # Provide commands for any scripts in the `scripts` directory
