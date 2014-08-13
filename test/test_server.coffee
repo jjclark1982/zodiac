@@ -23,9 +23,9 @@ describe('Database', ->
 )
 
 describe('Server', ->
-    for file in serverFiles when file.match(/\.coffee$/)
-        do (file)->describe('/'+file, ->
-            it('should lint without errors', (done)->
+    describe("should lint without errors", ->
+        for file in serverFiles when file.match(/\.coffee$/) then do (file)->
+            it(file, (done)->
                 fs.readFile(path.join(serverDir, file), (fileErr, data)->
                     if fileErr
                         return done(fileErr)
