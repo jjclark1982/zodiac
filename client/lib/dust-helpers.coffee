@@ -63,7 +63,7 @@ dust.onLoad = (name, callback)->
 
                         # create a context with the parent's globals and this view's locals
                         childContext = dust.makeBase(context.global).push(locals)
-                        branch = view.template(branch, childContext) unless locals.model?.showSkeletonView
+                        branch = view.template(branch, childContext)
                         branch.write("</#{tagName}>")
                         if process?.env?.NODE_ENV is 'development'
                             branch.write("<!-- end of \"#{name}\" view -->")
