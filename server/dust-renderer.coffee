@@ -76,10 +76,8 @@ invalidateCache = (views)->
         if key.match(recompilable)
             delete require.cache[key]
 
-# the default `res.render()` does not support streaming
-# so we override it with one that does
-responsePrototype = require("express/lib/response")
-responsePrototype.render = (viewName, options={}, callback)->
+# This behaves much like Express's standard render function, but also supports streaming
+render = (viewName, options={}, callback)->
     res = this
     req = res.req
     app = res.app
@@ -134,6 +132,13 @@ responsePrototype.render = (viewName, options={}, callback)->
     )
     stream.on('error', callback)
     stream.on('end', callback)
+
+middleware = (req, res, next)->
+    res.render = render
+    next()
+
+module.exports = middleware
+
 # ***
 # ***NEXT**: Step into [RESOURCE.COFFEE](resource.html) to see how the riak database and middleware factory are set up
 # or step into [ERROR-HANDLER.COFFEE](error-handler.html) and see how it is designed to process errors.*

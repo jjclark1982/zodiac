@@ -119,15 +119,19 @@ middleware.use((req, res, next)->
     # TODO: disallow editing based on csrf token
 )
 
-middleware.use(middleware.router)
-
-# remap `/users/me` to the logged-in user, if any
+# alias `/users/me` to the logged-in user, if any
 middleware.use((req, res, next)->
-    if !req.url.indexOf('/users/me') # starts with
+    if req.url.indexOf('/users/me') is 0
         if req.session?.passport?.user
             req.url = req.url.replace(/^\/users\/me($|\/|\?)/, '/users/'+req.session.passport.user+'$1')
         else
             return next(401)
+    next()
+    # the resource middleware for User will then process this as /users/id
+)
+
+middleware.get('/login', (req, res, next)->
+    # a page will handle this, but putting a handler here helps to give the correct OPTIONS response
     next()
 )
 

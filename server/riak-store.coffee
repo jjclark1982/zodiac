@@ -1,8 +1,8 @@
-express = require("express")
+session = require("express-session")
 db = require("./db")
 gatewayError = require("./gateway-error")
 
-module.exports = class RiakStore extends express.session.Store
+module.exports = class RiakStore extends session.Store
     constructor: (options = {})->
         @bucket = options.bucket or 'sessions'
         bucketOptions = {

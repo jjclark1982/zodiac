@@ -50,7 +50,7 @@ sendModel = (req, res, next, model)->
     res.set({
         'Last-Modified': model.lastMod
         'Vary': "Accept" # TODO: make sure this doesn't overwrite anything important
-        'X-DB-Query-Time': new Date() - res.dbStartTime
+        'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'
     })
     # the ETag of the html is not known before rendering because the template may have changed
     # TODO: support sending it as a trailer
@@ -63,7 +63,7 @@ sendModel = (req, res, next, model)->
     # we can send a "not modified" response to clients with a fresh cache.
     # this may be useful for filling in metadata for a bootstrapped data-only model
     if req.fresh
-        return res.send(304)
+        return res.status(304).end()
 
     # if the entity is not cached, send it in the requested format
     switch format
@@ -84,7 +84,7 @@ sendList = (req, res, next, collection)->
     res.set({
         'Vary': 'Accept,Accept-Encoding'
         'Location': collection.url
-        'X-DB-Query-Time': new Date() - res.dbStartTime
+        'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'
     })
 
     format = req.params.format or req.accepts(['json', 'html'])
@@ -106,14 +106,14 @@ sendList = (req, res, next, collection)->
                 )
             , (err, models)->
                 if err then return next(err)
-                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'})
                 res.set({"X-Riak-Vclocks": JSON.stringify(vclocks)})
                 lastMod = null
                 for model in collection.models
                     lastMod = model.lastMod unless lastMod > model.lastMod
                 res.set({'Last-Modified': lastMod})
                 if req.fresh
-                    return res.send(304)
+                    return res.status(304).end()
                 res.json(collection)
                 #TODO: pass through req.headers for things like cache-control
                 #TODO: support streaming by iterating through fetch promises
@@ -162,7 +162,7 @@ module.exports = (moduleOptions = {})->
             return next(405) unless req.method in ["GET", "HEAD", "OPTIONS"]
             collection = new Backbone.Collection([], {model: modelCtor})
             collection.fetch().then(->
-                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime})
+                res.set({'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'})
                 if collection.length is 0
                     return next(404)
                 randomIndex = Math.floor(Math.random()*collection.length)
@@ -425,7 +425,7 @@ module.exports = (moduleOptions = {})->
         , next)
     )
 
-    return router.middleware
+    return router
 
 # ***
 # ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it overrides the current
