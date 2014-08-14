@@ -4,6 +4,7 @@ fs = require ("fs")
 path = require ("path")
 coffeelint = require("coffeelint")
 lintConfig = require("../config.coffee").config.plugins.coffeelint.options
+child_process = require 'child_process'
 
 serverDir = path.join(__dirname, '..', 'server')
 serverFiles = fs.readdirSync(serverDir)
@@ -59,11 +60,10 @@ describe('Server', ->
         server = require('../server')
     )
 
-    it('should start without errors', (done)->
+    it 'should start without errors', (done)->
         server.startServer(0, null, (startedServer)->
             done()
         )
-    )
 
     makeRequest = (options = {}, callback)->
         if toString.call(options) is "[object String]"
@@ -117,4 +117,12 @@ describe('Client', ->
             done()
         )
     )
+    it 'should pass all tests in test_client', (done)->
+        phantom = child_process.spawn("mocha-phantomjs", ["http://localhost:#{process.env.PORT}/test"], {
+        stdio: 'inherit'
+        })
+        phantom.on("exit", (code, signal)->
+            expect(code).to.be.equal(0)
+            done()
+        )
 )
