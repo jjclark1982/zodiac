@@ -36,7 +36,7 @@ server.on('error', (error)->
 # `console.log()` the port, once running (i.e. the server is listening for requests)
 server.once('listening', ->
     console.log('SPDY server listening on port', server.address().port)
-)
+) unless process.env.SILENT
 
 # Export the server object
 module.exports = server

@@ -34,10 +34,11 @@ app.set("views", "../client")
 app.locals.appName = require("../package").name
 
 # at the top of the middleware stack are loggers and timers and static files
-if process.env.NODE_ENV is "production"
-    app.use(morgan("combined"))
-else
-    app.use(morgan("dev"))
+unless process.env.SILENT
+    if process.env.NODE_ENV is "production"
+        app.use(morgan("combined"))
+    else
+        app.use(morgan("dev"))
 app.use(responseTime(5))
 app.use(compression())
 app.use(express.static(fsPath.resolve(__dirname, "../build"))) # TODO: stop disk access from slowing dynamic responses

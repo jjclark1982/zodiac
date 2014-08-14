@@ -53,7 +53,7 @@ server.on('error', (error)->
 # `console.log()` the port, once running (i.e. the server is listening for requests)
 server.once('listening', ->
     console.log('HTTP server listening on port', server.address().port)
-)
+) unless process.env.SILENT
 
 # Support auto-reloading when source code changes
 if process.env.NODE_ENV is 'development'

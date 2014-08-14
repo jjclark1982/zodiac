@@ -9,6 +9,8 @@ child_process = require 'child_process'
 serverDir = path.join(__dirname, '..', 'server')
 serverFiles = fs.readdirSync(serverDir)
 
+process.env.SILENT = true
+
 describe('Database', ->
     it('should connect without errors', (done)->
         db = require('../server/db')
@@ -106,13 +108,19 @@ describe('Client', ->
     it('should compile without errors', (done)->
         this.timeout(5000)
         
+        brunch = require('brunch')
         brunchLogger = require("brunch/node_modules/loggy")
+
+        # silence brunch, but use its error logger to report errors to mocha
         errorLogger = brunchLogger.error
         brunchLogger.error = ->
             errorLogger.apply(arguments)
             done(new Error(arguments[0]))
+        brunchLogger.log = (->)
+        brunchLogger.info = (->)
+        brunchLogger.warn = (->)
 
-        brunch = require 'brunch'; w = brunch.build({}, (compiledFiles)->
+        brunch.build({}, (compiledFiles)->
             expect(compiledFiles).to.be.ok
             done()
         )
