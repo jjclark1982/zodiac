@@ -23,8 +23,25 @@ describe("ListView", ->
         expect(@view).to.be.ok
     )
 
-    it("should show one list item for each collection item", ->
+    it("should show #{numItems} list items for a collection of #{numItems} models", ->
         listItems = @view.$el.children("li")
         expect(listItems.length).to.equal(numItems)
+    )
+
+    it("should show #{numItems+1} list items after adding a model", ->
+        model = new BaseModel()
+        model.url = '/dummy-url-for-testing-only'
+        @collection.add(model)
+        listItems = @view.$el.children("li")
+        expect(listItems.length).to.equal(numItems+1)
+    )
+
+    it("should show #{numItems-1} list items after removing a model", (done)->
+        @collection.remove(@collection.first())
+        setTimeout(=>
+            listItems = @view.$el.children("li")
+            expect(listItems.length).to.equal(numItems-1)
+            done()
+        , 10)
     )
 )
