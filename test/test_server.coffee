@@ -125,12 +125,32 @@ describe('Client', ->
             done()
         )
     )
-    it 'should pass all tests in test_client', (done)->
-        phantom = child_process.spawn("mocha-phantomjs", ["http://localhost:#{process.env.PORT}/test"], {
-        stdio: 'inherit'
-        })
+
+    it("should run frontend tests in phantomjs", (done)->
+        phantom = child_process.spawn("mocha-phantomjs", [
+            "--reporter", "json-stream"
+            "http://localhost:#{process.env.PORT}/test"
+        ])
+        clientResults = []
+        phantom.stdout.on("data", (chunks)->
+            for chunk in chunks.toString().split(/\n/) when chunk
+                result = JSON.parse(chunk)
+                clientResults.push(result)
+        )
         phantom.on("exit", (code, signal)->
-            expect(code).to.be.equal(0)
+            describe("Frontend Tests", ->
+                for result in clientResults then do (result)->
+                    type = result[0]
+                    clientTest = result[1]
+                    switch type
+                        when 'start', 'end'
+                            null
+                        when 'pass', 'fail'
+                            it(clientTest.fullTitle, ->
+                                expect(type).to.equal("pass")
+                            )
+            )
             done()
         )
+    )
 )
