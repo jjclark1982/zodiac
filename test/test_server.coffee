@@ -149,7 +149,7 @@ describe('Client', ->
                             throw new Error("unrecognized json-stream output")
                 catch e
                     # unparseable output might not be an error. display it.
-                    console.log(chunk)
+                    console.error(chunk)
         )
         phantom.on("exit", (code, signal)->
             describe("Frontend Tests", ->
