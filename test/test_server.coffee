@@ -131,24 +131,38 @@ describe('Client', ->
             "--reporter", "json-stream"
             "http://localhost:#{process.env.PORT}/test"
         ])
-        clientResults = []
+        frontendSuites = {}
         phantom.stdout.on("data", (chunks)->
             for chunk in chunks.toString().split(/\n/) when chunk
-                result = JSON.parse(chunk)
-                clientResults.push(result)
-        )
-        phantom.on("exit", (code, signal)->
-            describe("Frontend Tests", ->
-                for result in clientResults then do (result)->
+                try
+                    result = JSON.parse(chunk)
                     type = result[0]
                     clientTest = result[1]
                     switch type
                         when 'start', 'end'
                             null
                         when 'pass', 'fail'
-                            it(clientTest.fullTitle, ->
-                                expect(type).to.equal("pass")
+                            suiteName = clientTest.fullTitle.replace(clientTest.title, '')
+                            frontendSuites[suiteName] ?= []
+                            frontendSuites[suiteName].push(result)
+                        else
+                            throw new Error("unrecognized json-stream output")
+                catch e
+                    # unparseable output might not be an error. display it.
+                    console.log(chunk)
+        )
+        phantom.on("exit", (code, signal)->
+            describe("Frontend Tests", ->
+                for suiteName, suite of frontendSuites
+                    describe(suiteName, ->
+                        for result in (suite or []) then do (result)->
+                            title = result[1].title
+                            if result[1].duration > 10
+                                title += " (#{result[1].duration}ms)"
+                            it(title, ->
+                                expect(result[0]).to.equal("pass")
                             )
+                    )
             )
             done()
         )
