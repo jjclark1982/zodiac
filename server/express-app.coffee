@@ -39,9 +39,12 @@ unless process.env.SILENT
         app.use(morgan("combined"))
     else
         app.use(morgan("dev"))
-app.use(responseTime(5))
+app.use(responseTime())
 app.use(compression())
 app.use(express.static(fsPath.resolve(__dirname, "../build"))) # TODO: stop disk access from slowing dynamic responses
+
+# beyond this point we want to be able to render dynamic responses
+app.use(dustRenderer)
 
 # then we add parsers for request data
 app.use(bodyParser.urlencoded({extended: false}))
@@ -57,9 +60,6 @@ app.use(session({
     saveUninitialized: false # TODO: prepare session for anonymous user to login or register
 }))
 app.use(passportConfig)
-
-# beyond this point we want to be able to render responses
-app.use(dustRenderer)
 
 # mount each PageView at its defined mountPoint
 # for example, the 'home' page mounts at '/'
