@@ -41,10 +41,14 @@ processTask = (task, callback)->
             try
                 handler = require("./background-job-handlers/" + task.get('type'))
             catch e
-                task.save({"NO_HANDLER"}, {wait: true})
+                task.save({status: "NO_HANDLER"}, {wait: true})
                 return callback("no handler for #{task.get('type')}: " + e)
 
+            stallTimeout = setTimeout(->
+                task.save({status: "STALLED"}, {wait: true})
+            , 1000*60)
             handler(task, (err)->
+                clearTimeout(stallTimeout)
                 if err
                     task.set({
                         status: "FAILED"
@@ -57,6 +61,7 @@ processTask = (task, callback)->
                 task.save({}, {wait: true})
                  # This should trigger post-commit handlers that can see tha change of state
             )
+            
     })
 
 startWorker = (interval=10)->
