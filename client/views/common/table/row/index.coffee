@@ -50,4 +50,4 @@ module.exports = class TableRowView extends BaseView
         @model.fetch()
 
     destroyItem: (event)->
-        @model.destroy()
+        @model.destroy({wait: true})
