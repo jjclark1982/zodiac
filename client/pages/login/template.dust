@@ -1,3 +1,8 @@
+<div class="show-when-error {?flash}error{/flash}"
+    {?flash}data-error="{#flash}{.}{/flash}"{/flash}>
+    <i class="icon-remove"></i>
+</div>
+
 <form method="POST" action="/login">
     <fieldset>
         <legend>Log in to your account</legend>
@@ -16,7 +21,7 @@
     </fieldset>
 </form>
 
-or
+{~s}or{~s}
 
 <form method="POST" action="/users">
     <fieldset>
@@ -39,5 +44,3 @@ or
         </button>
     </fieldset>
 </form>
-
-<div class="show-when-error"><i class="icon-remove"></i>&nbsp;</div>

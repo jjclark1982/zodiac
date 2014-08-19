@@ -18,14 +18,6 @@
 !}
 <body>{~n}
 
-    {?flash}
-        <div class="notifications">
-            {#flash}
-                <p class="notification">{.}</p>{~n}
-            {/flash}
-        </div>{~n}
-    {/flash}
-
     {! {>header /}{~n} !}
 
     <div id="main-navigator" class="navigation-view" data-view="lib/navigation">{~n}

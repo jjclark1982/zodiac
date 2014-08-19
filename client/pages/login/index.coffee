@@ -27,6 +27,7 @@ module.exports = class LoginView extends BaseView
         $button = $(@lastClicked)
         $button.addClass("loading").attr("disabled", true)
         @$el.removeClass("error")
+        @$(".show-when-error").removeClass("error")
 
         $.ajax({
             method: $form.attr("method")
@@ -35,7 +36,7 @@ module.exports = class LoginView extends BaseView
             success: (response, result, xhr)=>
                 $button.removeClass("loading").addClass("success")
                 # update User.current
-                if toString.call(response) is "[object Object]"
+                if _.isObject(response)
                     User.current ?= new User(response)
                     User.current.set(response).trigger("sync")
 
@@ -45,14 +46,17 @@ module.exports = class LoginView extends BaseView
 
             error: (xhr, result, statusText)=>
                 $button.removeClass("loading").removeAttr("disabled")
-
-                response = xhr.responseText
-                try
-                    response = JSON.parse(response).error.message
-
-                @$el.addClass("error")
-                @$(".show-when-error").attr("data-error", response)
+                @showError(xhr)
         })
 
         event.preventDefault()
         event.stopPropagation()
+
+    showError: (xhr)->
+        response = xhr
+        try
+            response = JSON.parse(xhr.responseText)
+        message = response.message or response.error?.message or response
+        
+        @$(".show-when-error").attr("data-error", message)
+        @$el.addClass("error")
