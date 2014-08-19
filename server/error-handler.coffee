@@ -53,7 +53,7 @@ module.exports = (err, req, res, next)->
         html: ->
             res.render('error', {title: "#{statusCode} #{err.name}", error: err})
         default: ->
-            res.end(err.message)
+            res.end(err.message + "\n")
     })
 
 # ***

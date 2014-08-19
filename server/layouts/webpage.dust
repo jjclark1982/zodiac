@@ -18,11 +18,19 @@
 !}
 <body>{~n}
 
+    {?flash}
+        <div class="notifications">
+            {#flash}
+                <p class="notification">{.}</p>{~n}
+            {/flash}
+        </div>{~n}
+    {/flash}
+
     {! {>header /}{~n} !}
 
     <div id="main-navigator" class="navigation-view" data-view="lib/navigation">{~n}
         <div class="navigation-item current">{~n}
-            {>"{mainView}" /}{~n}
+            {>"{mainView}" /}
         </div>{~n}
     </div>{~n}
 
@@ -30,7 +38,7 @@
 
     <script src="/javascripts/vendor.js"></script>{~n}
     <script src="/javascripts/app.js"></script>{~n}
-    <script>require('initialize')</script>{~n}
+    <script>require("initialize")</script>{~n}
 
     <style>.streaming-indicator { display: none; }</style>{~n}
 

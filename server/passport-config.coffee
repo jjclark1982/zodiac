@@ -114,7 +114,8 @@ middleware.use((req, res, next)->
         return next()
         
     else
-        return next(401)
+        res.status(401)
+        return next(new Error("You must be logged in to do that."))
 
     # TODO: disallow editing based on csrf token
 )
@@ -125,7 +126,8 @@ middleware.use((req, res, next)->
         if req.session?.passport?.user
             req.url = req.url.replace(/^\/users\/me($|\/|\?)/, '/users/'+req.session.passport.user+'$1')
         else
-            return next(401)
+            res.status(401)
+            return next(new Error("You are not logged in."))
     next()
     # the resource middleware for User will then process this as /users/id
 )
@@ -135,12 +137,41 @@ middleware.get('/login', (req, res, next)->
     next()
 )
 
-middleware.post('/login', passport.authenticate('local',  {
-    successRedirect: '/',
-    failureRedirect: '/login',
-    failureFlash: false
-    # TODO: support showing useful messages
-}))
+middleware.post('/login', (req, res, next)->
+    callback = (err, user, info, status)->
+        if err then return next(err)
+
+        if user
+            req.logIn(user, (err)->
+                if err then return next(err)
+
+                if req.xhr
+                    res.redirect(user.url())
+                else
+                    res.redirect("/")
+                # TODO: support redirecting to some other page the user was trying to reach
+            )
+        else
+            res.status(401)
+            res.format({
+                json: ->
+                    res.json({error: info})
+                html: ->
+                    res.locals.flash ?= []
+                    info = [info] unless info instanceof Array
+                    for loginError in info
+                        res.locals.flash.push(loginError.message)
+                    # option to avoid leaking information about whether an account exists:
+                    # res.locals.flash = ["Incorrect login or password"]
+                    res.render("login")
+                default: ->
+                    message = info[0]?.message or info.message
+                    res.type("text")
+                    res.send(message)
+            })
+
+    passport.authenticate('local', callback)(req, res, next)
+)
 
 middleware.get('/logout', (req, res, next)-> 
     req.logout()
