@@ -1,3 +1,6 @@
+LoginView = require("pages/login")
+LoginView.showWhenUnauthorized()
+
 User = require("models/user")
 User.current = User.loadFromUrl("/users/me")
 
