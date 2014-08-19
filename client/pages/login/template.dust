@@ -9,7 +9,10 @@
             <input name="password" type="password"></input>
         </label>
         <br>
-        <button type="submit">Sign in</button>
+        <button type="submit">
+            Sign in <i class="show-when-loading icon-spinner icon-spin"></i>
+            <i class="show-when-success icon-ok"></i>
+        </button>
     </fieldset>
 </form>
 
@@ -30,7 +33,11 @@ or
             <input name="password" type="password"></input>
         </label>
         <br>
-        <button type="submit">Sign up</button>
+        <button type="submit">
+            Sign up <i class="show-when-loading icon-spinner icon-spin"></i>
+            <i class="show-when-success icon-ok"></i>
+        </button>
     </fieldset>
 </form>
 
+<div class="show-when-error"><i class="icon-remove"></i>&nbsp;</div>

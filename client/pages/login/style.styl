@@ -8,4 +8,32 @@
             text-align: center;
         }
     }
+
+    .show-when-loading {
+        display: none;
+    }
+    .loading .show-when-loading {
+        display: inline-block;
+    }
+
+    .show-when-success {
+        display: none;
+    }
+    .success .show-when-success {
+        display: inline-block;
+        color: green;
+    }
+
+    .show-when-error {
+        display: none;
+    }
+    &.error .show-when-error {
+        display: block;
+        color: red;
+        margin: 1em;
+        &:after {
+            display: inline;
+            content: attr(data-error);
+        }
+    }
 }
