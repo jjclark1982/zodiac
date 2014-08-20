@@ -14,10 +14,43 @@ if CommonDustjsHelpers
 
 module.exports = dust
 
+# reusable tmpl function that imitates dust.load() based on a relative path.
+loadRelativeTmpl = (chunk, context)->
+    relativeName = context.templateName # this will have been set by the main partial handler
+    parentName = context.get("$parentTemplate")
+    absName = resolvePath(parentName, relativeName)
+    context.templateName = absName
+    dust.onLoad(absName, (err, src)->
+        if err then return chunk.setError(err)
+        if !dust.cache[absName]
+            dust.loadSource(dust.compile(src, absName))
+        dust.cache[absName](chunk, context).end()
+    )
+
+resolvePath = (from, to)->
+    currentPath = from.split(/\//)
+    currentPath.pop() # the directory we are starting from
+
+    toParts = to.split(/\//)
+    for toPart in toParts
+        if toPart is '..'
+            currentPath.pop()
+        else if toPart is '.'
+            null
+        else
+            currentPath.push(toPart)
+    return currentPath.join('/')
+
 # dust.render('page') triggers require('views/page')
 # usage: {>page mainView=mainView options=options /}
 # {>"{itemView}" model=. tagName="li" />
 dust.onLoad = (name, callback)->
+    # if name is a relative path, hand off to the resolver
+    if name[0] is '.'
+        dust.register(name, loadRelativeTmpl)
+        return callback()
+
+    # otherwise, load a module by its absolute path
     try
         # this should find subclasses of BaseView in the normal places
         # and plain .dust files given a full enough path
@@ -28,9 +61,8 @@ dust.onLoad = (name, callback)->
 
     if loadedModule.prototype?.registerSubview
         # this appears to be a backbone view
-        viewCtor = loadedModule
-        # fill in the cache so it doesn't try to compile
-        dust.cache[name] = (chunk, context)->
+        ViewCtor = loadedModule
+        tmpl = (chunk, context)->
             superview = null
             cursor = context.stack
             while cursor.head
@@ -47,7 +79,7 @@ dust.onLoad = (name, callback)->
                 options = {}
 
             try
-                view = new viewCtor(options)
+                view = new ViewCtor(options)
                 superview?.registerSubview?(view)
             catch e
                 return chunk.setError(e)
@@ -62,6 +94,7 @@ dust.onLoad = (name, callback)->
                         if err then return branch.setError(err)
 
                         # create a context with the parent's globals and this view's locals
+                        locals.$parentTemplate = name
                         childContext = dust.makeBase(context.global).push(locals)
                         branch = view.template(branch, childContext)
                         branch.write("</#{tagName}>")
@@ -73,11 +106,18 @@ dust.onLoad = (name, callback)->
                 catch e
                     branch.setError(e)
             )
+
+        dust.register(name, tmpl)
+        return callback()
+
     else
         # this appears to be a compiled dust template
-        # fill in the cache so it doesn't try to recompile
-        dust.cache[name] = loadedModule
-    callback()
+        tmpl = (chunk, context)->
+            childContext = context.push({$parentTemplate: name})
+            loadedModule(chunk, childContext)
+
+        dust.register(name, tmpl)
+        return callback()
 
 dust.helpers or= {}
 
