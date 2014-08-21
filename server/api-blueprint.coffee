@@ -4,7 +4,7 @@ require("./dust-renderer")
 # retain whitespace when compiling this markdown template
 oldFormat = dust.optimizers.format
 dust.optimizers.format = (ctx, node)->node
-template = require("layouts/blueprint")
+template = require("./layouts/blueprint")
 dust.optimizers.format = oldFormat
 require("lib/dust-helpers")
 

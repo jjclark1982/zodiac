@@ -107,13 +107,13 @@ render = (viewName, options={}, callback)->
             else
                 req.next(err)
 
-    # unless we get a request to partially render content, render the [`layout`](../../client/views/layout.dust) view,
-    # passing it the view associated with the current model as a `mainView` variable.
+    # unless we get a request to partially render content, render the [`webpage`](./layouts/webpage.dust)
+    # layout, passing it the name of the `mainView` as a variable.
     if !req.xhr
         try
             options.title ?= BaseView.requireView(viewName).prototype.title
         options.mainView = viewName
-        viewName = 'layouts/webpage'
+        viewName = fsPath.resolve(__dirname, "./layouts/webpage")
 
     # make app and res locals available globally
     # so that all subviews can access the site name, the current user, etc
