@@ -113,8 +113,7 @@ render = (viewName, options={}, callback)->
     # make app and res locals available globally
     # so that all subviews can access the site name, the current user, etc
     globals = merge(app.locals, res.locals)
-    context = dust.makeBase(globals).push(options).push({})
-    # TODO: eliminate the vestigal {} at the end of context
+    context = dust.makeBase(globals).push(options)
 
     stream = dust.stream(viewName, context)
     stream.events = { data: [], error: [], end: [] } # prevent warnings

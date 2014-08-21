@@ -41,6 +41,25 @@ resolvePath = (from, to)->
             currentPath.push(toPart)
     return currentPath.join('/')
 
+getSuperview = (context)->
+    cursor = context.stack
+    while cursor?.head
+        if cursor.head instanceof Backbone.View
+            return cursor.head
+        cursor = cursor.tail
+    return null
+
+getViewOptions = (context)->
+    # a context is a list of frames:
+    # current context, parameters to this partial, parent context, grandparent context, etc.
+    # we usually want to use the parameters to this partial.
+    # with no parameters, use the parent context unless it is a view (which would clobber things like className).
+    # this allows us to include arbitrary options passed in to res.render() without merging.
+    options = context.stack?.tail?.head or context.stack?.head or {}
+    if options instanceof Backbone.View
+        return {}
+    return options
+
 # dust.render('page') triggers require('views/page')
 # usage: {>page mainView=mainView options=options /}
 # {>"{itemView}" model=. tagName="li" />
@@ -63,20 +82,8 @@ dust.onLoad = (name, callback)->
         # this appears to be a backbone view
         ViewCtor = loadedModule
         tmpl = (chunk, context)->
-            superview = null
-            cursor = context.stack
-            while cursor.head
-                if typeof cursor.head.registerSubview is 'function'
-                    superview = cursor.head
-                    break
-                cursor = cursor.tail
-
-            # try to match the template params
-            # if there are none, use the current context
-            options = context.stack.tail?.head or context.stack.head
-            # but never use an existing view as a context, that would create a loop
-            if options is superview
-                options = {}
+            superview = getSuperview(context)
+            options = getViewOptions(context)
 
             try
                 view = new ViewCtor(options)
