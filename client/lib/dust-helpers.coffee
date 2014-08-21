@@ -69,12 +69,14 @@ dust.onLoad = (name, callback)->
         dust.register(name, loadRelativeTmpl)
         return callback()
 
-    # otherwise, load a module by its absolute path
     try
-        # this should find subclasses of BaseView in the normal places
-        # and plain .dust files given a full enough path
-        BaseView = require("lib/view")
-        loadedModule = BaseView.requireView(name)
+        # if a name is an absolute path, load it directly
+        if name[0] is '/'
+            loadedModule = require(name)
+        else
+            # if a name is a canonical path, look in the usual places
+            BaseView = require("lib/view")
+            loadedModule = BaseView.requireView(name)
     catch e
         return callback(e)
 

@@ -23,22 +23,27 @@ if (require.extensions)
             alias = alias.replace(/\.dust$/,'')
             dust.cache[alias] = dust.cache[filename]
 
+    injectParentPath = (tmpl, name)->
+        return (chunk, context)->
+            tmpl(chunk, context.push({$parentTemplate: name}))
+
     loadDustFile = (filename, callback)->
+        moduleName = filename.replace(/\.dust$/, '')
         if callback
             # async version
             fs.readFile(filename, 'utf8', (err, text)->
                 if err then return callback(err)
-                source = dust.compile(text.trim(), filename)
-                tmpl = dust.loadSource(source, filename)
-                setDustAlias(filename)
+                source = dust.compile(text.trim(), moduleName)
+                tmpl = dust.loadSource(source, moduleName)
+                setDustAlias(moduleName)
                 callback(null, tmpl)
             )
         else
             # sync version
             text = fs.readFileSync(filename, 'utf8')
-            source = dust.compile(text.trim(), filename)
-            tmpl = dust.loadSource(source, filename)
-            setDustAlias(filename)
+            source = dust.compile(text.trim(), moduleName)
+            tmpl = dust.loadSource(source, moduleName)
+            setDustAlias(moduleName)
             return tmpl
 
     require.extensions[".dust"] = (module, filename)->
