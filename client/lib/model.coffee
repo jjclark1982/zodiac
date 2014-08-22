@@ -1,4 +1,6 @@
-unless window?
+if window?
+    require("./backbone-sync-metadata")
+else
     global._ = require('lodash')
     global.Backbone = require('backbone')
 
