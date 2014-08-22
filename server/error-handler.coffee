@@ -51,7 +51,17 @@ module.exports = (err, req, res, next)->
             catch e
                 res.end(err.message)
         html: ->
-            res.render('error', {title: "#{statusCode} #{err.name}", error: err})
+            if statusCode is 401 and !res.xhr
+                # show a login box with error message
+                res.locals.flash ?= []
+                res.locals.flash.push(err.message)
+                res.render("login")
+            else
+                # show the error with branding and stack trace
+                res.render("error", {
+                    title: "#{statusCode} #{err.name}"
+                    error: err
+                })
         default: ->
             res.end(err.message + "\n")
     })

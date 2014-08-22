@@ -1,4 +1,5 @@
 crypto = require("crypto")
+url = require("url")
 express = require("express")
 passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
@@ -146,10 +147,14 @@ middleware.post('/login', (req, res, next)->
                 if err then return next(err)
 
                 if req.xhr
+                    # when logging in by ajax form, send the location of the logged-in user
                     res.redirect(user.url())
                 else
-                    res.redirect("/")
-                # TODO: support redirecting to some other page the user was trying to reach
+                    # redirect to a page that had a login form shown due to a 401
+                    target = url.parse(req.get("referer") or '').pathname # strip host
+                    if !target or (target is "/login")
+                        target = "/" # default redirect after login
+                    res.redirect(target)
             )
         else
             res.status(401)

@@ -48,8 +48,17 @@ module.exports = class LoginView extends BaseView
                     return
 
                 if document.location.pathname is "/login"
-                    # redirect to "/"
+                    # when showing a login view at the normal loc, redirect to "/"
                     Backbone.history.navigate("", {trigger: true})
+                else
+                    # when showing a login view at another page, reload to get the real page
+                    document.location.reload()
+                    # it may be possible to use the router for this, if we had some way
+                    # to bypass its cache of poppable views
+                    # link = document.createElement("a")
+                    # link.href = document.location.href
+                    # if window.router.navigateToLink(link, {trigger: true, replace: true})
+                    #     return
 
             error: (xhr, result, statusText)=>
                 $button.removeClass("loading").removeAttr("disabled")
@@ -83,8 +92,8 @@ module.exports = class LoginView extends BaseView
 
 LoginView.currentModal = null
 LoginView.showModal = (xhr)->
-    return if document.location.pathname is "/login"
     return if LoginView.currentModal
+    return if $(".login-view").length > 0 # avoid showing multiple logins for any reason
 
     modal = new LoginView({className: "login-view modal hidden"})
     modal.render(->
@@ -107,5 +116,3 @@ LoginView.showWhenUnauthorized = ->
         if request.url[0] is "/" and xhr.status is 401
             LoginView.showModal(xhr)
     )
-
-# TODO: redirect or reload HTML 401 pages (except when xhr partial)
