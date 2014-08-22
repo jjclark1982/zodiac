@@ -1,6 +1,11 @@
+<div class="container">
+<div class="dismiss-button">
+    <i class="icon-remove"></i>
+</div>
+
 <div class="show-when-error {?flash}error{/flash}"
     {?flash}data-error="{#flash}{.}{/flash}"{/flash}>
-    <i class="icon-remove"></i>
+    <i class="icon-warning-sign"></i>
 </div>
 
 <form method="POST" action="/login">
@@ -44,3 +49,4 @@
         </button>
     </fieldset>
 </form>
+</div><!-- container -->

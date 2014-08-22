@@ -16,6 +16,8 @@ module.exports = class LoginView extends BaseView
     events: {
         "click form": "clickButton"
         "submit form": "handleSubmit"
+        "click .dismiss-button": "disappear"
+        "transitionend": "transitionEnd"
     }
 
     clickButton: (event)->
@@ -41,9 +43,8 @@ module.exports = class LoginView extends BaseView
                     User.current.set(response).trigger("sync")
 
                 if this is LoginView.currentModal
-                    LoginView.currentModal.remove()
                     LoginView.currentModal = null
-                    # TODO: animate modal disappearance
+                    @disappear()
                     return
 
                 if document.location.pathname is "/login"
@@ -67,17 +68,31 @@ module.exports = class LoginView extends BaseView
         @$(".show-when-error").attr("data-error", message)
         @$el.addClass("error")
 
+    appear: ->
+        _.defer(=>
+            @$el.removeClass("hidden")
+        )
+
+    disappear: ->
+        @$el.addClass("hidden")
+        # will lead to transitionEnd
+
+    transitionEnd: (event)->
+        if (event.target is @el) and @$el.hasClass("hidden")
+            @remove()
+
 LoginView.currentModal = null
 LoginView.showModal = (xhr)->
     return if document.location.pathname is "/login"
     return if LoginView.currentModal
 
-    LoginView.currentModal = modal = new LoginView()
+    modal = new LoginView({className: "login-view modal hidden"})
     modal.render(->
         modal.showError(xhr)
     )
     $(document.body).append(modal.el)
-    # TODO: animate modal appearance
+    modal.appear()
+    LoginView.currentModal = modal
 
 registeredYet = false
 LoginView.showWhenUnauthorized = ->
@@ -93,16 +108,4 @@ LoginView.showWhenUnauthorized = ->
             LoginView.showModal(xhr)
     )
 
-    # # monkeypatching Backbone.sync allows us to detect errors even if the transport layer changes
-    # # but does not help us detect errors from non-Backbone sources.
-    # # (other sources are likely to be integrations we don't want to show this page for anyway)
-    # oldSync = Backbone.sync
-    # Backbone.sync = (method, model, options={})->
-    #     oldError = options.error
-    #     options.error = (xhr, responseType, statusText)->
-    #         if xhr.status is 401
-    #             LoginView.showModal(xhr)
-    #         oldError?()
-    #     oldSync(method, model, options)
-
-# aside: HTML 401 pages may want to redirect or reload
+# TODO: redirect or reload HTML 401 pages (except when xhr partial)

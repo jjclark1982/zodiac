@@ -1,7 +1,7 @@
 <td data-column-name="{model.idAttribute}">
     {>input model=model name=model.idAttribute type="id" /}
     <i class="show-when-loading icon-spinner icon-spin"></i>
-    <i class="show-when-error icon-remove"></i>
+    <i class="show-when-error icon-warning-sign"></i>
     <i class="show-when-success icon-ok"></i>
 </td>
 {#columns}

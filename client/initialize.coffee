@@ -2,7 +2,7 @@ LoginView = require("pages/login")
 LoginView.showWhenUnauthorized()
 
 User = require("models/user")
-User.current = User.loadFromUrl("/users/me")
+User.current = User.loadFromUrl("/users/me") # may lead to a 401 and associated login popup
 
 require("lib/hydrate-views")
 
