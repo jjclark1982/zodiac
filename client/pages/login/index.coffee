@@ -42,8 +42,7 @@ module.exports = class LoginView extends BaseView
                     User.current ?= new User(response)
                     User.current.set(response).trigger("sync")
 
-                if this is LoginView.currentModal
-                    LoginView.currentModal = null
+                if @isModal
                     @disappear()
                     return
 
@@ -83,6 +82,7 @@ module.exports = class LoginView extends BaseView
         )
 
     disappear: ->
+        LoginView.currentModal = null
         @$el.addClass("hidden")
         # will lead to transitionEnd
 
@@ -96,6 +96,7 @@ LoginView.showModal = (xhr)->
     return if $(".login-view").length > 0 # avoid showing multiple logins for any reason
 
     modal = new LoginView({className: "login-view modal hidden"})
+    modal.isModal = true
     modal.render(->
         modal.showError(xhr)
     )

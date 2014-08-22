@@ -51,7 +51,7 @@ module.exports = (err, req, res, next)->
             catch e
                 res.end(err.message)
         html: ->
-            if statusCode is 401 and !res.xhr
+            if shouldShowLoginPanel(res, req.user)
                 # show a login box with error message
                 res.locals.flash ?= []
                 res.locals.flash.push(err.message)
@@ -65,6 +65,18 @@ module.exports = (err, req, res, next)->
         default: ->
             res.end(err.message + "\n")
     })
+
+shouldShowLoginPanel = (res, user)->
+    if res.xhr
+        # partial pages should always show the relevant error
+        return false
+    if user
+        # don't prompt someone to log in if they are already logged in
+        # TODO: show a "log in as a different user" button
+        return false
+    if res.statusCode is 401
+        return true
+    return false
 
 # ***
 # ***NEXT**: Step into [DUST-RENDERER.COFFEE](dust-renderer.html) and observe how it is designed to render tempates, or
