@@ -53,6 +53,7 @@ module.exports = (err, req, res, next)->
         html: ->
             if shouldShowLoginPanel(res, req.user)
                 # show a login box with error message
+                res.set("Cache-Control", "max-age: 0") # avoid caching this page: it is temporary
                 res.locals.flash ?= []
                 res.locals.flash.push(err.message)
                 res.render("login")

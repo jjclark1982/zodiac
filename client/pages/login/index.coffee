@@ -11,7 +11,7 @@ module.exports = class LoginView extends BaseView
     # BaseView's `render()` function uses the subclass's provided template
     template: require("./template")
 
-    title: "Login"
+    title: "Log In"
 
     events: {
         "click form": "clickButton"
@@ -46,12 +46,12 @@ module.exports = class LoginView extends BaseView
                     @disappear()
                     return
 
-                if document.location.pathname is "/login"
+                if window.location.pathname is "/login"
                     # when showing a login view at the normal loc, redirect to "/"
                     Backbone.history.navigate("", {trigger: true})
                 else
                     # when showing a login view at another page, reload to get the real page
-                    document.location.reload()
+                    window.location.reload(true)
                     # it may be possible to use the router for this, if we had some way
                     # to bypass its cache of poppable views
                     # link = document.createElement("a")

@@ -84,11 +84,6 @@ app.use((req, res, next)->
     next(404)
 )
 
-# app.use((err, req, res, next)->
-#     if err is 401 or err.statusCode is 401 or res.statusCode is 401
-#         # TODO: redirect to login page
-# )
-
 app.use(errorHandler)
 
 # export the application so it can be used as an http server listener

@@ -107,7 +107,7 @@ middleware.use((req, res, next)->
         return next()
 
     # allow logging in and creating accounts
-    else if req.url in ['/login', '/users'] and req.method is "POST"
+    else if req.url in ['/login', '/logout', '/users'] and req.method is "POST"
         return next()
 
     # allow logged-in users to try other methods
@@ -178,9 +178,21 @@ middleware.post('/login', (req, res, next)->
     passport.authenticate('local', callback)(req, res, next)
 )
 
-middleware.get('/logout', (req, res, next)-> 
+middleware.get('/logout', (req, res, next)->
+    # a page will handle this, but putting a handler here helps to give the correct OPTIONS response
+    next()
+)
+
+middleware.post('/logout', (req, res, next)-> 
     req.logout()
-    res.redirect(req.get("referer") or '/')
+    if req.xhr
+        res.status(204)
+        res.end()
+    else
+        target = url.parse(req.get("referer") or '').pathname # strip host
+        if !target or (target is "/logout")
+            target = "/" # default redirect after logout
+        res.redirect(target)
 )
 
 module.exports = middleware
