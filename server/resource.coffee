@@ -159,6 +159,7 @@ module.exports = (moduleOptions = {})->
 
         if modelId is 'random'
             # Redirect to a random item of this type (read-only)
+            # TODO: use query parameters like in "GET /", to restrict the search space
             return next(405) unless req.method in ["GET", "HEAD", "OPTIONS"]
             collection = new Backbone.Collection([], {model: modelCtor})
             collection.fetch().then(->
@@ -227,6 +228,7 @@ module.exports = (moduleOptions = {})->
 
         else
             # allow specifying initial id, unless it is already taken
+            # TODO: filter out url special characters from id so it can be reached
             model.fetch().then(->
                 res.status(409)
                 next(new Error("#{idAttribute} '#{model.id}' is already taken"))

@@ -68,6 +68,7 @@ describe('Server', ->
         )
 
     makeRequest = (options = {}, callback)->
+        # TODO: use 'request' library for this
         if toString.call(options) is "[object String]"
             options = {path: options}
         options.hostname ?= 'localhost'

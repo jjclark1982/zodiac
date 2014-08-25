@@ -54,26 +54,47 @@ Most server modules should export a singleton. Most client modules should export
 - `render:after` - triggered each time a view finishes rendering
 - `filter` - triggered on a collection when a its `filterCond` has been updated
 
+### Anatomy of a component
+
+This engine is built around components. A typical component is a folder with all the code, markup, and style needed for a feature. For example
+
+    views/example/
+        index.coffee - module that exports the ExampleView class constructor
+        template.dust - template 
+        style.styl
+        test.coffee - unit tests for this component
+
+
 ### Directory Organization
 
 Source Code
 
-[client/](client/) - original frontend source code  
-[server/](server/index.html) - original backend source code  
-[scripts/](scripts/) - commands to run in the same environment as the server, on an as-needed basis  
+- [client/](client/) - Original frontend source code. Everything in this folder gets compiled into a a web client in `build/`. All source code in this directory runs in a web browser, and much of it also gets loaded by the server. Calling `require(filename)` from anywhere in the app will look in this folder first.
+
+    - [models/](client/models/) - Backbone models for use in this app. Models that have a `urlRoot` property defined will be automatically routed by the server and displayed with their `defaultView` and `defaultListView` as appropriate.
+
+    - [views/](client/views/) - Backbone views for use in this app. Using the dust partial syntax `{>viewName /}` will look in this folder first, for `views/
+
+    - [pages/](client/pages/) - Backbone views that do not need any model data from the router. Ones that have a `mountPoint` property defined will be mounted at that url. 
+
+- [server/](server/index.html) - Original backend source code. Everything in this directory should only expect to run in a server environment.
+
+- [scripts/](scripts/) - Commands to run in the same environment as the server, on an as-needed basis. Adding a script to this folder automatically makes it runnable by `cake`.
+
+- [test/](test/) - Server-side tests to be run with `cake test`, and the main entry point for client-side tests that are run by navigating to `/test/`.
 
 Configuration
 
-[.env](.env) - specify development environment variables  
-[package.json](package.json) - specify server dependencies for installation with `npm`  
-[bower.json](bower.json) - specify client dependencies for installation with `bower`  
+[.env](.env) - specify development environment variables to be loaded by `cake` or `foreman`  
 [Cakefile](Cakefile) - run tasks in the specified environment with `cake`  
-[config.coffee](config.coffee) - `brunch` configuration  
-[generators/](generators/) - scaffolds for use with `scaffolt`  
+[package.json](package.json) - specify server dependencies for installation with `npm`  
 [node_modules/](node_modules/) - automatically installed server dependencies  
+[bower.json](bower.json) - specify client dependencies for installation with `bower`  
 [bower_components/](bower_components/) - automatically managed client dependencies  
 [vendor/](vendor/) - manually managed client dependencies such as licensed fonts  
-[build/](build/) - compiled client  
+[config.coffee](config.coffee) - `brunch` configuration  
+[generators/](generators/) - scaffolds for use with `scaffolt`  
+[build/](build/) - compiled web client and assets  
 
 ## Documentation
 

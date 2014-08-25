@@ -41,6 +41,7 @@ module.exports = class LoginView extends BaseView
                 if _.isObject(response)
                     User.current ?= new User(response)
                     User.current.set(response).trigger("sync")
+                    # TODO: parse data and set metadata
 
                 if @isModal
                     @disappear()
@@ -117,3 +118,5 @@ LoginView.showWhenUnauthorized = ->
         if request.url[0] is "/" and xhr.status is 401
             LoginView.showModal(xhr)
     )
+
+# TODO: refactor modal display with that in lightbox, toward reusing animations and dismissal events

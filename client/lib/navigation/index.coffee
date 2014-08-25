@@ -67,6 +67,7 @@ module.exports = class NavigationView extends BaseView
             @$el.append($child)
 
         # remove old ones immediately if we cannot depend on the transitionEnd event
+        # TODO: detect this in the "transitionStart" event instead of using modernizr
         unless $("html").is(".csstransitions")
             @$el.chidlren().not(".current").detach()
 

@@ -3,7 +3,6 @@ url = require("url")
 express = require("express")
 passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
-gatewayError = require("./gateway-error")
 require("./backbone-sync-riak")
 User = require("models/user")
 
@@ -33,9 +32,10 @@ validatePassword = (password='')->
     return null
 
 passport.serializeUser((user, callback)->
-    callback(null, user.id)
+    callback(null, user?.id or null)
 )
 
+# TODO: consider using a promise for this so that we can begin fetching data sooner
 passport.deserializeUser((id, callback)->
     user = new User()
     user.id = id
@@ -45,7 +45,7 @@ passport.deserializeUser((id, callback)->
         if err.statusCode is 404
             return callback(null, null) # log in as nobody
         else
-            return callback(gatewayError(err))
+            return callback(err)
     )
 )
 
@@ -66,7 +66,7 @@ passport.use(new LocalStrategy((username, password, done)->
         if err.statusCode is 404
             return done(null, false, {message: "no such user"})
         else
-            return done(gatewayError(err))
+            return done(err)
     )
 ))
 
@@ -125,6 +125,7 @@ middleware.use((req, res, next)->
 middleware.use((req, res, next)->
     if req.url.indexOf('/users/me') is 0
         if req.session?.passport?.user
+            res.set("Cache-Control", "private")
             req.url = req.url.replace(/^\/users\/me($|\/|\?)/, '/users/'+req.session.passport.user+'$1')
         else
             res.status(401)
