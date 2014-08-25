@@ -1,6 +1,6 @@
 {
-  "name": "zodiac",
-  "version": "0.0.1",
+  "name": "zodiac-client",
+  "version": "0.2.0",
   "main": "build/javascripts/app.js",
   "ignore": [
     "**/.*",
@@ -9,11 +9,11 @@
   ],
   "dependencies": {
     "console-polyfill": "~0.1.0",
-    "modernizr": "~2.6.2",
-    "jquery": "~1.9.1",
-    "lodash": "~1.3.1",
+    "modernizr": "~2.8.3",
+    "jquery": "~1.11.1",
+    "lodash": "~2.4.1",
     "backbone": "~1.1.0",
-    "normalize-css": "~2.1.2",
+    "normalize-css": "~3.0.1",
     "font-awesome": "~3.2.1",
     "backbone.stickit": "~0.8.0"
   },
@@ -21,7 +21,7 @@
     "backbone": {
       "dependencies": {
         "lodash": "*",
-        "jquery": "~1.9.1"
+        "jquery": "*"
       },
       "main": "backbone.js"
     },
@@ -30,9 +30,6 @@
     },
     "modernizr": {
       "main": "modernizr.js"
-    },
-    "jquery": {
-      "main": "jquery.js"
     },
     "backbone.stickit": {
       "main": "backbone.stickit.js",
