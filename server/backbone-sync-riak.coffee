@@ -137,7 +137,15 @@ Backbone.sync = (method, model={}, options={})->
 
     promise.then(options.success, options.error)
 
-    return promise
+    if options.waitFor
+        outerPromise = new Promise((resolve, reject)->
+            options.waitFor(->
+                promise.then(resolve, reject)
+            )
+        )
+        return outerPromise
+    else
+        return promise
 
 module.exports = Backbone.sync
 

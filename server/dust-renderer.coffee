@@ -94,19 +94,6 @@ render = (viewName, options={}, callback)->
         callback = options
         options = {}
 
-    # provide a default handler to send template errors inline
-    if !callback
-        callback = (err)->
-            return res.end() unless err
-            
-            if res.headersSent
-                message = err.toString()
-                if app.get('env') is 'development'
-                    message = err.stack
-                res.end("<pre>[Template #{message}]</pre>")
-            else
-                req.next(err)
-
     # unless we get a request to partially render content, render the [`webpage`](./layouts/webpage.dust)
     # layout, passing it the name of the `mainView` as a variable.
     if !req.xhr
@@ -119,6 +106,27 @@ render = (viewName, options={}, callback)->
     # so that all subviews can access the site name, the current user, etc
     globals = merge(app.locals, res.locals)
     context = dust.makeBase(globals).push(options)
+
+    if req.whenUserLoaded
+        req.whenUserLoaded(->
+            streamTemplate(res, viewName, context, callback)
+        )
+    else
+        streamTemplate(res, viewName, context, callback)
+
+streamTemplate = (res, viewName, context, callback)->
+    # provide a default handler to send template errors inline
+    if !callback
+        callback = (err)->
+            return res.end() unless err
+            
+            if res.headersSent
+                message = err.toString()
+                if app.get('env') is 'development'
+                    message = err.stack
+                res.end("<pre>[Template #{message}]</pre>")
+            else
+                req.next(err)
 
     stream = dust.stream(viewName, context)
     stream.events = { data: [], error: [], end: [] } # prevent warnings

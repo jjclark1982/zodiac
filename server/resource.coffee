@@ -177,7 +177,7 @@ module.exports = (moduleOptions = {})->
 
         model = new modelCtor()
         model.id = modelId
-        model.fetch().then(->
+        model.fetch({waitFor: req.whenUserLoaded}).then(->
             req.model = model
             next()
 

@@ -3,11 +3,14 @@ db = require("./db")
 gatewayError = require("./gateway-error")
 Promise = require('bluebird')
 
-MEMORY_CACHE_TTL = parseInt(process.env.MEMORY_CACHE_TTL) or 1000 # one second
-
 module.exports = class RiakStore extends session.Store
     constructor: (options = {})->
         @bucket = options.bucket or 'sessions'
+        @cacheTTL = options.cacheTTL
+        @cacheTTL ?= parseInt(process.env.MEMORY_CACHE_TTL) or 1000 # one second
+        @startDisconnected = options.startDisconnected
+        @startDisconnected ?= !!process.env.RIAK_START_DISCONNECTED
+
         bucketOptions = {
             backend: "memory_mult",
             precommit: [{name: "Precommit.validateJSON", language: "javascript"}]
@@ -17,10 +20,17 @@ module.exports = class RiakStore extends session.Store
                 @emit("disconnect")
                 @checkConnection()
         )
-        process.nextTick(=>
-            @emit("disconnect")
+
+        if @startDisconnected
+            # serve null sessions (fast) until establishing a db connection
+            process.nextTick(=>
+                @emit("disconnect")
+                @checkConnection()
+            )
+        else
+            # wait for the first db connection to serve the first session (may timeout)
             @checkConnection()
-        , 1)
+        
         return this
 
     checkConnection: =>
@@ -38,11 +48,12 @@ module.exports = class RiakStore extends session.Store
         if @cacheTimeouts[sid]
             clearTimeout(@cacheTimeouts[sid])
         @cacheTimeouts[sid] = setTimeout(=>
-            @cache[sid] = null
-        , MEMORY_CACHE_TTL)
+            delete @cache[sid]
+            delete @cacheTimeouts[sid]
+        , @cacheTTL)
 
     get: (sid, callback)->
-        promise = @cache[sid] or new Promise((resolve, reject)=>
+        @cache[sid] ?= new Promise((resolve, reject)=>
             db.get(@bucket, sid, (dbErr, session, meta)=>
                 if session isnt Object(session)
                     # data is not in the expected format
@@ -65,6 +76,8 @@ module.exports = class RiakStore extends session.Store
                 # TODO: follow links
             )
         )
+
+        promise = @cache[sid]
 
         promise.then((session)=>
             @updateTimeout(sid)

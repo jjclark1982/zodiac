@@ -5,6 +5,7 @@ passport = require("passport")
 LocalStrategy = require("passport-local").Strategy
 require("./backbone-sync-riak")
 User = require("models/user")
+Promise = require("bluebird")
 
 # cryptographic hash function
 hash = (password, salt, callback)->
@@ -35,18 +36,21 @@ passport.serializeUser((user, callback)->
     callback(null, user?.id or null)
 )
 
-# TODO: consider using a promise for this so that we can begin fetching data sooner
+# set req.userPromise to a promise to load the user identified by the session
 passport.deserializeUser((id, callback)->
     user = new User()
     user.id = id
-    user.fetch().then(->
-        callback(null, user)
-    , (err)->
-        if err.statusCode is 404
-            return callback(null, null) # log in as nobody
-        else
-            return callback(err)
+    userPromise = new Promise((resolve, reject)->
+        user.fetch().then(->
+            resolve(user)
+        , (err)->
+            if err.statusCode is 404
+                resolve(null) # log in as nobody
+            else
+                reject(err)
+        )
     )
+    callback(null, userPromise)
 )
 
 passport.use(new LocalStrategy((username, password, done)->
@@ -72,14 +76,23 @@ passport.use(new LocalStrategy((username, password, done)->
 
 middleware = express()
 
-middleware.use(passport.initialize())
+middleware.use(passport.initialize({userProperty: "userPromise"}))
 middleware.use(passport.session())
 
-# make the user available to views
-middleware.use((req, res, next)-> 
-    res.locals.session = req.session
-    res.locals.currentUser = req.user
-    return next()
+# make req.user available to other middlewares only when needed
+middleware.use((req, res, next)->
+    req.whenUserLoaded = (callback)->
+        req.user = null
+        res.locals.currentUser = null
+        return callback() unless req.userPromise
+        req.userPromise.then((user)->
+            req.user = user
+            res.locals.currentUser = user
+            callback()
+        , (err)->
+            callback()
+        )
+    next()
 )
 
 # hash any received passwords before continuing
