@@ -122,7 +122,7 @@ streamTemplate = (res, viewName, context, callback)->
             
             if res.headersSent
                 message = err.toString()
-                if app.get('env') is 'development'
+                if process.env.NODE_ENV is 'development'
                     message = err.stack
                 res.end("<pre>[Template #{message}]</pre>")
             else
