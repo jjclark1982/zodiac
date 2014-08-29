@@ -8,7 +8,7 @@
     <i class="icon-warning-sign"></i>
 </div>
 
-<form method="POST" action="/login">
+<form class="login-form" method="POST" action="/login">
     <fieldset>
         <legend>Log in to your account</legend>
         <label>Username:
@@ -28,7 +28,7 @@
 
 {~s}or{~s}
 
-<form method="POST" action="/users">
+<form class="register-form" method="POST" action="/users">
     <fieldset>
         <legend>Create a new account</legend>
         <label>Username:

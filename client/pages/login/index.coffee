@@ -31,17 +31,18 @@ module.exports = class LoginView extends BaseView
         @$el.removeClass("error")
         @$(".show-when-error").removeClass("error")
 
-        $.ajax({
+        # create a User to receive the results of logging in, including metadata
+        # TODO: consider making the user this view's @model
+        User.current ?= new User()
+        atts = {}
+        for input in $form.serializeArray()
+            atts[input.name] = input.value
+
+        User.current.save(atts, {
             method: $form.attr("method")
             url: $form.attr("action")
-            data: $form.serialize()
-            success: (response, result, xhr)=>
+            success: (user, xhr, options)=>
                 $button.removeClass("loading").addClass("success")
-                # update User.current
-                if _.isObject(response)
-                    User.current ?= new User(response)
-                    User.current.set(response).trigger("sync")
-                    # TODO: parse data and set metadata
 
                 if @isModal
                     @disappear()
@@ -60,7 +61,7 @@ module.exports = class LoginView extends BaseView
                     # if window.router.navigateToLink(link, {trigger: true, replace: true})
                     #     return
 
-            error: (xhr, result, statusText)=>
+            error: (user, xhr, options)=>
                 $button.removeClass("loading").removeAttr("disabled")
                 @showError(xhr)
         })
@@ -84,8 +85,7 @@ module.exports = class LoginView extends BaseView
 
     disappear: ->
         LoginView.currentModal = null
-        @$el.addClass("hidden")
-        # will lead to transitionEnd
+        @$el.addClass("hidden") # will cause a transition
 
     transitionEnd: (event)->
         if (event.target is @el) and @$el.hasClass("hidden")

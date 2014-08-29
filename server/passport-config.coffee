@@ -162,7 +162,7 @@ middleware.post('/login', (req, res, next)->
 
                 if req.xhr
                     # when logging in by ajax form, send the location of the logged-in user
-                    res.redirect(user.url())
+                    res.redirect(303, user.url())
                 else
                     # redirect to a page that had a login form shown due to a 401
                     target = url.parse(req.get("referer") or '').pathname # strip host
