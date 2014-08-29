@@ -1,0 +1,52 @@
+@require '../../../global-style.styl'
+
+.status-indicator-view {
+    display: inline-block;
+
+    > .show-when-loading,
+    > .show-when-invalid,
+    > .show-when-error,
+    > .show-when-success {
+        display: none;
+    }
+
+    &.loading > .show-when-loading,
+    &.invalid > .show-when-invalid,
+    &.error > .show-when-error,
+    &.success > .show-when-success {
+        display: inline-block;
+        &:after {
+            display: inline;
+            padding-left: 0.25em;
+            content: attr(data-message);
+        }
+    }
+
+    > .show-when-invalid {
+        color: goldenrod;
+    }
+
+    > .show-when-error {
+        color: red;
+    }
+
+    > .show-when-success {
+        color: green;
+        animation: grow-and-fade 666ms 1 linear;
+    }
+}
+
+@keyframes grow-and-fade {
+    0% {
+        transform: scale(1, 1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1, 1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4, 4);
+        opacity: 0;
+    }
+}

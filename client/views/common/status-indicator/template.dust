@@ -1,0 +1,4 @@
+<span class="show-when-loading"><i class="icon-spinner icon-spin"></i></span>{~n}
+<span class="show-when-error"><i class="icon-warning-sign"></i></span>{~n}
+<span class="show-when-invalid"><i class="icon-warning-sign"></i></span>{~n}
+<span class="show-when-success"><i class="icon-ok"></i></span>

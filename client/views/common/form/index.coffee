@@ -54,12 +54,7 @@ module.exports = class FormView extends BaseView
 
         switch $(@lastClicked).val()
             when 'POST', 'PUT'
-                @model.save(@model.attributes, {success: () =>
-                    @$el.addClass("success")
-                    setTimeout( =>
-                        @$el.removeClass("success")
-                    , 1000)
-                })
+                @model.save()
                 # TODO: actually use POST when indicated
             when 'DELETE'
                 @model.destroy()

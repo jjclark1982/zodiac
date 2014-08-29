@@ -189,58 +189,6 @@ module.exports = class BaseView extends Backbone.View
         if window?
             @trigger("hydrate")
             @hydrate?()
-            @listenToStandardEvents?()
-
-    # Automatically set some classes and data attributes in response to common events.
-    # Subclasses may opt out of this by declaring listenToStandardEvents: false
-    listenToStandardEvents: ->
-        errString = (xhr)->
-            string = "#{xhr.status} #{xhr.statusText}"
-            try
-                string += ": " + JSON.parse(xhr.responseText).message
-            return string
-
-        if @model
-            @listenTo(@model, 'request', (object, xhr, options)->
-                if object is @model
-                    @$el.addClass('loading')
-            )
-            @listenTo(@model, 'sync', (object, response, options)->
-                if object is @model
-                    @$el.removeClass('loading')
-                    @$el.attr('data-model-url', _.result(@model, 'url'))
-            )
-            @listenTo(@model, 'error', (object, xhr, options)->
-                if object is @model
-                    @$el.removeClass('loading')
-                    @$el.addClass('error').attr("data-error", errString(xhr))
-                    @$(".show-when-error").attr("title", errString(xhr))
-            )
-            @listenTo(@model, 'invalid', (model, error, options)->
-                @$el.removeClass('loading')
-                @$el.addClass('invalid').attr("data-validation-error", error)
-                # TODO: standardize field-specific validation error structure
-            )
-            # @listenTo(@model, 'destroy', (model, collection, options)->
-            #     @listenToOnce(model, 'sync', (model, response, options)->
-            #         @remove()
-            #     )
-            # )
-        
-        if @collection
-            @listenTo(@collection, 'request', (object, xhr, options)->
-                if object is @collection
-                    @$el.addClass('loading')
-            )
-            @listenTo(@collection, 'sync', (object, response, options)->
-                if object is @collection
-                    @$el.removeClass('loading')
-            )
-            @listenTo(@collection, 'error', (object, xhr, options)->
-                if object is @collection
-                    @$el.removeClass('loading')
-                    @$el.addClass('error').attr("data-error", errString(xhr))
-            )
 
 # transform a module id into a path that can be required on client or server
 normalizePath = (requirePath='')->

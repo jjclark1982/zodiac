@@ -39,10 +39,6 @@ module.exports = class InputView extends BaseView
         if @type is 'link'
             @value = @model.getLink(@field.name)
 
-    # don't set classes from common events as we expect a superview to handle that
-    # TODO: show validation errors that apply to this field
-    listenToStandardEvents: false
-
     preRender: ->
         @value = @model.get(@field.name)
 

@@ -65,6 +65,7 @@ module.exports = class LoginView extends BaseView
                 $button.removeClass("loading").removeAttr("disabled")
                 @showError(xhr)
         })
+        User.current.clear() # remove existing data from the model so it can all be set by the server
 
         event.preventDefault()
         event.stopPropagation()

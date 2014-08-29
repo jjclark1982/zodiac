@@ -2,9 +2,7 @@
     <fieldset>
         <legend>
             <a class="link-to-model" href="{model.urlWithSlug}">{model.url}</a>
-            <i class="show-when-loading icon-spinner icon-spin"></i>
-            <i class="show-when-error icon-warning-sign"></i>
-            <i class="show-when-success icon-ok"></i>
+            {>status-indicator model=model /}
         </legend>
 
         <div class="links">

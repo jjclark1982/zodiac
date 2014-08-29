@@ -5,7 +5,7 @@
             <th class="sortable" data-column-name="{name}">{name}</th>
         {/columns}
         <th>
-            <span class="show-when-loading">Loading...</span>
+            {>status-indicator collection=collection /}
             <button type="button" class="create-item">Create</button>
         </th>
     </tr>
