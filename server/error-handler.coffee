@@ -37,7 +37,15 @@ module.exports = (err, req, res, next)->
     if req.app.get('env') is 'production'
         err.stack = null
 
-    #return the error in the correct format, with a custom HTML template if appropriate
+    # It is possible to reach this point after sending a response (perhaps due to a double callback).
+    # Handle this situation gracefully by logging the error.
+    if res.headersSent
+        console.error("Error encountered after sending response: #{err.stack}")
+        if res.connection?.writable
+            res.end(err.message + "\n")
+        return
+
+    # Respond with the error in the correct format, with a custom HTML template if appropriate
     res.format({
         json: ->
             try
