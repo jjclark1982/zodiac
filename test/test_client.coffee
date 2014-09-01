@@ -2,6 +2,9 @@ describe "The frontend testing engine", ->
     it "should load in a browser environment", ->
         expect(window?).to.be.true
 
+    it "should use a mock Backbone.sync method", ->
+        require("./backbone-sync-mock")
+
     describe "should compile unit tests without errors", ->
         unitTests = []
         for name in (window.require.list() or []) when name.match(/^(?!test).*test$/)
