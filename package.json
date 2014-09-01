@@ -51,13 +51,14 @@
     "dustjs-linkedin-brunch": "git://github.com/jjclark1982/dustjs-linkedin-brunch.git#v2.3.5",
     "groc": "~0.6.1",
     "javascript-brunch": ">= 1.0 < 1.8",
+    "json-brunch": ">= 1.0 < 1.8",
     "mocha": "^1.21.4",
+    "mocha-phantomjs": "^3.5.0",
+    "phantomjs": "^1.9.7-15",
     "scaffolt": "~0.4.0",
     "sinon": "^1.10.3",
     "sinon-chai": "^2.5.0",
     "stylus-brunch": ">= 1.0 < 1.8",
-    "uglify-js-brunch": ">= 1.0 < 1.8",
-    "phantomjs": "^1.9.7-15",
-    "mocha-phantomjs": "^3.5.0"
+    "uglify-js-brunch": ">= 1.0 < 1.8"
   }
 }

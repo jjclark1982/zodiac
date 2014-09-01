@@ -3,6 +3,10 @@
     {
       "from": "model.coffee.hbs",
       "to": "client/models/{{name}}.coffee"
+    },
+    {
+      "from": "example-data.coffee.hbs",
+      "to": "test/example-data/{{name}}.coffee"
     }
   ]
 }

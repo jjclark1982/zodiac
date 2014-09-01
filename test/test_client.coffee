@@ -5,6 +5,13 @@ describe "The frontend testing engine", ->
     it "should use a mock Backbone.sync method", ->
         require("./backbone-sync-mock")
 
+    describe "should be able to load example data for all defined model types", ->
+        require("./example-data")
+        for modelName, ModelCtor of require("models") then do (modelName, ModelCtor)->
+            it modelName, ->
+                model = ModelCtor.loadExample()
+                expect(model).to.be.ok
+
     describe "should compile unit tests without errors", ->
         unitTests = []
         for name in (window.require.list() or []) when name.match(/^(?!test).*test$/)
