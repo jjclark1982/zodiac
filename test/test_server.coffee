@@ -153,6 +153,7 @@ describe('Client', ->
                     console.error(chunk)
         )
         phantom.on("exit", (code, signal)->
+            # TODO: expect code to be 0
             describe("Frontend Tests", ->
                 for suiteName, suite of frontendSuites
                     describe(suiteName, ->

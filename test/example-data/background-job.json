@@ -1,7 +1,7 @@
 {
-    id: "example",
-    type: "send-email",
-    recipient: "example-user",
-    subject: "Hello",
-    message: "How are you today?"
+    "id": "example",
+    "type": "send-email",
+    "recipient": "example-user",
+    "subject": "Hello",
+    "message": "How are you today?"
 }
