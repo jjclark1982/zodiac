@@ -1,22 +1,31 @@
 require("lib/backbone-sync-metadata") # load this first so we get metadata like 'model.url' set after fetch
 
+SIMULATED_LATENCY = 10
+
 oldSync = Backbone.sync
-Backbone.sync = (method, model, options)->
+Backbone.sync = (method, model, options={})->
     switch method
         when "read"
-            # use the regular sync method for read-only operations
-            return oldSync(method, model, options)
+            if model._exampleData
+                # for example models, respond with their original example data
+                return simulatedSuccess(model._exampleData, options)
+
+            else
+                # for other models, use the regular sync method for read-only operations
+                return oldSync(method, model, options)
         else
             # simulate success for all other operations
             # TODO: support simulating errors
-            console.log("running mock sync", arguments)
+            return simulatedSuccess(model.attributes, options)
 
-            response = _.clone(model.attributes)
-            status = "success"
-            xhr = {}
+simulatedSuccess = (response, options)->
+    status = "success"
+    xhr = {}
 
-            dfd = new $.Deferred()
-            dfd.resolve(response, status, xhr)
-            dfd.then(options.success, options.error)
+    dfd = new $.Deferred()
+    setTimeout(->
+        dfd.resolve(_.clone(response), status, xhr)
+    , SIMULATED_LATENCY)
+    dfd.then(options.success, options.error)
 
-            return dfd.promise()
+    return dfd.promise()
