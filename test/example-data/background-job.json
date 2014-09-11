@@ -1,6 +1,7 @@
 {
     "id": "example",
     "type": "send-email",
+    "name": "Example BackgroundJob",
     "recipient": "example-user",
     "subject": "Hello",
     "message": "How are you today?"

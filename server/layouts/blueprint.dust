@@ -4,86 +4,102 @@ HOST: {host}
 # {packageDef.name} API
 {packageDef.description}
 
-{@keyvalue object=modelProtos}
-## {key} Collection [{value.urlRoot}]
-### List all {key}s [GET]
-+ Response 200 (application/json)
+{#modelDefs}
+# Group {modelName}
 
-        [{
-            "{value.idAttribute}": "1", "{value.titleAttribute}": "foo"
-        }, {
-            "{value.idAttribute}": "2", "{value.titleAttribute}": "bar"
-        }]
-
-### Create a {key} [POST]
-+ Request (application/json)
-
-        {"{value.titleAttribute}": "baz"}
-
-+ Response 201 (application/json)
-
-        {"{value.idAttribute}": 3, "{value.titleAttribute}": "baz"}
-
-## {key} [{value.urlRoot}/{~lb}{value.idAttribute}{~rb}]
-A single {key} object with all its details
+## {modelName} [{proto.urlRoot}/{~lb}{proto.idAttribute}{~rb}]
+A single {modelName} object with all its details
 
 + Parameters
-    + {value.idAttribute} (required, string, `"123"`) ... `{value.idAttribute}` of the {key} to perform action with. Has example value.
+    + {proto.idAttribute} (required, string, `{example.id}`) ... `{proto.idAttribute}` of the {modelName} to perform action with. Has example proto.
 
-+ Model
++ Model (application/json)
     + Header
 
-            Location: Canonical url for this {key}
-            Last-Modified: Date of last edit
-            X-Riak-Meta-Modified-By: user responsible for last edit
-            X-Riak-Vclock: Vector clock used for conflict detection and resolution
-            X-DB-Query-Time: Number of milliseconds it took the database to return this data
+            Location: {example.url}
+            Last-Modified: Sat, 01 Jan 2000 12:34:56 GMT
+            X-Riak-Meta-Modified-By: exampleUser
+            X-Riak-Vclock: a85hYGBgcypz/fgbpe0TfpYvCwA=
+            X-DB-Query-Time: 5ms
+            X-Response-Time: 10ms
 
     + Body
 
-            {
-                {#value.fields}"{name}": <{type}>{@last}{:else},
-                {/last}{/value.fields}
-            }
+            {example|js|s}
 
-### Retrieve a {key} [GET]
-+ Response 200 (application/json)
+    + Schema
 
-    [{key}][]
+            {#proto.fields}{name}: {type}
+            {/proto.fields}
+
+### Retrieve a {modelName} [GET]
++ Response 200
+
+    [{modelName}][]
 
 
-### Update a {key} [PUT]
+### Update a {modelName} [PUT]
 + Request (application/json)
 
-        {
-            {#value.fields}{@if test=type isnt="id"}"{name}": <{type}>{@last}{:else},
-            {/last}{/if}{/value.fields}
-        }
+        {example|js|s}
 
-+ Response 200 (application/json)
++ Response 200
 
-    [{key}][]
+    [{modelName}][]
 
-### Partially update a {key} [PATCH]
-Only transmitted attributes will be modified.
+### Partially update a {modelName} [PATCH]
 + Request (application/json)
 
-        {
-            "{value.titleAttribute}": "example"
-        }
+        {"{proto.titleAttribute}": "{example.title}"}
 
-+ Response 200 (application/json)
++ Response 200
 
-    [{key}][]
+    [{modelName}][]
 
-### Delete a {key} [DELETE]
+### Delete a {modelName} [DELETE]
 + Response 204
 
-{#value.fields}{@if test=type is="link"}
-## {key} "{name}" link [{value.urlRoot}/{~lb}{value.idAttribute}{~rb}/{name}]
-### Retrieve a {key}'s {name} [GET]
-+ Response 200
-{! TODO: link to the target type by its key !}
-{/if}{/value.fields}
+## {modelName} Collection [{proto.urlRoot}]
+A list of {modelName} objects
 
-{/keyvalue}
+### List all {modelName}s [GET]
++ Response 200 (application/json)
+
+        [
+            {example|js|s},
+            {example2|js|s}
+        ]
+
+### Create a {modelName} [POST]
++ Request (application/json)
+
+        {exampleNew|js|s}
+
++ Response 201 (application/json)
+
+        [{modelName}][]
+
+## {modelName} Search [{proto.urlRoot}{~lb}?query,order,offset,limit{~rb}]
+### Search for items that match specified parameters [GET]
+
++ Parameters
+    + query (optional, string) ... Format varies with model's `index` function
+    + order (optional, string) ... Comma-separated names of fields to sort by
+    + offset (optional, number) ... Number of items to skip for pagination
+    + limit (optional, number) ... Number of items to show for pagination
+
++ Response 200 (application/json)
+
+        [
+            {example|js|s},
+            {example2|js|s}
+        ]
+
+{#proto.fields}{@if test=type is="link"}
+## {modelName} "{name}" link [{proto.urlRoot}/{~lb}{proto.idAttribute}{~rb}/{name}]
+### Retrieve a {modelName}'s {name} [GET]
++ Response 200
+{! TODO: link to the target type by its name !}
+{/if}{/proto.fields}
+
+{/modelDefs}
