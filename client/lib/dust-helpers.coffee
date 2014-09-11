@@ -106,10 +106,9 @@ dust.onLoad = (name, callback)->
                         locals.$parentTemplate = name
                         childContext = dust.makeBase(context.global).push(locals)
                         branch = view.template(branch, childContext)
-                        branch.write("</#{tagName}>")
                         if process?.env?.NODE_ENV is 'development'
                             branch.write("<!-- end of \"#{name}\" view -->")
-                        branch.write("\n")
+                        branch.write("</#{tagName}>\n")
                         branch.end()
                     )
                 catch e
