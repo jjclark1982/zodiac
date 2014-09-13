@@ -36,7 +36,7 @@ module.exports = class TableView extends BaseView
 
     firstSyncFinished: (object, xhr, options = {})->
         return unless object is @collection
-        for cid, subview of @subviews
+        for cid, subview of @subviews when subview instanceof TableRowView
             # fill in the columns for each row so we don't have to serialize them more than once
             subview.columns = @columns
             subview.$el.attr("data-model-cid", subview.model.cid)
