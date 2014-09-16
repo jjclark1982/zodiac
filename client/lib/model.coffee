@@ -92,12 +92,39 @@ module.exports = class BaseModel extends Backbone.Model
         linkDef = @fieldDefs()[linkName]
         if linkDef.multiple
             items = target.models or target or []
+            collection = @getLink(linkName)
+            collection.reset(items)
             @set(linkName, (i.id for i in items), options)
         else
             @set(linkName, target.id, options)
 
-    removeLink: (linkName, options)->
-        @set(linkName, null, options)
+    addLink: (linkName, target, options)->
+        linkDef = @fieldDefs()[linkName]
+        unless linkDef.multiple
+            throw new Error("addLink() should only be used with 'multiple' links")
+
+        collection = @getLink(linkName)
+        collection.add(target)
+        @setLink(linkName, collection, options)
+
+    removeLink: (linkName, target, options)->
+        linkDef = @fieldDefs()[linkName]
+        if linkDef.multiple
+            collection = @getLink(linkName)
+            collection.remove(target)
+            @setLink(linkName, collection, options)
+        else
+            options = target
+            @set(linkName, null, options)
+
+    hasLink: (linkName, target)->
+        linkDef = @fieldDefs()[linkName]
+
+        existing = @getLink(linkName)
+        if linkDef.multiple
+            return existing.contains(target)
+        else
+            return (existing is target)
 
 # Each subclass can call loadFromUrl() to instantiate a model from its url.
 # If that model has already been fetched in this window, it will be de-duplicated.
