@@ -6,8 +6,22 @@ coffeelint = require("coffeelint")
 lintConfig = require("../config.coffee").config.plugins.coffeelint.options
 child_process = require 'child_process'
 
+walk = (dir) ->
+    results = []
+    list = fs.readdirSync(dir)
+    for file in list
+        file = dir + "/" + file
+        stat = fs.statSync(file)
+        if stat and stat.isDirectory()
+            results = results.concat(walk(file))
+        else
+            results.push(file)
+    return results
+
 serverDir = path.join(__dirname, '..', 'server')
-serverFiles = fs.readdirSync(serverDir)
+serverFiles = walk(serverDir)
+serverSourceFiles = (file for file in serverFiles when !file.match(/\/test\.coffee$/))
+serverTestFiles = (file for file in serverFiles when file.match(/\/test\.coffee$/))
 
 process.env.SILENT = true
 
@@ -25,11 +39,11 @@ describe('Database', ->
     )
 )
 
-describe('Server', ->
-    describe("should lint without errors", ->
-        for file in serverFiles when file.match(/\.coffee$/) then do (file)->
-            it(file, (done)->
-                fs.readFile(path.join(serverDir, file), (fileErr, data)->
+describe 'Server', ->
+    describe "should lint without errors", ->
+        for file in serverSourceFiles when file.match(/\.coffee$/) then do (file)->
+            it file, (done)->
+                fs.readFile(file, (fileErr, data)->
                     if fileErr
                         return done(fileErr)
 
@@ -54,13 +68,15 @@ describe('Server', ->
                     else
                         done()
                 )
-            )
-        )
+            
+    describe 'should compile server unit tests without errors', ->
+        for name in serverTestFiles then do (name)->
+            it name, ->
+                require(name)
 
     server = null
-    it('should compile without errors', ->
+    it 'should compile without errors', ->
         server = require('../server')
-    )
 
     it 'should start without errors', (done)->
         server.startServer(0, null, (startedServer)->
@@ -92,7 +108,7 @@ describe('Server', ->
         req.on('error', callback)
         req.end()
 
-    it('should serve a landing page with status 200', (done)->
+    it 'should serve a landing page with status 200', (done)->
         makeRequest('/', (err, res)->
             if err
                 return done(err)
@@ -102,12 +118,10 @@ describe('Server', ->
             else
                 done(new Error("#{res.statusCode} #{res.title}"))
         )
-    )
-)
 
-describe('Client', ->
-    it('should compile without errors', (done)->
-        this.timeout(5000)
+describe 'Client', ->
+    it 'should compile without errors', (done)->
+        @timeout(5000)
         
         brunch = require('brunch')
         brunchLogger = require("brunch/node_modules/loggy")
@@ -125,9 +139,9 @@ describe('Client', ->
             expect(compiledFiles).to.be.ok
             done()
         )
-    )
 
-    it("should run frontend tests in phantomjs", (done)->
+    it 'should run frontend tests in phantomjs', (done)->
+        @timeout(5000)
         phantom = child_process.spawn("mocha-phantomjs", [
             "--reporter", "json-stream"
             "http://localhost:#{process.env.PORT}/test"
@@ -153,20 +167,15 @@ describe('Client', ->
                     console.error(chunk)
         )
         phantom.on("exit", (code, signal)->
-            # TODO: expect code to be 0
-            describe("Frontend Tests", ->
+            expect(code).to.equal(0)
+            describe "Frontend Tests", ->
                 for suiteName, suite of frontendSuites
-                    describe(suiteName, ->
+                    describe suiteName, ->
                         for result in (suite or []) then do (result)->
                             title = result[1].title
                             if result[1].duration > 10
                                 title += " (#{result[1].duration}ms)"
-                            it(title, ->
+                            it title, ->
                                 expect(result[0]).to.equal("pass")
-                            )
-                    )
-            )
             done()
         )
-    )
-)

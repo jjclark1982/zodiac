@@ -12,7 +12,7 @@ describe "The frontend testing engine", ->
                 model = ModelCtor.loadExample()
                 expect(model).to.be.ok
 
-    describe "should compile unit tests without errors", ->
+    describe "should compile client unit tests without errors", ->
         unitTests = []
         for name in (window.require.list() or []) when name.match(/^(?!test).*test$/)
             unitTests.push(name)
