@@ -80,44 +80,11 @@ describe 'Server', ->
 
     it 'should start without errors', (done)->
         server.startServer(0, null, (startedServer)->
+            process.env.PORT = server.address().port
+            # publish the PORT so that other tests in this process can connect to the right server
             done()
         )
 
-    makeRequest = (options = {}, callback)->
-        # TODO: use 'request' library for this
-        if toString.call(options) is "[object String]"
-            options = {path: options}
-        options.hostname ?= 'localhost'
-        options.port ?= server.address().port
-        options.method ?= 'GET'
-
-        http = require("http")
-        req = http.request(options, (res)->
-            res.body = ''
-            res.on('data', (chunk)->
-                res.body += chunk
-            )
-            res.on('end', ->
-                if res.headers['content-type']?.match('text/html')
-                    match = res.body.match(/<title>(.*?)<\/title>/)
-                    res.title = match?[1]
-                res.title or= res.body.split(/[\r\n]/)[0]
-                callback(null, res)
-            )
-        )
-        req.on('error', callback)
-        req.end()
-
-    it 'should serve a landing page with status 200', (done)->
-        makeRequest('/', (err, res)->
-            if err
-                return done(err)
-
-            if res.statusCode is 200
-                done()
-            else
-                done(new Error("#{res.statusCode} #{res.title}"))
-        )
 
 describe 'Client', ->
     it 'should compile without errors', (done)->
@@ -167,7 +134,6 @@ describe 'Client', ->
                     console.error(chunk)
         )
         phantom.on("exit", (code, signal)->
-            expect(code).to.equal(0)
             describe "Frontend Tests", ->
                 for suiteName, suite of frontendSuites
                     describe suiteName, ->
@@ -177,5 +143,7 @@ describe 'Client', ->
                                 title += " (#{result[1].duration}ms)"
                             it title, ->
                                 expect(result[0]).to.equal("pass")
+
+            expect(code).to.equal(0)
             done()
         )
