@@ -39,7 +39,6 @@ module.exports = class TableView extends BaseView
         for cid, subview of @subviews when subview instanceof TableRowView
             # fill in the columns for each row so we don't have to serialize them more than once
             subview.columns = @columns
-            subview.$el.attr("data-model-cid", subview.model.cid)
         @listenTo(@collection, "sort", @orderRows)
 
     events: {
@@ -94,12 +93,11 @@ module.exports = class TableView extends BaseView
                 rowView = new TableRowView({model: model, columns: @columns})
                 @subviews[rowView.cid] = rowView
                 rowView.render()
-                rowView.$el.attr("data-model-cid", model.cid)
                 $tbody.append(rowView.el)
 
         # remove subviews of deleted models
         for noCid, row of rowsByCid
-            for vcid, subview of @subviews
+            for vcid, subview of @subviews when subview instanceof TableRowView
                 if subview.model.cid is noCid
                     subview.remove()
                     delete @subviews[vcid]

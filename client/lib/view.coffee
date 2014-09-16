@@ -48,6 +48,8 @@ module.exports = class BaseView extends Backbone.View
         # the cid is useful as a weak link in the browser, but don't include it over the wire
         if window?
             atts['data-cid'] = @cid
+            if @model
+                atts['data-model-cid'] = @model.cid
 
         return atts
 
@@ -137,6 +139,8 @@ module.exports = class BaseView extends Backbone.View
             @setElement($element)
 
         @$el.attr('data-cid', @cid)
+        if @model
+            @$el.attr('data-model-cid', @model.cid)
         @$el.addClass(_.result(@, 'className'))
         @$el.data('viewAttached', this) # a jquery-accessible pointer from DOM to view
 
