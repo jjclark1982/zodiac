@@ -48,7 +48,9 @@ module.exports = class BaseModel extends Backbone.Model
             fieldDefs[fieldDef.name] = fieldDef
 
         # cache the lookup table in the prototype to support other models of the same class
-        @__proto__._fieldDefs = fieldDefs
+        unless @constructor is BaseModel
+            @__proto__._fieldDefs = fieldDefs
+
         return fieldDefs
 
     # instantiate ready-to-fetch models for the links defined in a model's data
