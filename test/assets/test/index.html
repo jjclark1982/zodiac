@@ -13,7 +13,7 @@
   <script src="test.js"></script>
   <script>
   $(function() {
-    require('test/test_client');
+    require('test/initialize-tests');
     if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
     else { mocha.run(); }
   });
