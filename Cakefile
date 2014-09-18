@@ -47,11 +47,6 @@ task 'develop', 'Run server with auto-reloading', ->shellScript """
     brunch watch --server
 """
 
-task 'test', 'Run server-side tests', ->shellScript """
-    mocha --compilers coffee:coffee-script/register --globals _,Backbone test/test_server.coffee
-    # open 'http://localhost:#{config.server.port}/test'
-"""
-
 task 'build', 'Compile the client', ->shellScript """
     brunch build --production
 """

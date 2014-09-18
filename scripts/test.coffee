@@ -1,3 +1,7 @@
+#!/usr/bin/env mocha --compilers coffee:coffee-script/register --globals _,Backbone
+
+# Run server-side tests
+
 chai = require("chai")
 expect = chai.expect
 fs = require ("fs")
