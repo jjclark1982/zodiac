@@ -10,6 +10,7 @@ coffeelint = require("coffeelint")
 lintConfig = require("../config.coffee").config.plugins.coffeelint.options
 child_process = require 'child_process'
 
+# build a list of source files to compile-check and test files to automatically run
 walk = (dir) ->
     results = []
     list = fs.readdirSync(dir)
@@ -27,7 +28,8 @@ serverFiles = walk(serverDir)
 serverSourceFiles = (file for file in serverFiles when !file.match(/\/test\.coffee$/))
 serverTestFiles = (file for file in serverFiles when file.match(/\/test\.coffee$/))
 
-process.env.SILENT = true
+# silence startup and logging for cleaner test output
+process.env.LOG_FORMAT = ''
 
 describe('Database', ->
     it('should connect without errors', (done)->
