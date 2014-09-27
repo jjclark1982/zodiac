@@ -29,6 +29,5 @@ module.exports = class BackgroundJobView extends BaseView
                 @remove()
             , 1000)
 
-    remove: ->
+    preRemove: ->
         clearInterval(@pollInterval)
-        super()

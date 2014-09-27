@@ -181,6 +181,7 @@ module.exports = class BaseView extends Backbone.View
         return @
 
     remove: ->
+        @preRemove?()
         for cid, subview of @subviews or {}
             subview.remove?()
         @subviews = null

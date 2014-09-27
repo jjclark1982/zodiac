@@ -181,10 +181,9 @@ module.exports = class ListView extends BaseView
         )
         return @
 
-    remove: ->
+    preRemove: ->
         if window?
             $(document).off("scroll", @handleScroll)
-        super(arguments...)
 
     handleScroll: (event)=>
         viewportReached = false
