@@ -77,15 +77,14 @@ module.exports = class BaseModel extends Backbone.Model
                 atts[TargetCtor.prototype.idAttribute] = id
                 items.push(atts)
             target = new Backbone.Collection(items, {model: TargetCtor})
-            target.url = _.result(@, 'url') + "/" + linkName
 
-        else if targetId
+        else
             atts = {}
-            atts[TargetCtor.prototype.idAttribute] = targetId
+            if targetId
+                atts[TargetCtor.prototype.idAttribute] = targetId
             target = new TargetCtor(atts)
 
-        else return null
-
+        target.url = _.result(@, 'url') + "/" + linkName
         @_linkedModels ?= {}
         @_linkedModels[linkName] = target
         return target
