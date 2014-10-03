@@ -10,7 +10,7 @@ async = require('async')
 # define the server-side global Backbone that syncs to Riak
 require("./backbone-sync-riak")
 
-saveModel = (req, res, next, model, options={})->
+saveItem = (req, res, next, model, options={})->
     model.vclock = req.get("X-Riak-Vclock")
 
     isValid = model.save({}, {
@@ -24,7 +24,7 @@ saveModel = (req, res, next, model, options={})->
                 if req.method is "POST"
                     return res.redirect(303, model.url())
 
-            sendModel(req, res, next, model)
+            sendItem(req, res, next, model)
         error: (error)->
             next(error)
     })
@@ -33,7 +33,7 @@ saveModel = (req, res, next, model, options={})->
         res.status(403)
         return next(new Error(model.validationError))
 
-sendModel = (req, res, next, model)->
+sendItem = (req, res, next, model)->
     format = req.params.format or req.accepts(['json', 'html'])
     unless format in ['json', 'html']
         return next(406)
@@ -48,15 +48,16 @@ sendModel = (req, res, next, model)->
     res.links(links)
 
     res.set({
-        'Last-Modified': model.lastMod
         'Vary': "Accept" # TODO: make sure this doesn't overwrite anything important
         'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'
     })
+    if model.lastMod
+        res.set({'Last-Modified': model.lastMod})
     # the ETag of the html is not known before rendering because the template may have changed
     # TODO: support sending it as a trailer
-    if format is 'json'
+    if format is 'json' and model.etag
         res.set({"ETag": model.etag})
-    for name, value of model.metadataFromRiak._headers when name.match(/^x-/i)
+    for name, value of (model.metadataFromRiak?._headers or {}) when name.match(/^x-/i)
         res.set(name, value)
 
     # now that last-modified, vary, and etag are set,
@@ -144,9 +145,9 @@ sendList = (req, res, next, collection)->
 # Exports a function that maps a backbone model to express middleware that handles standard REST operations
 module.exports = (moduleOptions = {})->
     # Inherits relevant variables from the model the function is called with
-    modelCtor = moduleOptions.model
-    modelName = modelCtor.name
-    modelProto = modelCtor.prototype
+    ModelCtor = moduleOptions.model
+    modelName = ModelCtor.name
+    modelProto = ModelCtor.prototype
     bucket = moduleOptions.bucket ? modelProto.bucket
     idAttribute = modelProto.idAttribute or 'id'
 
@@ -157,11 +158,12 @@ module.exports = (moduleOptions = {})->
     router.param('modelId', (req, res, next, modelId)->
         res.dbStartTime = new Date()
 
+        # TODO: use separate modules for this functionality instead of magic ids
         if modelId is 'random'
             # Redirect to a random item of this type (read-only)
             # TODO: use query parameters like in "GET /", to restrict the search space
             return next(405) unless req.method in ["GET", "HEAD", "OPTIONS"]
-            collection = new Backbone.Collection([], {model: modelCtor})
+            collection = new Backbone.Collection([], {model: ModelCtor})
             collection.fetch().then(->
                 res.set({'X-DB-Query-Time': new Date() - res.dbStartTime + 'ms'})
                 if collection.length is 0
@@ -175,7 +177,14 @@ module.exports = (moduleOptions = {})->
             )
             return
 
-        model = new modelCtor()
+        else if modelId is 'example' and process.env.NODE_ENV isnt 'production'
+            # synchronously load example data in async context
+            require("../test/example-data")
+            req.model = ModelCtor.loadExample()
+            sendItem(req, res, next, req.model)
+            return
+
+        model = new ModelCtor()
         model.id = modelId
         model.fetch({waitFor: req.whenUserLoaded}).then(->
             req.model = model
@@ -195,7 +204,7 @@ module.exports = (moduleOptions = {})->
     # no query is present, and return either a JSON representation or a rendered page, depending
     router.get('/.:format?', (req, res, next)->
         res.dbStartTime = new Date()
-        collection = new Backbone.Collection([], {model: modelCtor})
+        collection = new Backbone.Collection([], {model: ModelCtor})
         collection.url = modelProto.urlRoot
         if Object.keys(req.query).length > 0
             collection.query = req.query
@@ -212,19 +221,19 @@ module.exports = (moduleOptions = {})->
     router.get('/:modelId-:slug.:format?', (req, res, next)->
         if !req.model then return next(404)
 
-        sendModel(req, res, next, req.model)
+        sendItem(req, res, next, req.model)
     )
     router.get('/:modelId.:format?', (req, res, next)->
         if !req.model then return next(404)
 
-        sendModel(req, res, next, req.model)
+        sendItem(req, res, next, req.model)
     )
 
     # * Provides a route to instantiate an object in the riak DB.
     router.post('/', (req, res, next)->
-        model = new modelCtor(req.body)
+        model = new ModelCtor(req.body)
         if model.isNew()
-            saveModel(req, res, next, model, {create: true})
+            saveItem(req, res, next, model, {create: true})
 
         else
             # allow specifying initial id, unless it is already taken
@@ -234,7 +243,7 @@ module.exports = (moduleOptions = {})->
                 next(new Error("#{idAttribute} '#{model.id}' is already taken"))
             , (err)->
                 if err.statusCode is 404
-                    saveModel(req, res, next, model, {create: true})
+                    saveItem(req, res, next, model, {create: true})
                 else
                     next(err)
             )
@@ -249,10 +258,10 @@ module.exports = (moduleOptions = {})->
             model.set(req.body, {validate: false})
         else
             # allow creation by PUT
-            model = new modelCtor(req.body)
+            model = new ModelCtor(req.body)
             options.create = true
 
-        saveModel(req, res, next, model, options)
+        saveItem(req, res, next, model, options)
     )
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
@@ -261,7 +270,7 @@ module.exports = (moduleOptions = {})->
 
         model = req.model
         model.set(req.body, {editor: req.user})
-        saveModel(req, res, next, model)
+        saveItem(req, res, next, model)
     )
 
     # * Provides a route to DELETE an object by the appropriate `modelID` in the riak DB
@@ -329,7 +338,7 @@ module.exports = (moduleOptions = {})->
         if req.linkDef.multiple
             sendList(req, res, next, req.linkTarget)
         else
-            sendModel(req, res, next, req.linkTarget)
+            sendItem(req, res, next, req.linkTarget)
     )
 
     router.patch("/:modelId/:linkName", (req, res, next)->
@@ -347,7 +356,7 @@ module.exports = (moduleOptions = {})->
         delete req.body[child.idAttribute]
 
         child.set(req.body, {editor: req.user})
-        saveModel(req, res, next, child)
+        saveItem(req, res, next, child)
     )
 
     router.put("/:modelId/:linkName", (req, res, next)->
@@ -365,7 +374,7 @@ module.exports = (moduleOptions = {})->
         child.attributes = req.body
         child.set(child.attributes, {editor: req.user})
 
-        saveModel(req, res, next, child)
+        saveItem(req, res, next, child)
     )
 
     router.post("/:modelId/:linkName", (req, res, next)->
@@ -398,7 +407,7 @@ module.exports = (moduleOptions = {})->
             parent.save({}, {wait: true, editor: req.user}).then(->
                 res.status(201)
                 res.location(child.url()) # no need to do a full redirect
-                sendModel(req, res, next, child)
+                sendItem(req, res, next, child)
             , (err)->
                 # updating the parent failed during validation or write
                 # destroy the orphaned child and report the error condition
