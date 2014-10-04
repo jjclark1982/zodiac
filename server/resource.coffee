@@ -13,7 +13,12 @@ require("./backbone-sync-riak")
 saveItem = (req, res, next, model, options={})->
     model.vclock = req.get("X-Riak-Vclock")
 
-    isValid = model.save({}, {
+    unless model.isValid({editor: req.user})
+        res.status(403)
+        return next(new Error(model.validationError))
+
+    model.save({}, {
+        validate: false
         wait: true
         editor: req.user
         success: ->
@@ -24,21 +29,41 @@ saveItem = (req, res, next, model, options={})->
                 if req.method is "POST"
                     return res.redirect(303, model.url())
 
+            if options.updateParent
+                parent = req.model
+                child = model
+                unless parent.hasLink(req.linkDef.name, child)
+                    # save the parent with updated id and send the child
+                    parent.addLink(req.linkDef.name, child, {validate: false})
+                    unless parent.isValid({editor: req.user})
+                        if options.create
+                            child.destroy() 
+                        res.status(403)
+                        return next(new Error(parent.validationError))
+
+                    options = {validate: false, wait: true, editor: req.user}
+                    parent.save({}, options).then(->
+                        sendItem(req, res, next, child)
+                    , (error)->
+                        if options.create
+                            child.destroy() 
+                        next(error)
+                    )
+                    return
+
             sendItem(req, res, next, model)
         error: (error)->
             next(error)
     })
-
-    unless isValid
-        res.status(403)
-        return next(new Error(model.validationError))
 
 sendItem = (req, res, next, model)->
     format = req.params.format or req.accepts(['json', 'html'])
     unless format in ['json', 'html']
         return next(406)
 
-    res.location(model.url())
+    # always send the canonical url
+    res.location(model.__proto__.url.call(model))
+
     links = {
         up: model.urlRoot
     }
@@ -217,7 +242,7 @@ module.exports = (moduleOptions = {})->
     )
 
     # * Provides a route that GETs either a JSON representation, or the `itemView`, of the passed-in model by ID.
-    #TODO: handle multiple options in case of editing conflict
+    # TODO: handle multiple options in case of editing conflict
     router.get('/:modelId-:slug.:format?', (req, res, next)->
         if !req.model then return next(404)
 
@@ -237,7 +262,7 @@ module.exports = (moduleOptions = {})->
 
         else
             # allow specifying initial id, unless it is already taken
-            # TODO: filter out url special characters from id so it can be reached
+            # TODO: filter out url special characters from id to guarantee it can be reached
             model.fetch().then(->
                 res.status(409)
                 next(new Error("#{idAttribute} '#{model.id}' is already taken"))
@@ -254,8 +279,9 @@ module.exports = (moduleOptions = {})->
         options = {}
         if req.model
             model = req.model
+            # TODO: provide some way to un-set attributes
             # model.attributes = req.body
-            model.set(req.body, {validate: false})
+            model.set(req.body, {validate: false}) # will validate in saveItem
         else
             # allow creation by PUT
             model = new ModelCtor(req.body)
@@ -266,7 +292,10 @@ module.exports = (moduleOptions = {})->
 
     # * Provides a route to partially update (PATCH) an object by the appropriate `modelID` in the riak DB
     router.patch('/:modelId', (req, res, next)->
+        # disallow creation by PATCH
         if !req.model then return next(404)
+        # disallow changing id
+        delete req.body[model.idAttribute]
 
         model = req.model
         model.set(req.body, {editor: req.user})
@@ -287,11 +316,10 @@ module.exports = (moduleOptions = {})->
     router.get("/:modelId/versions", (req, res, next)->
         # in order to access versions of a model:
         # we have to set the bucket policy to something other than LWW
-        # pick the most relevant sibling in most cases
+        # pick the most relevant sibling in other cases
         # and send all siblings in this case
         next(501)
     )
-
 
     # links are similar to indexes
     # they get stored by id in the data object itself
@@ -300,34 +328,36 @@ module.exports = (moduleOptions = {})->
     # or we can use link-walking to skip the `modelId` handler for faster reads
 
     router.param("linkName", (req, res, next, linkName)->
-        linkDef = modelProto.fieldDefs()[linkName]
-
-        if linkDef?.type isnt "link"
-            return next(404)
-
-        req.linkDef = linkDef
         parent = req.model
         child = parent.getLink(linkName)
-        if !child
-            req.linkTarget = null
-            return next()
+        linkDef = parent.fieldDefs()[linkName]
+
+        req.linkDef = linkDef
+        req.linkTarget = child
+
+        if !linkDef or !child
+            # invalid link name or definition
+            return next(404)
 
         if linkDef.multiple
-            req.linkTarget = child
-            # at this point it's a skeleton collection
+            # at this point it's a skeleton collection, can be filled in when sending
+            return next()
+
+        else if child.isNew()
+            # send a blank item for well-formed but unpopulated links
             return next()
 
         else
+            # fill in existing data for single ones
             child.fetch().then(->
-                req.linkTarget = child
                 next()
 
             , (err)->
                 if err.statusCode is 404
                     # TODO: update the parent data to reflect the missing child?
-                    req.linkTarget = null
                     next()
                 else
+                    req.linkTarget = null
                     next(err)
             )
     )
@@ -343,16 +373,16 @@ module.exports = (moduleOptions = {})->
 
     router.patch("/:modelId/:linkName", (req, res, next)->
         child = req.linkTarget
-        if !child
-            # don't allow creation by PATCH
+        # disallow creation by PATCH
+        if !child or child.isNew()
             return next(404)
 
+        # disallow editing an entire collection
         if req.linkDef.multiple
-            # don't allow editing an entire collection
             res.set({"Allow": "GET, HEAD, POST"})
             return next(405)
 
-        # don't allow setting id for links
+        # disallow setting id for links
         delete req.body[child.idAttribute]
 
         child.set(req.body, {editor: req.user})
@@ -361,78 +391,67 @@ module.exports = (moduleOptions = {})->
 
     router.put("/:modelId/:linkName", (req, res, next)->
         child = req.linkTarget
-        if !child
-            # don't allow creation by PUT
-            return next(404)
 
+        # disallow editing an entire collection
         if req.linkDef.multiple
-            # don't allow editing an entire collection
             res.set({"Allow": "GET, HEAD, POST"})
             return next(405)
 
-        req.body[child.idAttribute] = child.id
-        child.attributes = req.body
-        child.set(child.attributes, {editor: req.user})
+        options = {}
+        # allow creation by PUT
+        if child.isNew()
+            options.create = true
+            # after a successful save, we want to update the link id in the parent
+            options.updateParent = true
 
-        saveItem(req, res, next, child)
+        # disallow setting id for links
+        delete req.body[child.idAttribute]
+
+        child.set(req.body, {editor: req.user})
+        saveItem(req, res, next, child, options)
     )
 
     router.post("/:modelId/:linkName", (req, res, next)->
+        # synchronous require() is ok here because all model modules should be cached by now
         TargetCtor = require("models/"+req.linkDef.target)
         targetProto = TargetCtor.prototype
 
-        # don't allow setting id for links
+        # disallow setting id for links
         delete req.body[targetProto.idAttribute]
 
         child = new TargetCtor(req.body)
-        unless child.isValid({editor: req.user})
-            res.status(403)
-            return next(new Error(child.validationError))
-        child.save({}, {wait: true, editor: req.user}).then(->
-            parent = req.model
 
-            if req.linkDef.multiple
-                # add to the list of links
-                children = parent.getLink(req.params.linkName) or []
-                children.push(child)
-                isValid = parent.setLink(req.params.linkName, children, {editor: req.user})
-            else
-                # replace any existing link
-                oldChild = req.linkTarget
-                # TODO: determine if this has made an orphan of a 'cascadeDelete' link
-                isValid = parent.setLink(req.params.linkName, child, {editor: req.user})
-            unless isValid
-                res.status(403)
-                return next(new Error(parent.validationError))
-            parent.save({}, {wait: true, editor: req.user}).then(->
-                res.status(201)
-                res.location(child.url()) # no need to do a full redirect
-                sendItem(req, res, next, child)
-            , (err)->
-                # updating the parent failed during validation or write
-                # destroy the orphaned child and report the error condition
-                child.destroy()
-                next(err)
-            )
-        , next)
-        return
+        options = {
+            create: true
+            updateParent: true
+        }
+        saveItem(req, res, next, child, options)
     )
 
     router.delete("/:modelId/:linkName", (req, res, next)->
         parent = req.model
-        oldChild = req.linkTarget
-        if !oldChild
+        child = req.linkTarget
+        
+        if !child
             return next(404)
+
+        if child.isNew()
+            res.status(204)
+            return res.end()
+
+        if req.linkDef.multiple
+            # need some way to specify which item to delete
+            return next(501)
 
         isValid = parent.removeLink(req.params.linkName, {editor: req.user})
         unless isValid
             res.status(403)
             return next(new Error(parent.validationError))
-        parent.save({}, {wait: true, editor: req.user}).then(->
+        parent.save({}, {validate: false, wait: true, editor: req.user}).then(->
             res.location(parent.url())
             res.status(204)
             res.end()
-            # TODO: also destroy the orphaned child?
+            # TODO: also destroy the child if it belongs to the parent
         , next)
     )
 
