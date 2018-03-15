@@ -112,7 +112,7 @@ You may wish to install some of these globally with `npm install -g`
 
 - [Express](http://expressjs.com/) - Middleware-oriented asynchronous web server
 based on [Connect](http://www.senchalabs.org/connect/)
-- [Mocha](http://visionmedia.github.com/mocha/) - Unit testing
+- [Mocha](http://mochajs.org/) - Unit testing
 - [Riak-js](http://riakjs.com/) - Client for [Riak](http://docs.basho.com/riak/latest/dev/references/http/)
 - [Passport](http://passportjs.org/) - Authentication
 
